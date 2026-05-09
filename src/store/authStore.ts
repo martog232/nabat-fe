@@ -3,6 +3,34 @@ import { persist, type PersistOptions } from 'zustand/middleware'
 import type { User } from '../types'
 import { authApi } from '../api/auth'
 
+function getApiErrorMessage(err: unknown, fallback: string) {
+  if (typeof err === 'object' && err !== null && 'response' in err) {
+    const response = (err as { response?: { data?: unknown } }).response
+    const data = response?.data
+
+    if (typeof data === 'object' && data !== null) {
+      const maybeMessage = (data as { message?: unknown }).message
+      if (typeof maybeMessage === 'string' && maybeMessage.trim()) {
+        return maybeMessage
+      }
+
+      const maybeErrors = (data as { errors?: unknown }).errors
+      if (typeof maybeErrors === 'object' && maybeErrors !== null) {
+        const firstError = Object.values(maybeErrors as Record<string, unknown>).find((v) => typeof v === 'string')
+        if (typeof firstError === 'string' && firstError.trim()) {
+          return firstError
+        }
+      }
+    }
+  }
+
+  if (err instanceof Error && err.message.trim()) {
+    return err.message
+  }
+
+  return fallback
+}
+
 interface AuthState {
   user: User | null
   accessToken: string | null
@@ -47,7 +75,7 @@ const createAuthState: StateCreator<
       localStorage.setItem('refreshToken', data.refreshToken)
       set({ user: data.user, accessToken: data.accessToken, refreshToken: data.refreshToken, isLoading: false })
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Login failed'
+      const msg = getApiErrorMessage(err, 'Login failed')
       set({ isLoading: false, error: msg })
       throw err
     }
@@ -61,7 +89,7 @@ const createAuthState: StateCreator<
       localStorage.setItem('refreshToken', data.refreshToken)
       set({ user: data.user, accessToken: data.accessToken, refreshToken: data.refreshToken, isLoading: false })
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Registration failed'
+      const msg = getApiErrorMessage(err, 'Registration failed')
       set({ isLoading: false, error: msg })
       throw err
     }
