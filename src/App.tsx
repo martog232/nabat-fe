@@ -4,6 +4,7 @@ import { LoginPage } from './pages/LoginPage'
 import { RegisterPage } from './pages/RegisterPage'
 import { MapPage } from './pages/MapPage'
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
+import { ToastContainer } from './components/common/ToastContainer'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -29,6 +30,10 @@ export default function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
+
+      {/* Global toast notifications — rendered outside the router so they
+          survive page transitions and are always on top of the map */}
+      <ToastContainer />
     </QueryClientProvider>
   )
 }

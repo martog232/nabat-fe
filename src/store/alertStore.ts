@@ -11,6 +11,7 @@ interface AlertStore {
 
   setAlerts: (alerts: Alert[]) => void
   addAlert: (alert: Alert) => void
+  upsertAlerts: (alerts: Alert[]) => void
   selectAlert: (alert: Alert | null) => void
   setMapCenter: (center: [number, number]) => void
   setMapZoom: (zoom: number) => void
@@ -32,6 +33,33 @@ export const useAlertStore = create<AlertStore>((set) => ({
       const exists = s.alerts.some((a) => a.id === alert.id)
       if (exists) return s
       return { alerts: [alert, ...s.alerts] }
+    }),
+  upsertAlerts: (alerts) =>
+    set((s) => {
+      if (!alerts.length) return s
+
+      const incomingById = new Map<string, Alert>()
+      for (const alert of alerts) {
+        incomingById.set(alert.id, alert)
+      }
+
+      if (!incomingById.size) return s
+
+      let hasUpdate = false
+      const mergedExisting = s.alerts.map((existing) => {
+        const incoming = incomingById.get(existing.id)
+        if (!incoming) return existing
+        incomingById.delete(existing.id)
+        hasUpdate = true
+        return incoming
+      })
+
+      if (!incomingById.size) {
+        return hasUpdate ? { alerts: mergedExisting } : s
+      }
+
+      const newAlerts = Array.from(incomingById.values()).reverse()
+      return { alerts: [...newAlerts, ...mergedExisting] }
     }),
   selectAlert: (alert) => set({ selectedAlert: alert }),
   setMapCenter: (center) => set({ mapCenter: center }),

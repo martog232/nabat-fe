@@ -23,13 +23,17 @@ export function AlertDetail() {
   if (!selectedAlert) return null
 
   const a = selectedAlert
+
+  // The vote type currently being submitted — used to show a per-button spinner
+  const pendingVoteType = vote.isPending ? (vote.variables as VoteType | undefined) : undefined
+  const isMutating = vote.isPending || removeVote.isPending
+
   const credibilityScore = stats
     ? stats.upvoteCount + stats.confirmationCount - stats.downvoteCount
     : 0
 
   const handleVote = (voteType: VoteType) => {
-    if (!user) return
-    // If user already voted, remove their vote; otherwise cast the chosen vote
+    if (!user || isMutating) return
     if (myVote?.hasVoted) {
       removeVote.mutate()
     } else {
@@ -75,28 +79,52 @@ export function AlertDetail() {
             </span>
           </div>
 
-          {/* Vote stats */}
+          {/* Vote buttons */}
           {stats && (
             <div className="grid grid-cols-3 gap-2">
-              {[
-                { label: '👍 Up', val: stats.upvoteCount, type: 'UPVOTE' },
-                { label: '👎 Down', val: stats.downvoteCount, type: 'DOWNVOTE' },
-                { label: '✅ Confirm', val: stats.confirmationCount, type: 'CONFIRM' },
-              ].map(({ label, val, type }) => (
-                <button
-                  key={type}
-                  disabled={!user || vote.isPending || removeVote.isPending}
-                  onClick={() => handleVote(type as VoteType)}
-                  className={`
-                    flex flex-col items-center py-2 rounded-xl border transition-all cursor-pointer
-                    ${myVote?.hasVoted ? 'border-brand-500/50 bg-brand-500/10' : 'border-surface-border bg-surface-elevated hover:border-brand-500/30'}
-                    disabled:opacity-50 disabled:cursor-not-allowed
-                  `}
-                >
-                  <span className="text-xs font-bold text-slate-900 dark:text-white">{val}</span>
-                  <span className="text-xs text-slate-600 dark:text-slate-400">{label}</span>
-                </button>
-              ))}
+              {(
+                [
+                  { label: 'Up',      emoji: '👍', val: stats.upvoteCount,       type: 'UPVOTE'   },
+                  { label: 'Down',    emoji: '👎', val: stats.downvoteCount,     type: 'DOWNVOTE' },
+                  { label: 'Confirm', emoji: '✅', val: stats.confirmationCount, type: 'CONFIRM'  },
+                ] as { label: string; emoji: string; val: number; type: VoteType }[]
+              ).map(({ label, emoji, val, type }) => {
+                const isThisPending = pendingVoteType === type
+                const isRemoving    = removeVote.isPending && myVote?.hasVoted
+                const isActive      = myVote?.hasVoted && !isMutating
+                const isAnyPending  = isMutating && !isThisPending
+
+                return (
+                  <button
+                    key={type}
+                    disabled={!user || isAnyPending || isThisPending || isRemoving}
+                    onClick={() => handleVote(type)}
+                    className={`
+                      relative flex flex-col items-center py-2 rounded-xl border
+                      transition-all duration-150 cursor-pointer overflow-hidden
+                      ${isThisPending || isRemoving
+                        ? 'border-brand-500/60 bg-brand-500/15 scale-95'
+                        : isActive
+                          ? 'border-brand-500/50 bg-brand-500/10'
+                          : 'border-surface-border bg-surface-elevated hover:border-brand-500/30 hover:scale-[1.03]'}
+                      disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100
+                    `}
+                  >
+                    {/* Spinner overlay when this button is pending */}
+                    {(isThisPending || isRemoving) && (
+                      <span className="absolute inset-0 flex items-center justify-center bg-brand-500/10 rounded-xl">
+                        <span className="w-4 h-4 border-2 border-brand-400 border-t-transparent rounded-full animate-spin" />
+                      </span>
+                    )}
+                    <span className={`text-xs font-bold text-slate-900 dark:text-white transition-opacity ${isThisPending || isRemoving ? 'opacity-0' : 'opacity-100'}`}>
+                      {val}
+                    </span>
+                    <span className={`text-xs text-slate-600 dark:text-slate-400 transition-opacity ${isThisPending || isRemoving ? 'opacity-0' : 'opacity-100'}`}>
+                      {emoji} {label}
+                    </span>
+                  </button>
+                )
+              })}
             </div>
           )}
 
