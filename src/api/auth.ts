@@ -1,4 +1,4 @@
-import type { AuthResponse, LoginRequest, RegisterRequest, User } from '../types'
+import type { AuthResponse, LoginRequest, RegisterRequest, User, WebSocketTicketResponse } from '../types'
 import { apiClient } from './client'
 
 export const authApi = {
@@ -17,4 +17,7 @@ export const authApi = {
         { refreshToken },
       )
       .then((r) => r.data),
+
+  getWsTicket: () =>
+    apiClient.post<WebSocketTicketResponse>('/ws/tickets', {}).then((r) => r.data),
 }
