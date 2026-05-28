@@ -1,5 +1,5 @@
 import { useAlertStore } from '../../store/alertStore'
-import { useVoteStats, useMyVote, useVote, useRemoveVote } from '../../hooks/useAlerts'
+import { useVoteStats, useMyVote, useVote, useRemoveVote, useResolveAlert } from '../../hooks/useAlerts'
 import { useAuthStore } from '../../store/authStore'
 import { ALERT_TYPE_ICONS, ALERT_TYPE_LABELS } from '../../types'
 import { SeverityBadge } from '../common/Badge'
@@ -19,6 +19,7 @@ export function AlertDetail() {
   const { data: myVote } = useMyVote(selectedAlert?.id ?? '')
   const vote = useVote(selectedAlert?.id ?? '')
   const removeVote = useRemoveVote(selectedAlert?.id ?? '')
+  const resolveAlert = useResolveAlert(selectedAlert?.id ?? '')
 
   if (!selectedAlert) return null
 
@@ -27,6 +28,10 @@ export function AlertDetail() {
   // The vote type currently being submitted — used to show a per-button spinner
   const pendingVoteType = vote.isPending ? (vote.variables as VoteType | undefined) : undefined
   const isMutating = vote.isPending || removeVote.isPending
+  const canResolve =
+    a.status === 'ACTIVE' &&
+    !!user &&
+    (user.id === a.reportedBy || user.role === 'ADMIN')
 
   const credibilityScore = stats
     ? stats.upvoteCount + stats.confirmationCount - stats.downvoteCount
@@ -40,6 +45,12 @@ export function AlertDetail() {
       vote.mutate(voteType)
     }
   }
+
+  const handleResolve = () => {
+    if (!canResolve || resolveAlert.isPending) return
+    resolveAlert.mutate()
+  }
+
   return (
     <div className="absolute bottom-20 left-0 right-0 mx-4 sm:left-auto sm:right-4 sm:mx-0 sm:w-96 z-[1000] animate-slide-in-right">
       <div className="bg-surface-card border border-surface-border rounded-2xl shadow-2xl overflow-hidden">
@@ -47,7 +58,7 @@ export function AlertDetail() {
         <div className="relative p-4 border-b border-surface-border">
           <button
             onClick={() => selectAlert(null)}
-            className="absolute top-3 right-3 w-7 h-7 rounded-full flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-surface-elevated transition-colors"
+            className="absolute top-3 right-3 w-7 h-7 rounded-full flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-surface-elevated transition"
           >
             ✕
           </button>
@@ -78,6 +89,21 @@ export function AlertDetail() {
               {a.status}
             </span>
           </div>
+
+          {a.status === 'RESOLVED' && a.resolvedAt && (
+            <div className="text-xs text-slate-500">Resolved {formatDate(a.resolvedAt)}</div>
+          )}
+
+          {/* Resolve button */}
+          {canResolve && (
+            <button
+              onClick={handleResolve}
+              disabled={resolveAlert.isPending}
+              className="w-full rounded-xl border border-brand-500/40 bg-brand-500/10 text-brand-400 py-2 text-sm font-semibold hover:border-brand-500/70 hover:bg-brand-500/15 transition disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {resolveAlert.isPending ? 'Resolving…' : 'Resolve alert'}
+            </button>
+          )}
 
           {/* Vote buttons */}
           {stats && (
