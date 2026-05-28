@@ -18,4 +18,7 @@ export const alertsApi = {
 
   create: (data: CreateAlertRequest) =>
     apiClient.post<Alert>('/alerts', data).then((r) => r.data),
+
+  resolve: (id: string) =>
+    apiClient.patch<Alert>(`/alerts/${id}/resolve`).then((r) => r.data),
 }
