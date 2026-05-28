@@ -86,6 +86,11 @@ export interface RefreshTokenResponse {
   expiresIn: number
 }
 
+export interface WebSocketTicketResponse {
+  ticket: string
+  expiresAt: string // ISO Instant
+}
+
 export interface CreateAlertRequest {
   title: string              // 1–200
   description: string        // 1–2000

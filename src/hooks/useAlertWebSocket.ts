@@ -2,6 +2,7 @@ import { useEffect, useRef, useCallback } from 'react'
 import { buildWebSocketUrl } from '../api/client'
 import { useAlertStore } from '../store/alertStore'
 import { alertsApi } from '../api/alerts'
+import { authApi } from '../api/auth'
 import type { Alert, WsFrame } from '../types'
 
 const WS_FLUSH_INTERVAL_MS = 400
@@ -106,7 +107,7 @@ export function useAlertWebSocket() {
     flushTimer.current = setTimeout(flushPendingAlerts, WS_FLUSH_INTERVAL_MS)
   }, [flushPendingAlerts])
 
-  const connect = useCallback(() => {
+  const connect = useCallback(async () => {
     const token = localStorage.getItem('accessToken')
 
     if (!token || !shouldReconnect.current) {
@@ -119,7 +120,26 @@ export function useAlertWebSocket() {
       reconnectTimer.current = null
     }
 
-    const url = buildWebSocketUrl('/ws/alerts', { token })
+    let ticket: string
+    try {
+      const wsTicket = await authApi.getWsTicket()
+      ticket = wsTicket.ticket
+    } catch {
+      setWsConnected(false)
+
+      if (!shouldReconnect.current) return
+
+      reconnectAttempt.current += 1
+      const delay = Math.min(30_000, 3_000 * 2 ** Math.min(reconnectAttempt.current - 1, 4))
+      reconnectTimer.current = setTimeout(() => {
+        void connect()
+      }, delay)
+      return
+    }
+
+    if (!shouldReconnect.current) return
+
+    const url = buildWebSocketUrl('/ws/alerts', { ticket })
     const ws = new WebSocket(url)
     wsRef.current = ws
 
@@ -168,7 +188,9 @@ export function useAlertWebSocket() {
 
       reconnectAttempt.current += 1
       const delay = Math.min(30_000, 3_000 * 2 ** Math.min(reconnectAttempt.current - 1, 4))
-      reconnectTimer.current = setTimeout(connect, delay)
+      reconnectTimer.current = setTimeout(() => {
+        void connect()
+      }, delay)
     }
 
     ws.onerror = () => {
@@ -177,11 +199,11 @@ export function useAlertWebSocket() {
         ws.close()
       }
     }
-  }, [flushPendingAlerts, scheduleFlush, setWsConnected])
+  }, [flushPendingAlerts, scheduleFlush, setWsConnected, upsertAlerts])
 
   useEffect(() => {
     shouldReconnect.current = true
-    connect()
+    void connect()
 
     return () => {
       flushPendingAlerts()
