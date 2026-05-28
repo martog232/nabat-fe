@@ -26,6 +26,62 @@ export function useCreateAlert() {
   })
 }
 
+export function useResolveAlert(alertId: string) {
+  const qc = useQueryClient()
+
+  return useMutation({
+    mutationFn: () => alertsApi.resolve(alertId),
+
+    onMutate: async () => {
+      await qc.cancelQueries({ queryKey: ['alerts'] })
+      const prevAlerts = useAlertStore.getState().alerts
+      const prevSelected = useAlertStore.getState().selectedAlert
+
+      useAlertStore.getState().upsertAlerts(
+        prevAlerts.map((a) =>
+          a.id === alertId && a.status === 'ACTIVE'
+            ? { ...a, status: 'RESOLVED', resolvedAt: new Date().toISOString() }
+            : a,
+        ),
+      )
+
+      if (prevSelected?.id === alertId) {
+        useAlertStore.getState().selectAlert({
+          ...prevSelected,
+          status: 'RESOLVED',
+          resolvedAt: new Date().toISOString(),
+        })
+      }
+
+      return { prevAlerts, prevSelected }
+    },
+
+    onError: (_err, _vars, context) => {
+      if (context?.prevAlerts) {
+        useAlertStore.getState().setAlerts(context.prevAlerts)
+      }
+      if (context?.prevSelected) {
+        useAlertStore.getState().selectAlert(context.prevSelected)
+      }
+      useToastStore.getState().addToast({
+        type: 'error',
+        message: 'Could not resolve the alert — changes were rolled back.',
+      })
+    },
+
+    onSuccess: (resolved) => {
+      useAlertStore.getState().upsertAlerts([resolved])
+      if (useAlertStore.getState().selectedAlert?.id === resolved.id) {
+        useAlertStore.getState().selectAlert(resolved)
+      }
+    },
+
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ['alerts'] })
+    },
+  })
+}
+
 export function useVoteStats(alertId: string) {
   return useQuery({
     queryKey: ['votes', alertId, 'stats'],
