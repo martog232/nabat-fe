@@ -5,7 +5,6 @@ import 'leaflet/dist/leaflet.css'
 import { useAlertStore } from '../../store/alertStore'
 import { useThemeStore } from '../../store/themeStore'
 import { AlertMarker } from './AlertMarker'
-import { RadiusSelector } from './RadiusSelector'
 
 function MapEventHandler() {
   const { setMapCenter, setMapZoom, setFollowUser } = useAlertStore()
@@ -36,6 +35,32 @@ function FollowModeController() {
   }, [followUser, map, userLat, userLng])
 
   return null
+}
+
+function ZoomButtons() {
+  const map = useMap()
+  return (
+    <div className="absolute bottom-24 right-4 z-[1000] flex flex-col gap-1">
+      <button
+        type="button"
+        onClick={() => map.zoomIn()}
+        className="h-10 w-10 rounded-full border border-white/10 bg-surface-card/95 backdrop-blur-sm text-xl font-bold text-slate-100 hover:bg-surface-hover transition-colors shadow-lg leading-none"
+        title="Zoom in"
+        aria-label="Zoom in"
+      >
+        +
+      </button>
+      <button
+        type="button"
+        onClick={() => map.zoomOut()}
+        className="h-10 w-10 rounded-full border border-white/10 bg-surface-card/95 backdrop-blur-sm text-xl font-bold text-slate-100 hover:bg-surface-hover transition-colors shadow-lg leading-none"
+        title="Zoom out"
+        aria-label="Zoom out"
+      >
+        −
+      </button>
+    </div>
+  )
 }
 
 export function AlertMap() {
@@ -72,7 +97,7 @@ export function AlertMap() {
         center={mapCenter}
         zoom={mapZoom}
         className="w-full h-full"
-        zoomControl
+        zoomControl={false}
       >
         <TileLayer
           url={tileUrl}
@@ -80,6 +105,7 @@ export function AlertMap() {
         />
         <MapEventHandler />
         <FollowModeController />
+        <ZoomButtons />
         {userLat !== null && userLng !== null && (
           <>
             <Circle
@@ -100,13 +126,10 @@ export function AlertMap() {
           <AlertMarker key={alert.id} alert={alert} />
         ))}
       </MapContainer>
-      <div className="absolute top-4 right-4 z-[1000]">
-        <RadiusSelector />
-      </div>
       <button
         type="button"
         onClick={() => setFollowUser(!followUser)}
-        className="absolute bottom-24 right-4 z-[1000] h-10 w-10 rounded-full border border-white/10 bg-surface-card/95 backdrop-blur-sm text-lg text-slate-100 hover:bg-surface-hover transition-colors shadow-lg"
+        className="absolute bottom-4 right-4 z-[1000] h-10 w-10 rounded-full border border-white/10 bg-surface-card/95 backdrop-blur-sm text-lg text-slate-100 hover:bg-surface-hover transition-colors shadow-lg"
         title={followUser ? 'Disable follow mode' : 'Enable follow mode'}
         aria-label={followUser ? 'Disable follow mode' : 'Enable follow mode'}
       >

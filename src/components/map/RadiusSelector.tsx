@@ -50,8 +50,8 @@ export function RadiusSelector() {
   }
 
   return (
-    <div className="rounded-xl border border-white/10 bg-surface-card/95 backdrop-blur-sm p-2 shadow-lg">
-      <p className="text-xs font-medium text-slate-300 mb-2 px-1">Alert radius</p>
+    <div className="rounded-xl border border-surface-border bg-surface-elevated p-2">
+      <p className="text-xs font-medium text-slate-500 dark:text-slate-300 mb-2 px-1">Alert radius</p>
       <div className="flex items-center gap-1">
         {RADIUS_OPTIONS.map((value) => {
           const isActive = value === radiusKm
@@ -63,7 +63,7 @@ export function RadiusSelector() {
               className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
                 isActive
                   ? 'bg-brand-500 text-white'
-                  : 'bg-surface-card text-slate-300 hover:bg-surface-hover'
+                  : 'bg-surface-DEFAULT text-slate-600 dark:text-slate-300 hover:bg-surface-hover'
               }`}
             >
               {value} km

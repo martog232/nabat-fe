@@ -1,9 +1,13 @@
 import { useAlertStore } from '../../store/alertStore'
 import { useNearbyAlerts } from '../../hooks/useAlerts'
+import { useAuthStore } from '../../store/authStore'
+import { useThemeStore } from '../../store/themeStore'
 import { AlertCard } from './AlertCard'
 import type { AlertSeverity, AlertType } from '../../types'
 import { ALERT_TYPE_LABELS, ALERT_TYPE_ICONS } from '../../types'
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { RadiusSelector } from '../map/RadiusSelector'
 
 type SeverityFilter = AlertSeverity | 'ALL'
 
@@ -13,6 +17,11 @@ export function AlertSidebar() {
   const [severityFilter, setSeverityFilter] = useState<SeverityFilter>('ALL')
   const [typeFilter, setTypeFilter] = useState<AlertType | 'ALL'>('ALL')
   const [isOpen, setIsOpen] = useState(true)
+  const user = useAuthStore((s) => s.user)
+  const logout = useAuthStore((s) => s.logout)
+  const theme = useThemeStore((s) => s.theme)
+  const toggleTheme = useThemeStore((s) => s.toggleTheme)
+  const navigate = useNavigate()
 
   const filtered = alerts.filter((a) => {
     if (severityFilter !== 'ALL' && a.severity !== severityFilter) return false
@@ -87,6 +96,11 @@ export function AlertSidebar() {
               </button>
             ))}
           </div>
+
+          {/* Radius selector */}
+          <div className="mt-3">
+            <RadiusSelector />
+          </div>
         </div>
 
         {/* Type filter scrollable row */}
@@ -126,6 +140,41 @@ export function AlertSidebar() {
           ) : (
             filtered.map((alert) => <AlertCard key={alert.id} alert={alert} />)
           )}
+        </div>
+
+        {/* Footer: theme toggle + user + logout */}
+        <div className="border-t border-surface-border px-4 py-3 flex items-center gap-3">
+          {/* Night mode toggle */}
+          <button
+            type="button"
+            onClick={toggleTheme}
+            title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-surface-elevated hover:bg-surface-hover transition-colors text-base"
+          >
+            {theme === 'dark' ? '☀️' : '🌙'}
+          </button>
+
+          {/* Username */}
+          <div className="flex-1 min-w-0">
+            <p className="text-xs text-slate-500 dark:text-slate-400 truncate leading-none mb-0.5">Signed in as</p>
+            <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate leading-none">
+              {user?.displayName ?? user?.email ?? '—'}
+            </p>
+          </div>
+
+          {/* Logout */}
+          <button
+            type="button"
+            onClick={() => { logout(); navigate('/login') }}
+            title="Sign out"
+            className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-surface-elevated hover:bg-red-500/20 text-slate-500 dark:text-slate-400 hover:text-red-500 transition-colors text-base"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+          </button>
         </div>
       </div>
     </>

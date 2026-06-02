@@ -1,6 +1,6 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios'
 
-const DEFAULT_API_BASE = 'http://127.0.0.1:8080/api/v1'
+const DEFAULT_API_BASE = '/api/v1'
 
 function normalizeBaseUrl(value: string) {
   return value.replace(/\/+$/, '')
@@ -15,6 +15,41 @@ function toWebSocketBase(httpBase: string) {
   return normalizeBaseUrl(url.toString())
 }
 
+function isHttpUrl(value: string) {
+  return /^https?:\/\//i.test(value)
+}
+
+function isWsUrl(value: string) {
+  return /^wss?:\/\//i.test(value)
+}
+
+function resolveHttpBase(value: string) {
+  const normalized = normalizeBaseUrl(value)
+  if (isHttpUrl(normalized)) return normalized
+
+  const path = normalized.startsWith('/') ? normalized : `/${normalized}`
+  if (typeof window !== 'undefined') {
+    return `${window.location.origin}${path}`
+  }
+
+  return `http://127.0.0.1:8080${path}`
+}
+
+function resolveWebSocketBase(value: string, fallbackHttpBase: string) {
+  const normalized = normalizeBaseUrl(value)
+
+  if (isWsUrl(normalized)) return normalized
+  if (isHttpUrl(normalized)) return toWebSocketBase(normalized)
+
+  const path = normalized.startsWith('/') ? normalized : `/${normalized}`
+  if (typeof window !== 'undefined') {
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+    return `${protocol}//${window.location.host}${path}`
+  }
+
+  return toWebSocketBase(fallbackHttpBase)
+}
+
 function toAxiosBase(httpBase: string) {
   if (/\/api\/v\d+$/i.test(httpBase)) return httpBase
   return normalizeBaseUrl(`${httpBase}/api/v1`)
@@ -23,7 +58,11 @@ function toAxiosBase(httpBase: string) {
 export const API_BASE = normalizeBaseUrl(
   import.meta.env.VITE_API_BASE_URL ?? import.meta.env.VITE_API_BASE ?? DEFAULT_API_BASE,
 )
-export const WS_BASE = normalizeBaseUrl(import.meta.env.VITE_WS_BASE ?? toWebSocketBase(API_BASE))
+const RESOLVED_HTTP_BASE = resolveHttpBase(API_BASE)
+export const WS_BASE = resolveWebSocketBase(
+  import.meta.env.VITE_WS_BASE ?? toWebSocketBase(RESOLVED_HTTP_BASE),
+  RESOLVED_HTTP_BASE,
+)
 
 export function buildWebSocketUrl(path: string, params?: Record<string, string | null | undefined>) {
   const url = new URL(path.replace(/^\/+/, ''), `${WS_BASE}/`)

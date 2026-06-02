@@ -32,12 +32,7 @@
 }
 .leaflet-tile-pane { filter: var(--leaflet-filter); }
 .leaflet-control-attribution { display: none; }
-.leaflet-control-zoom a {
-  background: rgb(var(--surface-elevated)) !important;
-  color: rgb(var(--text-primary)) !important;
-  border-color: rgb(var(--surface-border)) !important;
-}
-.leaflet-control-zoom a:hover { background: rgb(var(--surface-border)) !important; }
+.leaflet-control-zoom { display: none !important; }
 .leaflet-popup-content-wrapper {
   background: rgb(var(--surface-card));
   border: 1px solid rgb(var(--surface-border));
@@ -46,6 +41,15 @@
   box-shadow: 0 20px 40px rgba(0,0,0,0.5);
 }
 .leaflet-popup-tip { background: rgb(var(--surface-card)); }
+
+/* Fix @tailwindcss/forms overriding dark-mode input backgrounds */
+.dark input:not([type='checkbox']):not([type='radio']):not([type='range']),
+.dark textarea,
+.dark select {
+  background-color: rgb(var(--surface-elevated)) !important;
+  color: rgb(var(--text-primary)) !important;
+  border-color: rgb(var(--surface-border)) !important;
+}
 
 /* Custom scrollbar */
 ::-webkit-scrollbar { width: 4px; }

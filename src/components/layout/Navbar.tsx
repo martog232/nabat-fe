@@ -1,19 +1,8 @@
-import { Link, useNavigate } from 'react-router-dom'
-import { useAuthStore } from '../../store/authStore'
-import { Button } from '../common/Button'
-import { ThemeToggle } from '../common/ThemeToggle'
+import { Link } from 'react-router-dom'
 
 export function Navbar() {
-  const { user, logout } = useAuthStore()
-  const navigate = useNavigate()
-
-  const handleLogout = () => {
-    logout()
-    navigate('/login')
-  }
-
   return (
-    <nav className="absolute top-0 left-0 right-0 z-[1000] flex items-center justify-between px-4 py-3">
+    <nav className="absolute top-0 left-0 right-0 z-[1000] flex items-center px-4 py-3">
       {/* Logo */}
       <Link to="/" className="flex items-center gap-2">
         <div className="w-8 h-8 rounded-full bg-brand-600 flex items-center justify-center shadow-lg shadow-brand-600/40">
@@ -23,36 +12,6 @@ export function Navbar() {
         </div>
         <span className="font-bold text-slate-900 dark:text-white text-lg tracking-tight">Nabat</span>
       </Link>
-
-      {/* Right side */}
-      {user ? (
-        <div className="flex items-center gap-3">
-          <ThemeToggle className="text-slate-500 dark:text-slate-300" />
-          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-card/80 backdrop-blur border border-surface-border">
-            <div className="w-6 h-6 rounded-full bg-brand-600/30 flex items-center justify-center">
-              <span className="text-xs text-brand-400 font-semibold">
-                {user.displayName?.[0]?.toUpperCase() ?? user.email?.[0]?.toUpperCase() ?? '?'}
-              </span>
-            </div>
-            <span className="text-sm text-slate-700 dark:text-slate-300 max-w-[120px] truncate">{user.displayName ?? user.email}</span>
-          </div>
-          <Button variant="ghost" size="sm" onClick={handleLogout} className="text-slate-600 dark:text-slate-400">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
-          </Button>
-        </div>
-      ) : (
-        <div className="flex items-center gap-2">
-          <ThemeToggle className="text-slate-500 dark:text-slate-300" />
-          <Link to="/login">
-            <Button variant="ghost" size="sm">Login</Button>
-          </Link>
-          <Link to="/register">
-            <Button size="sm">Sign up</Button>
-          </Link>
-        </div>
-      )}
     </nav>
   )
 }

@@ -1,9 +1,8 @@
 import { divIcon } from 'leaflet'
-import { Marker, Popup } from 'react-leaflet'
+import { Marker } from 'react-leaflet'
 import type { Alert } from '../../types'
-import { ALERT_TYPE_ICONS, SEVERITY_MARKER_COLORS, ALERT_TYPE_LABELS } from '../../types'
+import { ALERT_TYPE_ICONS, SEVERITY_MARKER_COLORS } from '../../types'
 import { useAlertStore } from '../../store/alertStore'
-import { SeverityBadge } from '../common/Badge'
 
 interface AlertMarkerProps {
   alert: Alert
@@ -48,19 +47,6 @@ export function AlertMarker({ alert }: AlertMarkerProps) {
       position={[alert.latitude, alert.longitude]}
       icon={createAlertIcon(alert)}
       eventHandlers={{ click: () => selectAlert(alert) }}
-    >
-      <Popup>
-        <div className="min-w-[200px]">
-          <div className="flex items-start justify-between gap-2 mb-1">
-            <span className="font-semibold text-sm text-slate-900 dark:text-white leading-tight">{alert.title}</span>
-            <SeverityBadge severity={alert.severity} />
-          </div>
-          <p className="text-xs text-slate-600 dark:text-slate-400 mb-2 line-clamp-2">{alert.description}</p>
-          <span className="text-xs text-slate-700 dark:text-slate-500">
-            {ALERT_TYPE_ICONS[alert.type]} {ALERT_TYPE_LABELS[alert.type]}
-          </span>
-        </div>
-      </Popup>
-    </Marker>
+    />
   )
 }
