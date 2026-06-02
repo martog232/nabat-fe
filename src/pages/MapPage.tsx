@@ -9,6 +9,7 @@ import { useNearbyAlerts } from '../hooks/useAlerts'
 import { useAuthStore } from '../store/authStore'
 import { useAlertStore } from '../store/alertStore'
 import { Button } from '../components/common/Button'
+import { useGeolocation } from '../hooks/useGeolocation'
 
 export function MapPage() {
   const user = useAuthStore((s) => s.user)
@@ -20,6 +21,7 @@ export function MapPage() {
 
   // Real-time WebSocket
   useAlertWebSocket()
+  useGeolocation()
 
   return (
     <Layout>
