@@ -26,6 +26,7 @@ src/
     client.ts    # apiClient (Axios instance) + buildWebSocketUrl()
     alerts.ts    # alertsApi  (getNearby, getSince, create)
     auth.ts      # authApi
+    user.ts      # userApi (update preferences: radius + last known location)
     votes.ts     # votesApi
   components/
     alerts/      # AlertCard, AlertDetail, AlertSidebar, CreateAlertModal
@@ -33,9 +34,11 @@ src/
     common/      # shared UI primitives (Toast, Spinner, …)
     layout/      # shell, nav
     map/         # Leaflet map wrapper + alert markers
+                # includes RadiusSelector and user follow-mode controls
   hooks/
     useAlerts.ts           # periodic REST polling for nearby alerts
     useAlertWebSocket.ts   # real-time WS connection + reconnect + catch-up
+    useGeolocation.ts      # GPS watch + store updates + throttled preference sync
   pages/
     LoginPage.tsx
     RegisterPage.tsx
@@ -47,6 +50,8 @@ src/
     toastStore.ts   # Zustand — toast notifications queue
   types/
     index.ts        # All shared TypeScript types (mirrors backend DTOs exactly)
+  utils/
+    geo.ts          # shared Haversine distance helper (metres)
 ```
 
 ---
@@ -67,15 +72,33 @@ The hook is the single owner of the WebSocket lifecycle. Key behaviours:
 3. **Exponential backoff reconnect** — on close, waits `3 s × 2^(attempt−1)`, capped at 30 s.
 4. **State catch-up on reconnect** — records `disconnectedAt` (ISO timestamp) when the socket closes; on the next successful open calls `alertsApi.getSince(lat, lng, radiusKm, since)` to backfill any missed alerts, then clears `disconnectedAt`.
 5. **Cleanup** — flushes any pending alerts and closes the socket on unmount.
-
-> ⚠️ The `useAlertWebSocket` hook currently passes `?token=<accessToken>` from `localStorage` in `buildWebSocketUrl`. This must be migrated to the ticket flow (`POST /api/v1/ws/tickets`) — see Known Gaps.
+6. **Proximity toasts** — after each batch flush, if user GPS position is known, computes Haversine distance to each incoming alert and shows an `info` toast when inside `radiusKm`.
 
 ### Alert store (`store/alertStore.ts`)
 - `alerts: Alert[]` — master list, newest first.
 - `upsertAlerts(alerts)` — merges by `id`: updates existing records in-place, prepends new ones. Used by both the WS flush and the catch-up REST call.
 - `addAlert(alert)` — prepends only if not already present (used for single inserts).
 - `mapCenter`, `mapZoom`, `radiusKm` — controlled by the map component; `useAlertWebSocket` reads `mapCenter` and `radiusKm` for catch-up queries.
+- `userLat`, `userLng`, `locationAccuracy` — latest browser GPS fix from `useGeolocation`.
+- `followUser` — map follow-mode flag; when enabled, GPS updates pan the map to the user.
 - `wsConnected` — flag surfaced to the UI for a connection indicator.
+
+### Geolocation + preferences sync (`hooks/useGeolocation.ts`, `api/user.ts`, `utils/geo.ts`)
+- `useGeolocation` starts `navigator.geolocation.watchPosition(...)` while `MapPage` is mounted.
+- Each GPS fix updates `alertStore.setUserLocation(lat, lng, accuracy)`.
+- When `followUser` is true, each fix also updates `mapCenter`.
+- Preferences sync is fire-and-forget via `PATCH /api/v1/users/me/preferences`, throttled to only sync when moved >200 m or when >5 minutes elapsed since last sync.
+- Distance calculations use shared `haversineDistanceM(...)` from `src/utils/geo.ts`.
+
+### Radius selector + map overlays (`components/map/RadiusSelector.tsx`, `components/map/AlertMap.tsx`)
+- Radius presets: `1 / 5 / 10 / 25 / 50 km`.
+- Selector applies optimistic `setRadiusKm(...)` immediately, then debounces server sync (800 ms).
+- On sync failure, radius is rolled back and an error toast is shown.
+- `AlertMap` renders:
+  - user marker (custom blue pulsing dot),
+  - user radius circle (`radiusKm * 1000` metres),
+  - follow-mode toggle button (`🎯` follow / `🗺️` free-pan).
+- Manual map drag disables follow mode.
 
 ### Periodic REST polling (`hooks/useAlerts.ts`)
 - Polls `GET /api/v1/alerts/nearby` every 30 s using `mapCenter` and `radiusKm` from the store.
@@ -136,7 +159,6 @@ npm run type-check # tsc --noEmit
 
 | Area | Status | Notes |
 |------|--------|-------|
-| WS ticket flow | ❌ Bug | `useAlertWebSocket` passes `?token=<JWT>` instead of a short-lived ticket. Needs `authApi.getWsTicket()` → `POST /api/v1/ws/tickets`, then pass `?ticket=<ticket>` |
 | Optimistic vote UI | ❌ Missing | `AlertDetail` vote buttons call API and wait. Implement: update store immediately, roll back with toast on error |
 | Resolve alert UI | ❌ Missing | Backend has `Alert.resolve()` but no endpoint. Once backend exposes `PATCH /api/v1/alerts/{id}/resolve`, add button in `AlertDetail` (reporter + admin only) |
 | Admin role enforcement | ❌ Missing | `Role.ADMIN` exists; no UI gates any action behind it |

@@ -4,6 +4,8 @@ import { useAlertStore } from '../store/alertStore'
 import { alertsApi } from '../api/alerts'
 import { authApi } from '../api/auth'
 import type { Alert, WsFrame } from '../types'
+import { useToastStore } from '../store/toastStore'
+import { haversineDistanceM } from '../utils/geo'
 
 const WS_FLUSH_INTERVAL_MS = 400
 
@@ -100,6 +102,20 @@ export function useAlertWebSocket() {
     const batch = pendingAlerts.current
     pendingAlerts.current = []
     upsertAlerts(batch)
+
+    const { userLat, userLng, radiusKm } = useAlertStore.getState()
+    if (userLat === null || userLng === null) return
+
+    for (const alert of batch) {
+      const distM = haversineDistanceM(userLat, userLng, alert.latitude, alert.longitude)
+      if (distM <= radiusKm * 1000) {
+        useToastStore.getState().addToast({
+          type: 'info',
+          message: `${alert.type.replace(/_/g, ' ')}: ${alert.title} (${(distM / 1000).toFixed(1)} km away)`,
+          duration: 6_000,
+        })
+      }
+    }
   }, [upsertAlerts])
 
   const scheduleFlush = useCallback(() => {
