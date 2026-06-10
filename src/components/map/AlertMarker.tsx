@@ -1,3 +1,4 @@
+import { memo, useMemo } from 'react'
 import { divIcon } from 'leaflet'
 import { Marker } from 'react-leaflet'
 import type { Alert } from '../../types'
@@ -39,14 +40,17 @@ function createAlertIcon(alert: Alert) {
   })
 }
 
-export function AlertMarker({ alert }: AlertMarkerProps) {
+function AlertMarkerInner({ alert }: AlertMarkerProps) {
   const selectAlert = useAlertStore((s) => s.selectAlert)
+  const icon = useMemo(() => createAlertIcon(alert), [alert])
 
   return (
     <Marker
       position={[alert.latitude, alert.longitude]}
-      icon={createAlertIcon(alert)}
-      eventHandlers={{ click: () => selectAlert(alert) }}
+      icon={icon}
+      eventHandlers={{ click: () => selectAlert(alert.id) }}
     />
   )
 }
+
+export const AlertMarker = memo(AlertMarkerInner)

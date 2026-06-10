@@ -17,12 +17,13 @@ function timeAgo(iso: string): string {
 }
 
 export function AlertCard({ alert }: AlertCardProps) {
-  const { selectedAlert, selectAlert } = useAlertStore()
-  const isSelected = selectedAlert?.id === alert.id
+  const selectedAlertId = useAlertStore((s) => s.selectedAlertId)
+  const selectAlert = useAlertStore((s) => s.selectAlert)
+  const isSelected = selectedAlertId === alert.id
 
   return (
     <button
-      onClick={() => selectAlert(isSelected ? null : alert)}
+      onClick={() => selectAlert(isSelected ? null : alert.id)}
       className={`
         w-full text-left p-3 rounded-xl border transition-all duration-150 cursor-pointer
         ${isSelected

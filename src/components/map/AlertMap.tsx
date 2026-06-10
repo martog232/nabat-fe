@@ -4,6 +4,7 @@ import { Circle, MapContainer, Marker, TileLayer, useMap, useMapEvents } from 'r
 import 'leaflet/dist/leaflet.css'
 import { useAlertStore } from '../../store/alertStore'
 import { useThemeStore } from '../../store/themeStore'
+import { useNearbyAlerts } from '../../hooks/useAlerts'
 import { AlertMarker } from './AlertMarker'
 
 function MapEventHandler() {
@@ -64,7 +65,8 @@ function ZoomButtons() {
 }
 
 export function AlertMap() {
-  const { mapCenter, mapZoom, alerts, userLat, userLng, radiusKm, followUser, setFollowUser } = useAlertStore()
+  const { data: alerts = [] } = useNearbyAlerts()
+  const { mapCenter, mapZoom, userLat, userLng, radiusKm, followUser, setFollowUser } = useAlertStore()
   const theme = useThemeStore((s) => s.theme)
   const tileUrl = theme === 'dark'
     ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'

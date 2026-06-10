@@ -5,6 +5,7 @@ import { LoginPage } from './pages/LoginPage'
 import { RegisterPage } from './pages/RegisterPage'
 import { MapPage } from './pages/MapPage'
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
+import { ErrorBoundary } from './components/common/ErrorBoundary'
 import { ToastContainer } from './components/common/ToastContainer'
 import { useThemeStore } from './store/themeStore'
 
@@ -23,6 +24,7 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
+        <ErrorBoundary>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
@@ -36,6 +38,7 @@ export default function App() {
           />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        </ErrorBoundary>
       </BrowserRouter>
 
       {/* Global toast notifications — rendered outside the router so they

@@ -1,5 +1,5 @@
 import { useAlertStore } from '../../store/alertStore'
-import { useVoteStats, useMyVote, useVote, useRemoveVote, useResolveAlert } from '../../hooks/useAlerts'
+import { useVoteStats, useMyVote, useVote, useRemoveVote, useResolveAlert, useNearbyAlerts } from '../../hooks/useAlerts'
 import { useAuthStore } from '../../store/authStore'
 import { ALERT_TYPE_ICONS, ALERT_TYPE_LABELS } from '../../types'
 import { SeverityBadge } from '../common/Badge'
@@ -12,7 +12,10 @@ function formatDate(iso: string) {
 }
 
 export function AlertDetail() {
-  const { selectedAlert, selectAlert } = useAlertStore()
+  const selectedAlertId = useAlertStore((s) => s.selectedAlertId)
+  const selectAlert = useAlertStore((s) => s.selectAlert)
+  const { data: alerts = [] } = useNearbyAlerts()
+  const selectedAlert = alerts.find((a) => a.id === selectedAlertId) ?? null
   const user = useAuthStore((s) => s.user)
 
   const { data: stats } = useVoteStats(selectedAlert?.id ?? '')
@@ -34,7 +37,7 @@ export function AlertDetail() {
     (user.id === a.reportedBy || user.role === 'ADMIN')
 
   const credibilityScore = stats
-    ? stats.upvoteCount + stats.confirmationCount - stats.downvoteCount
+    ? stats.credibilityScore
     : 0
 
   const handleVote = (voteType: VoteType) => {
@@ -110,9 +113,9 @@ export function AlertDetail() {
             <div className="grid grid-cols-3 gap-2">
               {(
                 [
-                  { label: 'Up',      emoji: '👍', val: stats.upvoteCount,       type: 'UPVOTE'   },
-                  { label: 'Down',    emoji: '👎', val: stats.downvoteCount,     type: 'DOWNVOTE' },
-                  { label: 'Confirm', emoji: '✅', val: stats.confirmationCount, type: 'CONFIRM'  },
+                  { label: 'Up',      emoji: '👍', val: stats.upvotes,       type: 'UPVOTE'   },
+                  { label: 'Down',    emoji: '👎', val: stats.downvotes,     type: 'DOWNVOTE' },
+                  { label: 'Confirm', emoji: '✅', val: stats.confirmations, type: 'CONFIRM'  },
                 ] as { label: string; emoji: string; val: number; type: VoteType }[]
               ).map(({ label, emoji, val, type }) => {
                 const isThisPending = pendingVoteType === type

@@ -1,8 +1,5 @@
+import type { UserPreferencesResponse } from '../types'
 import { apiClient } from './client'
-
-export interface UserPreferencesResponse {
-  notificationRadiusKm: number
-}
 
 export const userApi = {
   updatePreferences: (prefs: {

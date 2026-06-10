@@ -137,7 +137,7 @@ All types mirror backend DTOs exactly. Key contracts:
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `VITE_API_BASE_URL` | Base URL of the Nabat backend (no trailing slash) | `http://127.0.0.1:8080/api/v1` |
+| `VITE_API_BASE_URL` | Base URL — goes through Kong by default for dev/prod parity | `http://localhost:8000/api/v1` |
 
 Use `127.0.0.1`, not `localhost` (Windows IPv6 quirk — backend also uses `127.0.0.1`).
 
@@ -147,10 +147,12 @@ Use `127.0.0.1`, not `localhost` (Windows IPv6 quirk — backend also uses `127.
 
 ```bash
 npm install
-npm run dev        # Vite dev server on :5173, proxies /api → backend
-npm run build      # production build to dist/
-npm run lint       # ESLint
-npm run type-check # tsc --noEmit
+npm run dev          # Vite dev server on :5173, proxies /api → Kong (:8000) by default
+npm run build        # production build to dist/
+npm run lint         # ESLint
+npm run type-check   # tsc --noEmit
+npm run test         # vitest (29 tests across 6 files)
+npm run test:watch   # vitest in watch mode
 ```
 
 ---
@@ -159,9 +161,9 @@ npm run type-check # tsc --noEmit
 
 | Area | Status | Notes |
 |------|--------|-------|
-| Optimistic vote UI | ❌ Missing | `AlertDetail` vote buttons call API and wait. Implement: update store immediately, roll back with toast on error |
-| Resolve alert UI | ❌ Missing | Backend has `Alert.resolve()` but no endpoint. Once backend exposes `PATCH /api/v1/alerts/{id}/resolve`, add button in `AlertDetail` (reporter + admin only) |
+| Optimistic vote UI | ✅ Done | `useAlerts.ts` implements optimistic updates with rollback via `useMutation` `onMutate`/`onError` |
+| Resolve alert UI | ✅ Done | `AlertDetail.tsx` has resolve button (reporter + admin only) |
 | Admin role enforcement | ❌ Missing | `Role.ADMIN` exists; no UI gates any action behind it |
 | Notification panel | ❌ Missing | Backend `NotificationService` + WS push is implemented. FE needs to handle `NOTIFICATION` WS frame type and display an inbox |
 | `GetNotificationUseCase` | ❌ Missing | Backend endpoint not yet exposed; blocked |
-| Test coverage | ❌ None | No tests exist. Start with Vitest unit tests for store actions and hook logic |
+| Test coverage | ✅ 29 tests | `vitest` + `@testing-library/react` — stores, utils, and component tests |

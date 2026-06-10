@@ -1,10 +1,9 @@
-import { useAlertStore } from '../../store/alertStore'
 import { useNearbyAlerts } from '../../hooks/useAlerts'
 import { useAuthStore } from '../../store/authStore'
 import { useThemeStore } from '../../store/themeStore'
 import { AlertCard } from './AlertCard'
+import { AlertFilters } from './AlertFilters'
 import type { AlertSeverity, AlertType } from '../../types'
-import { ALERT_TYPE_LABELS, ALERT_TYPE_ICONS } from '../../types'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { RadiusSelector } from '../map/RadiusSelector'
@@ -12,8 +11,7 @@ import { RadiusSelector } from '../map/RadiusSelector'
 type SeverityFilter = AlertSeverity | 'ALL'
 
 export function AlertSidebar() {
-  const { alerts } = useAlertStore()
-  const { isLoading, isFetching } = useNearbyAlerts()
+  const { data: alerts = [], isLoading, isFetching } = useNearbyAlerts()
   const [severityFilter, setSeverityFilter] = useState<SeverityFilter>('ALL')
   const [typeFilter, setTypeFilter] = useState<AlertType | 'ALL'>('ALL')
   const [isOpen, setIsOpen] = useState(true)
@@ -28,8 +26,6 @@ export function AlertSidebar() {
     if (typeFilter !== 'ALL' && a.type !== typeFilter) return false
     return true
   })
-
-  const severities: SeverityFilter[] = ['ALL', 'CRITICAL', 'HIGH', 'MEDIUM', 'LOW']
 
   return (
     <>
@@ -78,49 +74,18 @@ export function AlertSidebar() {
             </span>
           </div>
 
-          {/* Severity pills */}
-          <div className="flex gap-1.5 flex-wrap">
-            {severities.map((s) => (
-              <button
-                key={s}
-                onClick={() => setSeverityFilter(s)}
-                className={`
-                  px-2.5 py-1 rounded-full text-xs font-medium transition-all cursor-pointer
-                  ${severityFilter === s
-                    ? 'bg-brand-600 text-white'
-                    : 'bg-surface-elevated text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-                  }
-                `}
-              >
-                {s === 'ALL' ? 'All' : s.charAt(0) + s.slice(1).toLowerCase()}
-              </button>
-            ))}
-          </div>
+          {/* Severity + type filters */}
+          <AlertFilters
+            severityFilter={severityFilter}
+            typeFilter={typeFilter}
+            onSeverityChange={setSeverityFilter}
+            onTypeChange={setTypeFilter}
+          />
 
           {/* Radius selector */}
-          <div className="mt-3">
+          <div className="mt-3 px-4 pb-2">
             <RadiusSelector />
           </div>
-        </div>
-
-        {/* Type filter scrollable row */}
-        <div className="flex gap-2 px-4 py-2.5 overflow-x-auto border-b border-surface-border">
-          <button
-            onClick={() => setTypeFilter('ALL')}
-            className={`flex-shrink-0 px-2.5 py-1 rounded-full text-xs font-medium transition-all cursor-pointer ${typeFilter === 'ALL' ? 'bg-brand-600 text-white' : 'bg-surface-elevated text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'}`}
-          >
-            All types
-          </button>
-          {(Object.keys(ALERT_TYPE_LABELS) as AlertType[]).map((t) => (
-            <button
-              key={t}
-              onClick={() => setTypeFilter(t)}
-              className={`flex-shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-all cursor-pointer ${typeFilter === t ? 'bg-brand-600 text-white' : 'bg-surface-elevated text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'}`}
-            >
-              <span>{ALERT_TYPE_ICONS[t]}</span>
-              <span>{ALERT_TYPE_LABELS[t]}</span>
-            </button>
-          ))}
         </div>
 
         {/* Alert list */}

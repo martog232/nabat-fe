@@ -48,12 +48,15 @@ export interface Alert {
   resolvedAt: string | null  // ISO Instant or null while ACTIVE
 }
 
-export type AlertWithStats = Alert
+export interface UserPreferencesResponse {
+  notificationRadiusKm: number
+}
 
 export interface VoteStats {
-  upvoteCount: number
-  downvoteCount: number
-  confirmationCount: number
+  upvotes: number
+  downvotes: number
+  confirmations: number
+  credibilityScore: number
 }
 
 // ─── API request/response types ──────────────────────────────────────────────
