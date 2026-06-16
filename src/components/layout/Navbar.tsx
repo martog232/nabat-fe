@@ -1,8 +1,26 @@
+import { useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
+import { useAuthStore } from '../../store/authStore'
+import { useUnreadCount } from '../../hooks/useNotifications'
+import { NotificationPanel } from '../notifications/NotificationPanel'
 
 export function Navbar() {
+  const [showNotifications, setShowNotifications] = useState(false)
+  const { data: unreadCount } = useUnreadCount()
+  const user = useAuthStore((s) => s.user)
+
+  const count = unreadCount?.count ?? 0
+
+  const toggleNotifications = useCallback(() => {
+    setShowNotifications((prev) => !prev)
+  }, [])
+
+  const closeNotifications = useCallback(() => {
+    setShowNotifications(false)
+  }, [])
+
   return (
-    <nav className="absolute top-0 left-0 right-0 z-[1000] flex items-center px-4 py-3">
+    <nav className="absolute top-0 left-0 right-0 z-[1000] flex items-center justify-between px-4 py-3">
       {/* Logo */}
       <Link to="/" className="flex items-center gap-2">
         <div className="w-8 h-8 rounded-full bg-brand-600 flex items-center justify-center shadow-lg shadow-brand-600/40">
@@ -12,6 +30,31 @@ export function Navbar() {
         </div>
         <span className="font-bold text-slate-900 dark:text-white text-lg tracking-tight">Nabat</span>
       </Link>
+
+      {/* Right section */}
+      {user && (
+        <div className="relative flex items-center gap-2">
+          {/* Notification bell */}
+          <button
+            onClick={toggleNotifications}
+            className="relative p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-surface-elevated/50 transition-colors"
+            aria-label="Notifications"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+            </svg>
+            {count > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center w-4.5 h-4.5 text-[10px] font-bold text-white bg-red-500 rounded-full min-w-[18px] min-h-[18px] leading-none">
+                {count > 99 ? '99+' : count}
+              </span>
+            )}
+          </button>
+
+          {/* Notification dropdown */}
+          {showNotifications && <NotificationPanel onClose={closeNotifications} />}
+        </div>
+      )}
     </nav>
   )
 }

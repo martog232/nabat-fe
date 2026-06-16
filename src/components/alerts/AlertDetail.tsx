@@ -1,5 +1,6 @@
 import { useAlertStore } from '../../store/alertStore'
-import { useVoteStats, useMyVote, useVote, useRemoveVote, useResolveAlert, useNearbyAlerts } from '../../hooks/useAlerts'
+import { useVoteStats, useMyVote, useVote, useRemoveVote } from '../../hooks/useVotes'
+import { useResolveAlert, useNearbyAlerts } from '../../hooks/useAlerts'
 import { useAuthStore } from '../../store/authStore'
 import { ALERT_TYPE_ICONS, ALERT_TYPE_LABELS } from '../../types'
 import { SeverityBadge } from '../common/Badge'

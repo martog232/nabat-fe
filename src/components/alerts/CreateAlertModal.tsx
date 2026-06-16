@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useAlertStore } from '../../store/alertStore'
 import { useCreateAlert } from '../../hooks/useAlerts'
+import { uploadsApi } from '../../api/uploads'
 import type { AlertType, AlertSeverity, CreateAlertRequest } from '../../types'
 import { ALERT_TYPE_LABELS, ALERT_TYPE_ICONS } from '../../types'
 import { Button } from '../common/Button'
@@ -23,6 +24,9 @@ const SEVERITY_STYLES: Record<AlertSeverity, string> = {
   CRITICAL: 'border-red-500/50 bg-red-500/10 text-red-400',
 }
 
+const MAX_PHOTO_SIZE_MB = 10
+const MAX_PHOTO_SIZE_BYTES = MAX_PHOTO_SIZE_MB * 1024 * 1024
+
 export function CreateAlertModal({ onClose, prefillLat, prefillLng }: Props) {
   const { mapCenter } = useAlertStore()
   const mutation = useCreateAlert()
@@ -37,6 +41,11 @@ export function CreateAlertModal({ onClose, prefillLat, prefillLng }: Props) {
   })
 
   const [errors, setErrors] = useState<Partial<Record<keyof CreateAlertRequest, string>>>({})
+  const [photoFile, setPhotoFile] = useState<File | null>(null)
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null)
+  const [photoUploading, setPhotoUploading] = useState(false)
+  const [photoError, setPhotoError] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const overlayRef = useRef<HTMLDivElement>(null)
 
   // Memoize location handler to prevent unnecessary re-renders of the picker
@@ -62,6 +71,41 @@ export function CreateAlertModal({ onClose, prefillLat, prefillLng }: Props) {
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [onClose])
 
+  // Cleanup object URL on unmount
+  useEffect(() => {
+    return () => {
+      if (photoPreview) URL.revokeObjectURL(photoPreview)
+    }
+  }, [photoPreview])
+
+  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    setPhotoError(null)
+    if (!file) {
+      setPhotoFile(null)
+      setPhotoPreview(null)
+      return
+    }
+    if (!file.type.startsWith('image/')) {
+      setPhotoError('Only image files are allowed')
+      return
+    }
+    if (file.size > MAX_PHOTO_SIZE_BYTES) {
+      setPhotoError(`File too large — max ${MAX_PHOTO_SIZE_MB} MB`)
+      return
+    }
+    setPhotoFile(file)
+    setPhotoPreview(URL.createObjectURL(file))
+  }
+
+  const clearPhoto = () => {
+    setPhotoFile(null)
+    if (photoPreview) URL.revokeObjectURL(photoPreview)
+    setPhotoPreview(null)
+    setPhotoError(null)
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
   const validate = (): boolean => {
     const e: typeof errors = {}
     if (!form.title.trim()) e.title = 'Title is required'
@@ -73,12 +117,23 @@ export function CreateAlertModal({ onClose, prefillLat, prefillLng }: Props) {
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault() // Block page reload on explicit submission
+    e.preventDefault()
     if (!validate()) return
+
     try {
-      await mutation.mutateAsync(form)
+      let photoUrl: string | undefined
+
+      if (photoFile) {
+        setPhotoUploading(true)
+        const result = await uploadsApi.upload(photoFile)
+        photoUrl = result.url
+        setPhotoUploading(false)
+      }
+
+      await mutation.mutateAsync({ ...form, photoUrl })
       onClose()
     } catch {
+      setPhotoUploading(false)
       // Error handling is managed upstream via mutation.isError
     }
   }
@@ -192,6 +247,51 @@ export function CreateAlertModal({ onClose, prefillLat, prefillLng }: Props) {
                 onChange={handleLocationChange}
             />
 
+            {/* Photo upload */}
+            <div>
+              <label className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wide block mb-2">
+                Photo (optional)
+              </label>
+              <div className="flex items-center gap-3">
+                <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={photoUploading}
+                    className="px-3 py-2 rounded-lg border border-surface-border bg-surface-elevated text-sm text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  {photoFile ? 'Change photo' : 'Choose photo'}
+                </button>
+                {photoFile && (
+                  <button
+                      type="button"
+                      onClick={clearPhoto}
+                      className="text-xs text-red-400 hover:text-red-300 transition-colors"
+                  >
+                    Remove
+                  </button>
+                )}
+                <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handlePhotoSelect}
+                    className="hidden"
+                />
+              </div>
+              {photoError && (
+                  <p className="text-xs text-red-400 mt-1">{photoError}</p>
+              )}
+              {photoPreview && (
+                  <div className="mt-2 relative inline-block">
+                    <img
+                        src={photoPreview}
+                        alt="Preview"
+                        className="w-24 h-24 object-cover rounded-lg border border-surface-border"
+                    />
+                  </div>
+              )}
+            </div>
+
             {mutation.isError && (
                 <p role="alert" className="text-sm text-red-400 bg-red-400/10 border border-red-400/30 rounded-lg px-3 py-2">
                   Failed to create alert. Please try again.
@@ -204,8 +304,8 @@ export function CreateAlertModal({ onClose, prefillLat, prefillLng }: Props) {
             <Button type="button" variant="secondary" className="flex-1" onClick={onClose}>
               Cancel
             </Button>
-            <Button type="submit" className="flex-1" isLoading={mutation.isPending}>
-              🚨 Report Incident
+            <Button type="submit" className="flex-1" isLoading={mutation.isPending || photoUploading}>
+              {photoUploading ? 'Uploading photo…' : '🚨 Report Incident'}
             </Button>
           </div>
         </form>

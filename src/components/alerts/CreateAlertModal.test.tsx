@@ -20,8 +20,7 @@ function renderModal() {
 
 beforeEach(() => {
   useAlertStore.setState({
-    alerts: [],
-    selectedAlert: null,
+    selectedAlertId: null,
     mapCenter: [42.6977, 23.3219],
     mapZoom: 13,
     radiusKm: 5,

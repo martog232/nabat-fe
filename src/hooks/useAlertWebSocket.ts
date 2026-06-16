@@ -4,9 +4,10 @@ import { buildWebSocketUrl } from '../api/client'
 import { useAlertStore } from '../store/alertStore'
 import { alertsApi } from '../api/alerts'
 import { authApi } from '../api/auth'
-import type { Alert, WsFrame } from '../types'
 import { useToastStore } from '../store/toastStore'
 import { haversineDistanceM } from '../utils/geo'
+import { useWebSocket } from './useWebSocket'
+import type { Alert, WsFrame } from '../types'
 
 const WS_FLUSH_INTERVAL_MS = 400
 
@@ -28,12 +29,8 @@ function mergeAlertsIntoCache(
 export function useAlertWebSocket() {
   const qc = useQueryClient()
   const setWsConnected = useAlertStore((s) => s.setWsConnected)
-  const wsRef = useRef<WebSocket | null>(null)
-  const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const flushTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const pendingAlerts = useRef<Alert[]>([])
-  const reconnectAttempt = useRef(0)
-  const shouldReconnect = useRef(true)
   const disconnectedAt = useRef<string | null>(null)
 
   const flushPendingAlerts = useCallback(() => {
@@ -64,46 +61,41 @@ export function useAlertWebSocket() {
     flushTimer.current = setTimeout(flushPendingAlerts, WS_FLUSH_INTERVAL_MS)
   }, [flushPendingAlerts])
 
-  const connect = useCallback(async () => {
-    const token = localStorage.getItem('accessToken')
+  useWebSocket({
+    getUrl: async () => {
+      const token = localStorage.getItem('accessToken')
+      if (!token) return null
 
-    if (!token || !shouldReconnect.current) {
-      setWsConnected(false)
-      return
-    }
+      try {
+        const wsTicket = await authApi.getWsTicket()
+        return buildWebSocketUrl('/ws/alerts', { ticket: wsTicket.ticket })
+      } catch {
+        return null
+      }
+    },
 
-    if (reconnectTimer.current) {
-      clearTimeout(reconnectTimer.current)
-      reconnectTimer.current = null
-    }
+    onMessage: (data) => {
+      try {
+        const frame: WsFrame = JSON.parse(data)
+        if (frame.type === 'NEW_ALERT') {
+          pendingAlerts.current.push(frame.alert)
+          scheduleFlush()
+        } else if (frame.type === 'ALERT_UPDATED') {
+          mergeAlertsIntoCache(qc, [frame.alert])
+        } else if (frame.type === 'NOTIFICATION') {
+          qc.invalidateQueries({ queryKey: ['notifications'] })
+          useToastStore.getState().addToast({
+            type: 'info',
+            message: frame.notification.title,
+            duration: 6_000,
+          })
+        }
+      } catch {
+        // ignore malformed frames
+      }
+    },
 
-    let ticket: string
-    try {
-      const wsTicket = await authApi.getWsTicket()
-      ticket = wsTicket.ticket
-    } catch {
-      setWsConnected(false)
-
-      if (!shouldReconnect.current) return
-
-      reconnectAttempt.current += 1
-      const delay = Math.min(30_000, 3_000 * 2 ** Math.min(reconnectAttempt.current - 1, 4))
-      reconnectTimer.current = setTimeout(() => {
-        void connect()
-      }, delay)
-      return
-    }
-
-    if (!shouldReconnect.current) return
-
-    const url = buildWebSocketUrl('/ws/alerts', { ticket })
-    const ws = new WebSocket(url)
-    wsRef.current = ws
-
-    ws.onopen = () => {
-      reconnectAttempt.current = 0
-      setWsConnected(true)
-
+    onOpen: () => {
       const since = disconnectedAt.current
       if (since) {
         disconnectedAt.current = null
@@ -113,53 +105,21 @@ export function useAlertWebSocket() {
           .then((missed) => mergeAlertsIntoCache(qc, missed))
           .catch(() => {})
       }
-    }
+    },
 
-    ws.onmessage = (evt) => {
-      try {
-        const frame: WsFrame = JSON.parse(evt.data as string)
-        if (frame.type === 'NEW_ALERT') {
-          pendingAlerts.current.push(frame.alert)
-          scheduleFlush()
-        }
-      } catch {
-        // ignore malformed frames
-      }
-    }
-
-    ws.onclose = () => {
+    onClose: () => {
       flushPendingAlerts()
       disconnectedAt.current = new Date().toISOString()
-      setWsConnected(false)
+    },
 
-      if (!shouldReconnect.current) return
-
-      reconnectAttempt.current += 1
-      const delay = Math.min(30_000, 3_000 * 2 ** Math.min(reconnectAttempt.current - 1, 4))
-      reconnectTimer.current = setTimeout(() => {
-        void connect()
-      }, delay)
-    }
-
-    ws.onerror = () => {
-      setWsConnected(false)
-      if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
-        ws.close()
-      }
-    }
-  }, [flushPendingAlerts, scheduleFlush, qc, setWsConnected])
+    onConnectionChange: (connected) => {
+      setWsConnected(connected)
+    },
+  })
 
   useEffect(() => {
-    shouldReconnect.current = true
-    void connect()
-
     return () => {
-      flushPendingAlerts()
-      shouldReconnect.current = false
-      setWsConnected(false)
-      if (reconnectTimer.current) clearTimeout(reconnectTimer.current)
       if (flushTimer.current) clearTimeout(flushTimer.current)
-      wsRef.current?.close()
     }
-  }, [connect, flushPendingAlerts, setWsConnected])
+  }, [])
 }

@@ -46,6 +46,7 @@ export interface Alert {
   downvoteCount: number
   confirmationCount: number
   resolvedAt: string | null  // ISO Instant or null while ACTIVE
+  photoUrl?: string          // URL of uploaded photo, if any
 }
 
 export interface UserPreferencesResponse {
@@ -101,6 +102,7 @@ export interface CreateAlertRequest {
   severity: AlertSeverity
   latitude: number           // -90..90
   longitude: number          // -180..180
+  photoUrl?: string          // URL from upload endpoint, if any
 }
 
 export interface VoteRequest {
@@ -121,6 +123,31 @@ export interface ValidationErrorResponse {
   timestamp: string
 }
 
+// ─── Notifications ───────────────────────────────────────────────────────────
+
+export type NotificationType =
+  | 'ALERT_UPVOTED'
+  | 'ALERT_DOWNVOTED'
+  | 'ALERT_CONFIRMED'
+  | 'ALERT_MILESTONE'
+  | 'ALERT_RESOLVED'
+
+export interface Notification {
+  id: string
+  recipientId: string
+  type: NotificationType
+  title: string
+  message: string | null
+  relatedAlertId: string | null
+  triggeredByUserId: string | null
+  read: boolean
+  createdAt: string
+}
+
+export interface UnreadCountResponse {
+  count: number
+}
+
 // ─── WebSocket ───────────────────────────────────────────────────────────────
 
 export interface WsNewAlertFrame {
@@ -128,7 +155,17 @@ export interface WsNewAlertFrame {
   alert: Alert
 }
 
-export type WsFrame = WsNewAlertFrame
+export interface WsAlertUpdatedFrame {
+  type: 'ALERT_UPDATED'
+  alert: Alert
+}
+
+export interface WsNotificationFrame {
+  type: 'NOTIFICATION'
+  notification: Notification
+}
+
+export type WsFrame = WsNewAlertFrame | WsAlertUpdatedFrame | WsNotificationFrame
 
 // ─── UI helpers (unchanged) ──────────────────────────────────────────────────
 
