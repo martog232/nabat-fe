@@ -30,7 +30,7 @@ export function AlertDetail() {
   const a = selectedAlert
 
   // The vote type currently being submitted — used to show a per-button spinner
-  const pendingVoteType = vote.isPending ? (vote.variables as VoteType | undefined) : undefined
+  const pendingVoteType = vote.isPending ? vote.variables : undefined
   const isMutating = vote.isPending || removeVote.isPending
   const canResolve =
     a.status === 'ACTIVE' &&
@@ -43,9 +43,11 @@ export function AlertDetail() {
 
   const handleVote = (voteType: VoteType) => {
     if (!user || isMutating) return
-    if (myVote?.hasVoted) {
+    if (myVote?.voteType === voteType) {
+      // Clicking the vote you already hold toggles it off.
       removeVote.mutate()
     } else {
+      // New vote, or a switch to a different type — the backend upserts either way.
       vote.mutate(voteType)
     }
   }
@@ -120,9 +122,9 @@ export function AlertDetail() {
                 ] as { label: string; emoji: string; val: number; type: VoteType }[]
               ).map(({ label, emoji, val, type }) => {
                 const isThisPending = pendingVoteType === type
-                const isRemoving    = removeVote.isPending && myVote?.hasVoted
-                const isActive      = myVote?.hasVoted && !isMutating
-                const isAnyPending  = isMutating && !isThisPending
+                const isRemoving    = removeVote.isPending && myVote?.voteType === type
+                const isActive      = myVote?.voteType === type && !isMutating
+                const isAnyPending  = isMutating && !isThisPending && !isRemoving
 
                 return (
                   <button

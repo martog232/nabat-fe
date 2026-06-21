@@ -55,9 +55,11 @@ const persistOptions: PersistOptions<AuthState, PersistedAuth> = {
   }),
 }
 
+// The persist mutator's second type argument is `unknown` when composed via
+// create()(persist(...)); annotating it with PersistedAuth here trips strict mode.
 const createAuthState: StateCreator<
   AuthState,
-  [['zustand/persist', PersistedAuth]],
+  [['zustand/persist', unknown]],
   [],
   AuthState
 > = (set) => ({

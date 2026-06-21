@@ -109,6 +109,12 @@ export interface VoteRequest {
   voteType: VoteType
 }
 
+/** Mirrors backend UserVoteResponse from GET /alerts/{id}/votes/me */
+export interface MyVoteResponse {
+  hasVoted: boolean
+  voteType: VoteType | null
+}
+
 // Backend error envelopes (from GlobalExceptionHandler)
 export interface ErrorResponse {
   status: number
