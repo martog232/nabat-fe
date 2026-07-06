@@ -2,10 +2,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import type { AxiosError } from 'axios'
 import { votesApi } from '../api/votes'
 import { useToastStore } from '../store/toastStore'
-import type { MyVoteResponse, VoteStats, VoteType } from '../types'
+import type { VoteDetails, VoteStats, VoteType } from '../types'
 
-const statsKey = (alertId: string) => ['votes', alertId, 'stats'] as const
-const meKey = (alertId: string) => ['votes', alertId, 'me'] as const
+const voteDataKey = (alertId: string) => ['votes', alertId] as const
 
 const COUNTER_KEY: Record<VoteType, 'upvotes' | 'downvotes' | 'confirmations'> = {
   UPVOTE: 'upvotes',
@@ -29,18 +28,21 @@ function applyVoteChange(stats: VoteStats, from: VoteType | null, to: VoteType |
   return withScore(next)
 }
 
-export function useVoteStats(alertId: string) {
+/**
+ * Single query that fetches stats + current user's vote together.
+ * Both pieces of data arrive in one response batch, so the UI
+ * never shows a stale score while the button is already coloured.
+ */
+export function useVoteData(alertId: string) {
   return useQuery({
-    queryKey: statsKey(alertId),
-    queryFn: () => votesApi.getStats(alertId),
-    enabled: !!alertId,
-  })
-}
-
-export function useMyVote(alertId: string) {
-  return useQuery({
-    queryKey: meKey(alertId),
-    queryFn: () => votesApi.getMyVote(alertId),
+    queryKey: voteDataKey(alertId),
+    queryFn: async () => {
+      const [stats, myVote] = await Promise.all([
+        votesApi.getStats(alertId),
+        votesApi.getMyVote(alertId),
+      ])
+      return { stats, myVote } satisfies VoteDetails
+    },
     enabled: !!alertId,
   })
 }
@@ -52,23 +54,22 @@ export function useVote(alertId: string) {
     mutationFn: (voteType: VoteType) => votesApi.vote(alertId, { voteType }),
 
     onMutate: async (voteType: VoteType) => {
-      await qc.cancelQueries({ queryKey: statsKey(alertId) })
-      await qc.cancelQueries({ queryKey: meKey(alertId) })
+      await qc.cancelQueries({ queryKey: voteDataKey(alertId) })
 
-      const prevStats = qc.getQueryData<VoteStats>(statsKey(alertId))
-      const prevMyVote = qc.getQueryData<MyVoteResponse>(meKey(alertId))
+      const prev = qc.getQueryData<VoteDetails>(voteDataKey(alertId))
 
-      if (prevStats) {
-        qc.setQueryData(statsKey(alertId), applyVoteChange(prevStats, prevMyVote?.voteType ?? null, voteType))
+      if (prev) {
+        qc.setQueryData<VoteDetails>(voteDataKey(alertId), {
+          stats: applyVoteChange(prev.stats, prev.myVote.voteType ?? null, voteType),
+          myVote: { hasVoted: true, voteType },
+        })
       }
-      qc.setQueryData<MyVoteResponse>(meKey(alertId), { hasVoted: true, voteType })
 
-      return { prevStats, prevMyVote }
+      return { prev }
     },
 
     onError: (err, _voteType, context) => {
-      if (context?.prevStats !== undefined) qc.setQueryData(statsKey(alertId), context.prevStats)
-      if (context?.prevMyVote !== undefined) qc.setQueryData(meKey(alertId), context.prevMyVote)
+      if (context?.prev) qc.setQueryData(voteDataKey(alertId), context.prev)
       // 409 means the identical vote already exists — the UI is already correct,
       // so resync quietly instead of alarming the user.
       if ((err as AxiosError).response?.status !== 409) {
@@ -80,7 +81,7 @@ export function useVote(alertId: string) {
     },
 
     onSettled: () => {
-      qc.invalidateQueries({ queryKey: ['votes', alertId] })
+      qc.invalidateQueries({ queryKey: voteDataKey(alertId) })
     },
   })
 }
@@ -92,23 +93,22 @@ export function useRemoveVote(alertId: string) {
     mutationFn: () => votesApi.removeVote(alertId),
 
     onMutate: async () => {
-      await qc.cancelQueries({ queryKey: statsKey(alertId) })
-      await qc.cancelQueries({ queryKey: meKey(alertId) })
+      await qc.cancelQueries({ queryKey: voteDataKey(alertId) })
 
-      const prevStats = qc.getQueryData<VoteStats>(statsKey(alertId))
-      const prevMyVote = qc.getQueryData<MyVoteResponse>(meKey(alertId))
+      const prev = qc.getQueryData<VoteDetails>(voteDataKey(alertId))
 
-      if (prevStats) {
-        qc.setQueryData(statsKey(alertId), applyVoteChange(prevStats, prevMyVote?.voteType ?? null, null))
+      if (prev) {
+        qc.setQueryData<VoteDetails>(voteDataKey(alertId), {
+          stats: applyVoteChange(prev.stats, prev.myVote.voteType ?? null, null),
+          myVote: { hasVoted: false, voteType: null },
+        })
       }
-      qc.setQueryData<MyVoteResponse>(meKey(alertId), { hasVoted: false, voteType: null })
 
-      return { prevStats, prevMyVote }
+      return { prev }
     },
 
     onError: (_err, _vars, context) => {
-      if (context?.prevStats !== undefined) qc.setQueryData(statsKey(alertId), context.prevStats)
-      if (context?.prevMyVote !== undefined) qc.setQueryData(meKey(alertId), context.prevMyVote)
+      if (context?.prev) qc.setQueryData(voteDataKey(alertId), context.prev)
       useToastStore.getState().addToast({
         type: 'error',
         message: 'Could not remove your vote — action was undone. Please try again.',
@@ -116,7 +116,7 @@ export function useRemoveVote(alertId: string) {
     },
 
     onSettled: () => {
-      qc.invalidateQueries({ queryKey: ['votes', alertId] })
+      qc.invalidateQueries({ queryKey: voteDataKey(alertId) })
     },
   })
 }

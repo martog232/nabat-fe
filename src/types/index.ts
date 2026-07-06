@@ -115,6 +115,12 @@ export interface MyVoteResponse {
   voteType: VoteType | null
 }
 
+/** Combined vote stats + current user's vote — fetched as a single query so both update in sync */
+export interface VoteDetails {
+  stats: VoteStats
+  myVote: MyVoteResponse
+}
+
 // Backend error envelopes (from GlobalExceptionHandler)
 export interface ErrorResponse {
   status: number

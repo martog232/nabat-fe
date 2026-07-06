@@ -1,5 +1,5 @@
 import { useAlertStore } from '../../store/alertStore'
-import { useVoteStats, useMyVote, useVote, useRemoveVote } from '../../hooks/useVotes'
+import { useVoteData, useVote, useRemoveVote } from '../../hooks/useVotes'
 import { useResolveAlert, useNearbyAlerts } from '../../hooks/useAlerts'
 import { useAuthStore } from '../../store/authStore'
 import { ALERT_TYPE_ICONS, ALERT_TYPE_LABELS } from '../../types'
@@ -19,8 +19,9 @@ export function AlertDetail() {
   const selectedAlert = alerts.find((a) => a.id === selectedAlertId) ?? null
   const user = useAuthStore((s) => s.user)
 
-  const { data: stats } = useVoteStats(selectedAlert?.id ?? '')
-  const { data: myVote } = useMyVote(selectedAlert?.id ?? '')
+  const { data: voteData } = useVoteData(selectedAlert?.id ?? '')
+  const stats = voteData?.stats
+  const myVote = voteData?.myVote
   const vote = useVote(selectedAlert?.id ?? '')
   const removeVote = useRemoveVote(selectedAlert?.id ?? '')
   const resolveAlert = useResolveAlert(selectedAlert?.id ?? '')
