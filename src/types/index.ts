@@ -28,8 +28,9 @@ export interface User {
 
 /**
  * Mirrors backend AlertResponse exactly.
- * The backend already returns vote counts on every alert, so a separate
- * `AlertWithStats` is not strictly needed — kept as an alias for compatibility.
+ *
+ * Carries the vote tallies *and* `credibilityScore`, so a list of alerts is enough to
+ * render credibility without per-alert stats requests.
  */
 export interface Alert {
   id: string                 // UUID
@@ -45,6 +46,7 @@ export interface Alert {
   upvoteCount: number
   downvoteCount: number
   confirmationCount: number
+  credibilityScore: number   // computed by the voting service — never recomputed here
   resolvedAt: string | null  // ISO Instant or null while ACTIVE
   photoUrl?: string          // URL of uploaded photo, if any
 }
@@ -109,6 +111,15 @@ export interface VoteRequest {
   voteType: VoteType
 }
 
+/** Response from POST /alerts/{id}/votes — the recorded vote plus the resulting tallies. */
+export interface VoteReceipt {
+  id: string
+  alertId: string
+  voteType: VoteType
+  createdAt: string
+  stats: VoteStats
+}
+
 /** Mirrors backend UserVoteResponse from GET /alerts/{id}/votes/me */
 export interface MyVoteResponse {
   hasVoted: boolean
@@ -122,17 +133,42 @@ export interface VoteDetails {
 }
 
 // Backend error envelopes (from GlobalExceptionHandler)
+
+/**
+ * Stable failure identifiers. Branch on `code`, never on `message` — the backend
+ * deliberately returns curated prose that may be reworded, and previously replaced
+ * every service message with a generic string, which is why digging through
+ * `data.message` never yielded anything useful.
+ */
+export type ErrorCode =
+  | 'BAD_CREDENTIALS'
+  | 'FORBIDDEN'
+  | 'NOT_FOUND'
+  | 'INVALID_REQUEST'
+  | 'VALIDATION_FAILED'
+  | 'CONFLICT'
+  | 'VOTE_ALREADY_CAST'
+  | 'EMAIL_ALREADY_REGISTERED'
+  | 'UNSUPPORTED_FILE_TYPE'
+  | 'FILE_TOO_LARGE'
+  | 'SERVICE_UNAVAILABLE'
+  | 'INTERNAL_ERROR'
+
 export interface ErrorResponse {
   status: number
+  code: ErrorCode
   message: string
   timestamp: string
+  traceId: string | null
 }
 
 export interface ValidationErrorResponse {
   status: number
+  code: 'VALIDATION_FAILED'
   message: string
   errors: Record<string, string>
   timestamp: string
+  traceId: string | null
 }
 
 // ─── Notifications ───────────────────────────────────────────────────────────

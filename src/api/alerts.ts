@@ -8,8 +8,12 @@ export const alertsApi = {
       .then((r) => r.data),
 
   /**
-   * Fetch alerts created at or after `since` (ISO 8601) within the given radius.
-   * Used for catch-up after a WebSocket reconnect to retrieve missed events.
+   * Alerts created at or after `since` (ISO 8601) within the given radius. Used to
+   * catch up on what was missed while a WebSocket connection was down.
+   *
+   * The backend now actually implements this filter. It previously ignored the unknown
+   * `since` parameter and returned the full nearby list, so the "missed events"
+   * behaviour this function claims never existed.
    */
   getSince: (lat: number, lng: number, radiusKm: number, since: string) =>
     apiClient

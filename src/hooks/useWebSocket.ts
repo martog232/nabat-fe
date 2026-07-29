@@ -42,15 +42,42 @@ export function useWebSocket({
   useEffect(() => {
     shouldReconnect.current = true
 
+    const scheduleReconnect = () => {
+      if (!shouldReconnect.current) return
+
+      reconnectAttempt.current += 1
+      const delay = Math.min(
+        reconnectMaxDelayMs,
+        reconnectBaseDelayMs * 2 ** Math.min(reconnectAttempt.current - 1, 4),
+      )
+      reconnectTimer.current = setTimeout(() => {
+        void connect()
+      }, delay)
+    }
+
     const connect = async () => {
       if (reconnectTimer.current) {
         clearTimeout(reconnectTimer.current)
         reconnectTimer.current = null
       }
 
-      const url = await getUrlRef.current()
-      if (!url || !shouldReconnect.current) {
+      let url: string | null = null
+      try {
+        url = await getUrlRef.current()
+      } catch {
+        url = null
+      }
+
+      if (!shouldReconnect.current) return
+
+      if (!url) {
         onConnectionChangeRef.current?.(false)
+        // Retry rather than giving up. `getUrl` fetches a short-lived WebSocket ticket,
+        // so it fails on any transient error from POST /ws/tickets. Returning here without
+        // scheduling anything meant no socket was created, so no `onclose` ever fired, so
+        // no retry was ever queued — one blip left realtime updates dead until the
+        // component remounted.
+        scheduleReconnect()
         return
       }
 
@@ -70,17 +97,7 @@ export function useWebSocket({
       ws.onclose = () => {
         onConnectionChangeRef.current?.(false)
         onCloseRef.current?.()
-
-        if (!shouldReconnect.current) return
-
-        reconnectAttempt.current += 1
-        const delay = Math.min(
-          reconnectMaxDelayMs,
-          reconnectBaseDelayMs * 2 ** Math.min(reconnectAttempt.current - 1, 4),
-        )
-        reconnectTimer.current = setTimeout(() => {
-          void connect()
-        }, delay)
+        scheduleReconnect()
       }
 
       ws.onerror = () => {

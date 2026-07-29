@@ -19,6 +19,9 @@ const baseAlert: Alert = {
   upvoteCount: 5,
   downvoteCount: 1,
   confirmationCount: 3,
+  // 5 - 1 + 3*2, as the voting service would compute it. Supplied by the API rather
+  // than derived client-side.
+  credibilityScore: 10,
   resolvedAt: null,
 }
 

@@ -27,6 +27,9 @@ const SEVERITY_STYLES: Record<AlertSeverity, string> = {
 const MAX_PHOTO_SIZE_MB = 10
 const MAX_PHOTO_SIZE_BYTES = MAX_PHOTO_SIZE_MB * 1024 * 1024
 
+/** Must stay in step with ImageContentType on the server. */
+const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+
 export function CreateAlertModal({ onClose, prefillLat, prefillLng }: Props) {
   const { mapCenter } = useAlertStore()
   const mutation = useCreateAlert()
@@ -47,6 +50,8 @@ export function CreateAlertModal({ onClose, prefillLat, prefillLng }: Props) {
   const [photoError, setPhotoError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const overlayRef = useRef<HTMLDivElement>(null)
+  /** URL of an already-uploaded photo, so a retry does not upload it twice. */
+  const uploadedPhotoUrl = useRef<string | null>(null)
 
   // Memoize location handler to prevent unnecessary re-renders of the picker
   const handleLocationChange = useCallback((loc: { latitude: number; longitude: number }) => {
@@ -86,8 +91,10 @@ export function CreateAlertModal({ onClose, prefillLat, prefillLng }: Props) {
       setPhotoPreview(null)
       return
     }
-    if (!file.type.startsWith('image/')) {
-      setPhotoError('Only image files are allowed')
+    // Matches the server's allow-list (JPEG/PNG/GIF/WebP, verified there by magic
+    // bytes). SVG is excluded on both sides: it is XML that can carry script.
+    if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+      setPhotoError('Photos must be JPEG, PNG, GIF or WebP')
       return
     }
     if (file.size > MAX_PHOTO_SIZE_BYTES) {
@@ -103,15 +110,18 @@ export function CreateAlertModal({ onClose, prefillLat, prefillLng }: Props) {
     if (photoPreview) URL.revokeObjectURL(photoPreview)
     setPhotoPreview(null)
     setPhotoError(null)
+    uploadedPhotoUrl.current = null
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
   const validate = (): boolean => {
     const e: typeof errors = {}
-    if (!form.title.trim()) e.title = 'Title is required'
+    // Length checked before emptiness so the more specific message wins; the previous
+    // order let the length error overwrite "is required" for a blank-but-long value.
     if (form.title.length > 200) e.title = 'Max 200 characters'
-    if (!form.description.trim()) e.description = 'Description is required'
+    else if (!form.title.trim()) e.title = 'Title is required'
     if (form.description.length > 2000) e.description = 'Max 2000 characters'
+    else if (!form.description.trim()) e.description = 'Description is required'
     setErrors(e)
     return Object.keys(e).length === 0
   }
@@ -120,21 +130,27 @@ export function CreateAlertModal({ onClose, prefillLat, prefillLng }: Props) {
     e.preventDefault()
     if (!validate()) return
 
-    try {
-      let photoUrl: string | undefined
+    // Uploading before creating the alert means a failed create leaves the photo
+    // orphaned on the server's volume with nothing referencing it. Retaining the URL
+    // lets a retry reuse it instead of uploading a second copy.
+    let photoUrl: string | undefined = uploadedPhotoUrl.current ?? undefined
 
-      if (photoFile) {
+    try {
+      if (photoFile && !photoUrl) {
         setPhotoUploading(true)
         const result = await uploadsApi.upload(photoFile)
         photoUrl = result.url
+        uploadedPhotoUrl.current = result.url
         setPhotoUploading(false)
       }
 
       await mutation.mutateAsync({ ...form, photoUrl })
+      // Committed — the alert now references it, so drop our claim on it.
+      uploadedPhotoUrl.current = null
       onClose()
     } catch {
       setPhotoUploading(false)
-      // Error handling is managed upstream via mutation.isError
+      // Error surfaced via mutation.isError / photoError below.
     }
   }
 
@@ -273,7 +289,7 @@ export function CreateAlertModal({ onClose, prefillLat, prefillLng }: Props) {
                 <input
                     ref={fileInputRef}
                     type="file"
-                    accept="image/*"
+                    accept={ACCEPTED_IMAGE_TYPES.join(',')}
                     onChange={handlePhotoSelect}
                     className="hidden"
                 />

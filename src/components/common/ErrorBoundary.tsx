@@ -43,7 +43,12 @@ export class ErrorBoundary extends Component<Props, State> {
               Please try reloading the page.
             </p>
 
-            {this.state.error.message && (
+            {/*
+              Internal error text is shown only in development. In production it leaks
+              implementation detail to end users without helping them, and the message
+              is already in the console for anyone debugging.
+            */}
+            {import.meta.env.DEV && this.state.error.message && (
               <pre className="text-xs text-left text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg p-3 max-h-24 overflow-auto break-all">
                 {this.state.error.message}
               </pre>
