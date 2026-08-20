@@ -59,18 +59,24 @@ export function AlertDetail() {
   }
 
   return (
-    <div className="absolute bottom-20 left-0 right-0 mx-4 sm:left-auto sm:right-4 sm:mx-0 sm:w-96 z-[1000] animate-slide-in-right">
-      <div className="bg-surface-card border border-surface-border rounded-2xl shadow-2xl overflow-hidden">
-        {/* Header */}
-        <div className="relative p-4 border-b border-surface-border">
+    /*
+      Phone: a sheet sitting directly on the collapsed alert list, full width, its body
+      scrolling inside a 65dvh cap — the vote buttons must stay reachable no matter how long
+      the description is, and a card that grows off-screen puts them nowhere.
+      Desktop: the card returns to the right edge, clear of the left panel.
+    */
+    <div className="absolute z-[1000] inset-x-0 bottom-[calc(var(--sheet-peek)+0.75rem)] mx-3 sm:inset-x-auto sm:right-4 sm:mx-0 sm:w-96 sm:bottom-24 animate-slide-in-right">
+      <div className="flex flex-col max-h-[65dvh] sm:max-h-[70vh] bg-surface-card border border-surface-border rounded-2xl shadow-2xl overflow-hidden">
+        {/* Header — stays put while the body scrolls, so the close button is always reachable. */}
+        <div className="relative flex-shrink-0 p-4 border-b border-surface-border">
           <button
             onClick={() => selectAlert(null)}
-            className="absolute top-3 right-3 w-7 h-7 rounded-full flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-surface-elevated transition"
+            className="absolute top-2 right-2 w-11 h-11 sm:top-3 sm:right-3 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-surface-elevated transition"
           >
             ✕
           </button>
 
-          <div className="flex items-start gap-3 pr-8">
+          <div className="flex items-start gap-3 pr-12 sm:pr-8">
             <div className="text-3xl">{ALERT_TYPE_ICONS[a.type]}</div>
             <div>
               <h3 className="font-bold text-slate-900 dark:text-slate-200 text-base leading-tight mb-1">{a.title}</h3>
@@ -82,8 +88,8 @@ export function AlertDetail() {
           </div>
         </div>
 
-        {/* Body */}
-        <div className="p-4 space-y-3">
+        {/* Body — the only scrolling region; overscroll-contain stops a flick here from dragging the map underneath. */}
+        <div className="flex-1 overflow-y-auto overscroll-contain p-4 space-y-3">
           <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">{a.description}</p>
 
           <div className="flex items-center gap-4 text-xs text-slate-500">
@@ -106,7 +112,7 @@ export function AlertDetail() {
             <button
               onClick={handleResolve}
               disabled={resolveAlert.isPending}
-              className="w-full rounded-xl border border-brand-500/40 bg-brand-500/10 text-brand-400 py-2 text-sm font-semibold hover:border-brand-500/70 hover:bg-brand-500/15 transition disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full rounded-xl border border-brand-500/40 bg-brand-500/10 text-brand-400 py-3 sm:py-2 text-sm font-semibold hover:border-brand-500/70 hover:bg-brand-500/15 transition disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {resolveAlert.isPending ? 'Resolving…' : 'Resolve alert'}
             </button>
@@ -133,7 +139,7 @@ export function AlertDetail() {
                     disabled={!user || isAnyPending || isThisPending || isRemoving}
                     onClick={() => handleVote(type)}
                     className={`
-                      relative flex flex-col items-center py-2 rounded-xl border
+                      relative flex flex-col items-center py-3 sm:py-2 rounded-xl border
                       transition-all duration-150 cursor-pointer overflow-hidden
                       ${isThisPending || isRemoving
                         ? 'border-brand-500/60 bg-brand-500/15 scale-95'

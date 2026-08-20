@@ -160,14 +160,14 @@ export function CreateAlertModal({ onClose, prefillLat, prefillLng }: Props) {
           role="dialog"
           aria-modal="true"
           aria-labelledby="modal-title"
-          className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 animate-fade-in"
+          className="fixed inset-0 z-[2000] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm sm:px-4 animate-fade-in"
       >
         <form
             onSubmit={handleSubmit}
-            className="w-full max-w-lg bg-surface-card border border-surface-border rounded-2xl shadow-2xl overflow-hidden"
+            className="flex flex-col w-full max-h-[92dvh] sm:max-h-[85dvh] sm:max-w-lg bg-surface-card border border-surface-border rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden"
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-5 py-4 border-b border-surface-border">
+          <div className="flex flex-shrink-0 items-center justify-between px-5 py-4 border-b border-surface-border">
             <h2 id="modal-title" className="text-base font-bold text-slate-900 dark:text-white">
               Report Incident
             </h2>
@@ -175,14 +175,14 @@ export function CreateAlertModal({ onClose, prefillLat, prefillLng }: Props) {
                 type="button"
                 onClick={onClose}
                 aria-label="Close modal"
-                className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors text-lg"
+                className="-mr-2 w-11 h-11 sm:w-8 sm:h-8 flex items-center justify-center rounded-full text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-surface-elevated transition-colors text-lg"
             >
               ✕
             </button>
           </div>
 
           {/* Form Body */}
-          <div className="p-5 space-y-4 max-h-[70vh] overflow-y-auto">
+          <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-5 space-y-4">
             <Input
                 label="Title"
                 placeholder="Brief incident description"
@@ -215,14 +215,14 @@ export function CreateAlertModal({ onClose, prefillLat, prefillLng }: Props) {
               <label className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wide block mb-2">
                 Incident Type
               </label>
-              <div className="grid grid-cols-5 gap-2">
+              <div className="grid grid-cols-3 xs:grid-cols-4 sm:grid-cols-5 gap-2">
                 {ALERT_TYPES.map((t) => (
                     <button
                         key={t}
                         type="button"
                         onClick={() => setForm((f) => ({ ...f, type: t }))}
                         className={`
-                    flex flex-col items-center py-2 px-1 rounded-xl border text-xs transition-all cursor-pointer
+                    flex flex-col items-center justify-center min-h-[3.25rem] py-2 px-1 rounded-xl border text-xs transition-all cursor-pointer
                     ${form.type === t ? 'border-brand-500/60 bg-brand-500/15 text-brand-300' : 'border-surface-border bg-surface-elevated text-slate-600 dark:text-slate-400 hover:border-surface-elevated hover:text-slate-800 dark:hover:text-slate-200'}
                   `}
                     >
@@ -247,7 +247,7 @@ export function CreateAlertModal({ onClose, prefillLat, prefillLng }: Props) {
                         type="button"
                         onClick={() => setForm((f) => ({ ...f, severity: s }))}
                         className={`
-                    py-2 rounded-xl border text-xs font-semibold transition-all cursor-pointer
+                    min-h-[2.75rem] py-2 rounded-xl border text-xs font-semibold transition-all cursor-pointer
                     ${form.severity === s ? SEVERITY_STYLES[s] : 'border-surface-border bg-surface-elevated text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'}
                   `}
                     >
@@ -273,7 +273,7 @@ export function CreateAlertModal({ onClose, prefillLat, prefillLng }: Props) {
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={photoUploading}
-                    className="px-3 py-2 rounded-lg border border-surface-border bg-surface-elevated text-sm text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-colors cursor-pointer disabled:opacity-50"
+                    className="px-4 min-h-[2.75rem] rounded-lg border border-surface-border bg-surface-elevated text-sm text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-colors cursor-pointer disabled:opacity-50"
                 >
                   {photoFile ? 'Change photo' : 'Choose photo'}
                 </button>
@@ -316,7 +316,7 @@ export function CreateAlertModal({ onClose, prefillLat, prefillLng }: Props) {
           </div>
 
           {/* Footer controls */}
-          <div className="flex gap-3 px-5 py-4 border-t border-surface-border">
+          <div className="flex flex-shrink-0 gap-3 px-5 py-4 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:pb-4 border-t border-surface-border">
             <Button type="button" variant="secondary" className="flex-1" onClick={onClose}>
               Cancel
             </Button>

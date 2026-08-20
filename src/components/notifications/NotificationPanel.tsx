@@ -96,10 +96,10 @@ export function NotificationPanel({ onClose }: NotificationPanelProps) {
   return (
     <div
       ref={panelRef}
-      className="absolute top-full right-0 mt-2 w-80 md:w-96 bg-surface-card border border-surface-border rounded-xl shadow-2xl overflow-hidden z-[1001]"
+      className="fixed inset-x-2 top-[calc(3.5rem+env(safe-area-inset-top))] sm:absolute sm:inset-x-auto sm:top-full sm:right-0 sm:mt-2 sm:w-80 md:w-96 flex flex-col max-h-[70dvh] bg-surface-card border border-surface-border rounded-xl shadow-2xl overflow-hidden z-[1001]"
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-surface-border">
+      <div className="flex flex-shrink-0 items-center justify-between px-4 py-3 border-b border-surface-border">
         <h3 className="font-semibold text-sm text-slate-900 dark:text-slate-100">
           Notifications
           {unreadCount > 0 && (
@@ -119,7 +119,7 @@ export function NotificationPanel({ onClose }: NotificationPanelProps) {
       </div>
 
       {/* List */}
-      <div className="max-h-96 overflow-y-auto">
+      <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain sm:max-h-96">
         {isLoading ? (
           <div className="flex items-center justify-center py-8">
             <div className="w-5 h-5 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />

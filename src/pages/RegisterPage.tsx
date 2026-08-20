@@ -23,11 +23,14 @@ export function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-surface-DEFAULT flex items-center justify-center px-4">
-      <div className="fixed top-4 right-4 z-20">
+    <div className="h-full overflow-y-auto bg-surface-DEFAULT flex justify-center px-4 py-8 pt-[calc(2rem+env(safe-area-inset-top))] pb-[calc(2rem+env(safe-area-inset-bottom))]">
+      <div className="fixed top-[calc(1rem+env(safe-area-inset-top))] right-4 z-20">
         <ThemeToggle className="text-slate-500 dark:text-slate-300" />
       </div>
-      <div className="w-full max-w-sm">
+      {/* my-auto, not items-center on the parent: a form taller than a landscape phone
+          would be centred by items-center and then clipped at the top with no way to scroll
+          up to it. Auto margins centre when there is room and collapse when there is not. */}
+      <div className="w-full max-w-sm my-auto">
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
           <div className="w-14 h-14 rounded-2xl bg-brand-600 flex items-center justify-center shadow-xl shadow-brand-600/40 mb-4">

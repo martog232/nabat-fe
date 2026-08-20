@@ -2,7 +2,7 @@ import { type ButtonHTMLAttributes, forwardRef } from 'react'
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'ghost' | 'danger'
-  size?: 'sm' | 'md' | 'lg'
+  size?: 'sm' | 'md' | 'lg' | 'icon'
   isLoading?: boolean
 }
 
@@ -17,6 +17,11 @@ const sizes = {
   sm: 'px-3 py-1.5 text-xs',
   md: 'px-4 py-2 text-sm',
   lg: 'px-6 py-3 text-base',
+  // Icon-only: no padding of its own, so the caller sets the box with width and height.
+  // Needed because `sizes` is applied before `className` in the class list but CSS order,
+  // not attribute order, decides the winner — a caller passing `w-14 h-14` could not undo
+  // `px-6` and the glyph ended up squeezed out of a square button.
+  icon: 'p-0 text-base',
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(

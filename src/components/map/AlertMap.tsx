@@ -41,11 +41,11 @@ function FollowModeController() {
 function ZoomButtons() {
   const map = useMap()
   return (
-    <div className="absolute bottom-24 right-4 z-[1000] flex flex-col gap-1">
+    <div className="absolute z-[1000] right-3 sm:right-4 bottom-[calc(var(--sheet-peek)+4.5rem)] sm:bottom-24 flex flex-col gap-2 sm:gap-1">
       <button
         type="button"
         onClick={() => map.zoomIn()}
-        className="h-10 w-10 rounded-full border border-white/10 bg-surface-card/95 backdrop-blur-sm text-xl font-bold text-slate-100 hover:bg-surface-hover transition-colors shadow-lg leading-none"
+        className="h-11 w-11 sm:h-10 sm:w-10 rounded-full border border-surface-border bg-surface-card/95 backdrop-blur-sm text-xl font-bold text-slate-700 dark:text-slate-100 hover:bg-surface-hover transition-colors shadow-lg leading-none"
         title="Zoom in"
         aria-label="Zoom in"
       >
@@ -54,7 +54,7 @@ function ZoomButtons() {
       <button
         type="button"
         onClick={() => map.zoomOut()}
-        className="h-10 w-10 rounded-full border border-white/10 bg-surface-card/95 backdrop-blur-sm text-xl font-bold text-slate-100 hover:bg-surface-hover transition-colors shadow-lg leading-none"
+        className="h-11 w-11 sm:h-10 sm:w-10 rounded-full border border-surface-border bg-surface-card/95 backdrop-blur-sm text-xl font-bold text-slate-700 dark:text-slate-100 hover:bg-surface-hover transition-colors shadow-lg leading-none"
         title="Zoom out"
         aria-label="Zoom out"
       >
@@ -131,7 +131,7 @@ export function AlertMap() {
       <button
         type="button"
         onClick={() => setFollowUser(!followUser)}
-        className="absolute bottom-4 right-4 z-[1000] h-10 w-10 rounded-full border border-white/10 bg-surface-card/95 backdrop-blur-sm text-lg text-slate-100 hover:bg-surface-hover transition-colors shadow-lg"
+        className="absolute z-[1000] right-3 sm:right-4 bottom-[calc(var(--sheet-peek)+1rem)] sm:bottom-4 h-11 w-11 sm:h-10 sm:w-10 rounded-full border border-surface-border bg-surface-card/95 backdrop-blur-sm text-lg text-slate-700 dark:text-slate-100 hover:bg-surface-hover transition-colors shadow-lg"
         title={followUser ? 'Disable follow mode' : 'Enable follow mode'}
         aria-label={followUser ? 'Disable follow mode' : 'Enable follow mode'}
       >
