@@ -1,0 +1,103 @@
+name: CI
+
+# Mirrors nabat-app's trigger deliberately: pull requests to any branch, not only those
+# aimed at main. This repository has been developed directly on a long-lived branch, so a
+# workflow that only ran against main would have verified nothing for weeks at a time.
+#
+# Until now there was no workflow at all. The consequence was concrete rather than
+# theoretical: the client kept reading `GET /alerts/nearby` as a bare array for days after
+# the server started returning an envelope, and the whole map page threw on every load. The
+# backend suite could not catch it (the backend was right) and the component tests could not
+# (they mock the API module). A contract test with somewhere to run is what closes that gap.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Typecheck, lint and test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          # 20, matching the builder stage in Dockerfile. Two different majors between CI and
+          # the image is how a build passes here and fails there.
+          node-version: '20'
+          cache: npm
+
+      # `npm ci`, never `npm install`: it installs exactly what the lockfile pins and fails
+      # if the lockfile and package.json disagree, instead of quietly resolving something
+      # newer than what anyone has tested.
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test
+
+  build:
+    name: Production build
+    runs-on: ubuntu-latest
+    # Separate from the checks above so a broken build and a failing test are distinguishable
+    # at a glance, and so the bundle is produced from the same command the image uses.
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Upload bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist
+          retention-days: 7
+
+  image:
+    name: Docker image builds
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Lint Dockerfile
+        uses: hadolint/hadolint-action@v3.4.0
+        with:
+          dockerfile: Dockerfile
+
+      - uses: docker/setup-buildx-action@v3
+
+      # Built, not pushed. Nothing deploys this image yet — nabat-fe is in neither the
+      # compose stack nor the Helm chart — and publishing images that nothing consumes fills
+      # a registry with tags no one can account for. This step exists to prove the Dockerfile
+      # and the nginx config still work; add a push step in the same commit that adds
+      # something to deploy it.
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          tags: nabat-fe:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
