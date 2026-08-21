@@ -51,6 +51,22 @@ export interface Alert {
   photoUrl?: string          // URL of uploaded photo, if any
 }
 
+/**
+ * What `GET /api/v1/alerts/nearby` actually returns.
+ *
+ * It is an envelope, not a bare array — the endpoint is capped server-side, and a cap the
+ * client cannot see is worse than no cap, because a map silently goes partial. `truncated`
+ * says the cap was hit and the answer is incomplete; the fix is a smaller radius or a
+ * filter, not a next page, because there is no pagination here by design.
+ */
+export interface NearbyAlertsResponse {
+  alerts: Alert[]
+  count: number
+  /** The cap the server applied, so the client can say how much it is missing. */
+  limit: number
+  truncated: boolean
+}
+
 export interface UserPreferencesResponse {
   notificationRadiusKm: number
 }

@@ -31,6 +31,8 @@ export function AlertSidebar() {
   const isDesktop = useIsDesktop()
   const [isOpen, setIsOpen] = useState(isDesktop)
   const selectedAlertId = useAlertStore((s) => s.selectedAlertId)
+  const nearbyTruncated = useAlertStore((s) => s.nearbyTruncated)
+  const nearbyLimit = useAlertStore((s) => s.nearbyLimit)
   const user = useAuthStore((s) => s.user)
   const logout = useAuthStore((s) => s.logout)
   const theme = useThemeStore((s) => s.theme)
@@ -149,6 +151,21 @@ export function AlertSidebar() {
           <div className="mt-3">
             <RadiusSelector />
           </div>
+
+          {/*
+            The server caps this endpoint and says so. Swallowing the flag would leave a map
+            that looks complete and is not — the worst of the three possible behaviours. There
+            is deliberately no "load more": nothing pages through a map, so the answer is a
+            smaller radius or a filter.
+          */}
+          {nearbyTruncated && (
+            <p className="mt-2 flex items-start gap-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 px-2.5 py-1.5 text-xs text-amber-600 dark:text-amber-400">
+              <span aria-hidden="true">⚠</span>
+              <span>
+                Showing the first {nearbyLimit}. Narrow the radius or filter to see the rest.
+              </span>
+            </p>
+          )}
         </div>
 
         {/* Alert list. overscroll-contain keeps a flick at the end of the list from scrolling
