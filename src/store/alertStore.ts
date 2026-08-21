@@ -10,6 +10,10 @@ interface AlertStore {
   locationAccuracy: number | null
   followUser: boolean
   wsConnected: boolean
+  /** The nearby query hit the server-side cap, so the map is showing a partial answer. */
+  nearbyTruncated: boolean
+  /** The cap that was applied, so the hint can say what it was. */
+  nearbyLimit: number
 
   selectAlert: (alertId: string | null) => void
   setMapCenter: (center: [number, number]) => void
@@ -18,6 +22,7 @@ interface AlertStore {
   setUserLocation: (lat: number, lng: number, accuracy: number) => void
   setFollowUser: (follow: boolean) => void
   setWsConnected: (connected: boolean) => void
+  setNearbyTruncation: (truncated: boolean, limit: number) => void
 }
 
 export const useAlertStore = create<AlertStore>((set) => ({
@@ -30,6 +35,8 @@ export const useAlertStore = create<AlertStore>((set) => ({
   locationAccuracy: null,
   followUser: true,
   wsConnected: false,
+  nearbyTruncated: false,
+  nearbyLimit: 0,
 
   selectAlert: (alertId) => set({ selectedAlertId: alertId }),
   setMapCenter: (center) => set({ mapCenter: center }),
@@ -39,4 +46,5 @@ export const useAlertStore = create<AlertStore>((set) => ({
     set({ userLat: lat, userLng: lng, locationAccuracy: accuracy }),
   setFollowUser: (follow) => set({ followUser: follow }),
   setWsConnected: (connected) => set({ wsConnected: connected }),
+  setNearbyTruncation: (truncated, limit) => set({ nearbyTruncated: truncated, nearbyLimit: limit }),
 }))

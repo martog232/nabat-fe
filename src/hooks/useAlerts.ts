@@ -4,12 +4,33 @@ import { useAlertStore } from '../store/alertStore'
 import { useToastStore } from '../store/toastStore'
 import type { Alert, CreateAlertRequest } from '../types'
 
+/**
+ * The cached value stays an `Alert[]`, even though the endpoint answers an envelope.
+ *
+ * That array is the live set: the WebSocket upserts into it, `useResolveAlert` patches it
+ * optimistically, and the reconnect catch-up merges into it. Making the envelope the cache
+ * shape would mean rewriting all of that for one boolean.
+ *
+ * The boolean goes to the store instead of a sibling cache key, because the WebSocket merge
+ * uses `setQueriesData` with the *prefix* `['alerts', 'nearby']` — anything cached under that
+ * prefix gets run through a merge function that expects a list of alerts.
+ *
+ * It also belongs to the fetch rather than to the live set: once the socket has pushed a few
+ * alerts in, `count` is no longer what the server said, while "your first page was capped"
+ * stays true and is still the thing worth telling the user.
+ */
 export function useNearbyAlerts() {
   const mapCenter = useAlertStore((s) => s.mapCenter)
   const radiusKm = useAlertStore((s) => s.radiusKm)
+  const setNearbyTruncation = useAlertStore((s) => s.setNearbyTruncation)
+
   return useQuery({
     queryKey: ['alerts', 'nearby', mapCenter, radiusKm],
-    queryFn: () => alertsApi.getNearby(mapCenter[0], mapCenter[1], radiusKm),
+    queryFn: async () => {
+      const response = await alertsApi.getNearby(mapCenter[0], mapCenter[1], radiusKm)
+      setNearbyTruncation(response.truncated, response.limit)
+      return response.alerts
+    },
   })
 }
 

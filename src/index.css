@@ -8,6 +8,7 @@
   --surface-bg: 248 250 252;
   --surface-card: 255 255 255;
   --surface-elevated: 241 245 249;
+  --surface-hover: 226 232 240;
   --surface-border: 203 213 225;
   --text-primary: 15 23 42;
   --text-muted: 71 85 105;
@@ -19,6 +20,7 @@
   --surface-bg: 15 17 23;
   --surface-card: 22 27 39;
   --surface-elevated: 30 37 53;
+  --surface-hover: 42 51 71;
   --surface-border: 42 51 71;
   --text-primary: 226 232 240;
   --text-muted: 148 163 184;
@@ -59,3 +61,61 @@
 
 html, body, #root { height: 100%; margin: 0; padding: 0; }
 body { background: rgb(var(--surface-bg)); color: rgb(var(--text-primary)); }
+
+/*
+ * Dynamic viewport height, not 100%/100vh.
+ *
+ * On a phone the browser chrome is part of the viewport until you scroll: 100vh is taller
+ * than what you can see, so anything anchored to the bottom — the report button, the map
+ * controls, the alert sheet — sits under the URL bar until the user scrolls a page that
+ * does not scroll. dvh tracks the visible area instead. Kept behind @supports so older
+ * browsers keep the 100% above rather than losing a height entirely.
+ */
+@supports (height: 100dvh) {
+  html, body, #root { height: 100dvh; }
+}
+
+/*
+ * The map is a drag surface, so the browser's own gestures have to be held back:
+ * pull-to-refresh fires when a downward drag starts at the top of the map, and the
+ * double-tap-to-zoom highlight flashes over every control.
+ */
+body {
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+}
+
+/*
+ * How much of the alert sheet stays visible when collapsed. Everything anchored to the
+ * bottom of the map offsets by this, so the sheet and the controls cannot overlap — and on
+ * desktop, where the alert list is a side panel instead, it collapses to zero and the same
+ * classes keep working.
+ */
+:root { --sheet-peek: 4.25rem; }
+@media (min-width: 768px) { :root { --sheet-peek: 0rem; } }
+
+/*
+ * iOS zooms the whole page when a focused input has a font smaller than 16px, and it does
+ * not zoom back out. Every form control in this app is text-sm (14px), so this is the
+ * difference between a usable and a broken login on an iPhone. Desktop keeps 14px.
+ */
+@media (max-width: 767px) {
+  input:not([type='checkbox']):not([type='radio']):not([type='range']),
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
+@layer utilities {
+  /* Horizontal filter rows scroll by touch; a visible scrollbar inside a 32px-tall pill
+     row is noise. The row still scrolls with a wheel, trackpad, or drag. */
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}

@@ -36,22 +36,31 @@ export function MapPage() {
       {/* Alert detail panel */}
       <AlertDetail />
 
-      {/* FAB: Report incident */}
+      {/*
+        Report button. On a phone it sits above the collapsed alert sheet and left of the map
+        controls, and drops the label — three words of text next to two round buttons in a
+        44px strip is how a corner becomes unhittable. From sm: the label returns.
+      */}
       {user && (
-        <div className="absolute bottom-6 right-4 z-[1000]">
+        <div className="absolute z-[1000] left-4 bottom-[calc(var(--sheet-peek)+1rem)] sm:left-auto sm:right-4 sm:bottom-6">
           <Button
             onClick={() => setShowCreateModal(true)}
-            className="px-5 py-3 text-sm shadow-2xl shadow-brand-600/40 rounded-2xl"
-            size="lg"
+            aria-label="Report incident"
+            className="h-14 w-14 sm:h-auto sm:w-auto sm:px-5 sm:py-3 sm:text-sm justify-center shadow-2xl shadow-brand-600/40 rounded-full sm:rounded-2xl"
+            size="icon"
           >
-            <span className="text-lg">🚨</span>
-            Report Incident
+            <span className="text-xl sm:text-lg">🚨</span>
+            <span className="hidden sm:inline">Report Incident</span>
           </Button>
         </div>
       )}
 
-      {/* Live indicator */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[1000]">
+      {/*
+        Connection state. Bottom-centre is the busiest strip on a phone — sheet handle, report
+        button, map controls — so on small screens this moves under the navbar, where nothing
+        else competes for space and it is still in view.
+      */}
+      <div className="absolute z-[1000] top-14 left-1/2 -translate-x-1/2 sm:top-auto sm:bottom-6">
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-card/80 backdrop-blur border border-surface-border text-xs text-slate-600 dark:text-slate-400">
           <span className={`w-2 h-2 rounded-full ${wsConnected ? 'bg-green-500 animate-pulse-fast' : 'bg-amber-500'}`} />
           {wsConnected ? 'Live updates' : 'Polling fallback'}

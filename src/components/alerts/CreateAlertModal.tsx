@@ -27,6 +27,9 @@ const SEVERITY_STYLES: Record<AlertSeverity, string> = {
 const MAX_PHOTO_SIZE_MB = 10
 const MAX_PHOTO_SIZE_BYTES = MAX_PHOTO_SIZE_MB * 1024 * 1024
 
+/** Must stay in step with ImageContentType on the server. */
+const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+
 export function CreateAlertModal({ onClose, prefillLat, prefillLng }: Props) {
   const { mapCenter } = useAlertStore()
   const mutation = useCreateAlert()
@@ -47,6 +50,8 @@ export function CreateAlertModal({ onClose, prefillLat, prefillLng }: Props) {
   const [photoError, setPhotoError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const overlayRef = useRef<HTMLDivElement>(null)
+  /** URL of an already-uploaded photo, so a retry does not upload it twice. */
+  const uploadedPhotoUrl = useRef<string | null>(null)
 
   // Memoize location handler to prevent unnecessary re-renders of the picker
   const handleLocationChange = useCallback((loc: { latitude: number; longitude: number }) => {
@@ -86,8 +91,10 @@ export function CreateAlertModal({ onClose, prefillLat, prefillLng }: Props) {
       setPhotoPreview(null)
       return
     }
-    if (!file.type.startsWith('image/')) {
-      setPhotoError('Only image files are allowed')
+    // Matches the server's allow-list (JPEG/PNG/GIF/WebP, verified there by magic
+    // bytes). SVG is excluded on both sides: it is XML that can carry script.
+    if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+      setPhotoError('Photos must be JPEG, PNG, GIF or WebP')
       return
     }
     if (file.size > MAX_PHOTO_SIZE_BYTES) {
@@ -103,15 +110,18 @@ export function CreateAlertModal({ onClose, prefillLat, prefillLng }: Props) {
     if (photoPreview) URL.revokeObjectURL(photoPreview)
     setPhotoPreview(null)
     setPhotoError(null)
+    uploadedPhotoUrl.current = null
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
   const validate = (): boolean => {
     const e: typeof errors = {}
-    if (!form.title.trim()) e.title = 'Title is required'
+    // Length checked before emptiness so the more specific message wins; the previous
+    // order let the length error overwrite "is required" for a blank-but-long value.
     if (form.title.length > 200) e.title = 'Max 200 characters'
-    if (!form.description.trim()) e.description = 'Description is required'
+    else if (!form.title.trim()) e.title = 'Title is required'
     if (form.description.length > 2000) e.description = 'Max 2000 characters'
+    else if (!form.description.trim()) e.description = 'Description is required'
     setErrors(e)
     return Object.keys(e).length === 0
   }
@@ -120,21 +130,27 @@ export function CreateAlertModal({ onClose, prefillLat, prefillLng }: Props) {
     e.preventDefault()
     if (!validate()) return
 
-    try {
-      let photoUrl: string | undefined
+    // Uploading before creating the alert means a failed create leaves the photo
+    // orphaned on the server's volume with nothing referencing it. Retaining the URL
+    // lets a retry reuse it instead of uploading a second copy.
+    let photoUrl: string | undefined = uploadedPhotoUrl.current ?? undefined
 
-      if (photoFile) {
+    try {
+      if (photoFile && !photoUrl) {
         setPhotoUploading(true)
         const result = await uploadsApi.upload(photoFile)
         photoUrl = result.url
+        uploadedPhotoUrl.current = result.url
         setPhotoUploading(false)
       }
 
       await mutation.mutateAsync({ ...form, photoUrl })
+      // Committed — the alert now references it, so drop our claim on it.
+      uploadedPhotoUrl.current = null
       onClose()
     } catch {
       setPhotoUploading(false)
-      // Error handling is managed upstream via mutation.isError
+      // Error surfaced via mutation.isError / photoError below.
     }
   }
 
@@ -144,14 +160,14 @@ export function CreateAlertModal({ onClose, prefillLat, prefillLng }: Props) {
           role="dialog"
           aria-modal="true"
           aria-labelledby="modal-title"
-          className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 animate-fade-in"
+          className="fixed inset-0 z-[2000] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm sm:px-4 animate-fade-in"
       >
         <form
             onSubmit={handleSubmit}
-            className="w-full max-w-lg bg-surface-card border border-surface-border rounded-2xl shadow-2xl overflow-hidden"
+            className="flex flex-col w-full max-h-[92dvh] sm:max-h-[85dvh] sm:max-w-lg bg-surface-card border border-surface-border rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden"
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-5 py-4 border-b border-surface-border">
+          <div className="flex flex-shrink-0 items-center justify-between px-5 py-4 border-b border-surface-border">
             <h2 id="modal-title" className="text-base font-bold text-slate-900 dark:text-white">
               Report Incident
             </h2>
@@ -159,14 +175,14 @@ export function CreateAlertModal({ onClose, prefillLat, prefillLng }: Props) {
                 type="button"
                 onClick={onClose}
                 aria-label="Close modal"
-                className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors text-lg"
+                className="-mr-2 w-11 h-11 sm:w-8 sm:h-8 flex items-center justify-center rounded-full text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-surface-elevated transition-colors text-lg"
             >
               ✕
             </button>
           </div>
 
           {/* Form Body */}
-          <div className="p-5 space-y-4 max-h-[70vh] overflow-y-auto">
+          <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-5 space-y-4">
             <Input
                 label="Title"
                 placeholder="Brief incident description"
@@ -199,14 +215,14 @@ export function CreateAlertModal({ onClose, prefillLat, prefillLng }: Props) {
               <label className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wide block mb-2">
                 Incident Type
               </label>
-              <div className="grid grid-cols-5 gap-2">
+              <div className="grid grid-cols-3 xs:grid-cols-4 sm:grid-cols-5 gap-2">
                 {ALERT_TYPES.map((t) => (
                     <button
                         key={t}
                         type="button"
                         onClick={() => setForm((f) => ({ ...f, type: t }))}
                         className={`
-                    flex flex-col items-center py-2 px-1 rounded-xl border text-xs transition-all cursor-pointer
+                    flex flex-col items-center justify-center min-h-[3.25rem] py-2 px-1 rounded-xl border text-xs transition-all cursor-pointer
                     ${form.type === t ? 'border-brand-500/60 bg-brand-500/15 text-brand-300' : 'border-surface-border bg-surface-elevated text-slate-600 dark:text-slate-400 hover:border-surface-elevated hover:text-slate-800 dark:hover:text-slate-200'}
                   `}
                     >
@@ -231,7 +247,7 @@ export function CreateAlertModal({ onClose, prefillLat, prefillLng }: Props) {
                         type="button"
                         onClick={() => setForm((f) => ({ ...f, severity: s }))}
                         className={`
-                    py-2 rounded-xl border text-xs font-semibold transition-all cursor-pointer
+                    min-h-[2.75rem] py-2 rounded-xl border text-xs font-semibold transition-all cursor-pointer
                     ${form.severity === s ? SEVERITY_STYLES[s] : 'border-surface-border bg-surface-elevated text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'}
                   `}
                     >
@@ -257,7 +273,7 @@ export function CreateAlertModal({ onClose, prefillLat, prefillLng }: Props) {
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={photoUploading}
-                    className="px-3 py-2 rounded-lg border border-surface-border bg-surface-elevated text-sm text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-colors cursor-pointer disabled:opacity-50"
+                    className="px-4 min-h-[2.75rem] rounded-lg border border-surface-border bg-surface-elevated text-sm text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-colors cursor-pointer disabled:opacity-50"
                 >
                   {photoFile ? 'Change photo' : 'Choose photo'}
                 </button>
@@ -273,7 +289,7 @@ export function CreateAlertModal({ onClose, prefillLat, prefillLng }: Props) {
                 <input
                     ref={fileInputRef}
                     type="file"
-                    accept="image/*"
+                    accept={ACCEPTED_IMAGE_TYPES.join(',')}
                     onChange={handlePhotoSelect}
                     className="hidden"
                 />
@@ -300,7 +316,7 @@ export function CreateAlertModal({ onClose, prefillLat, prefillLng }: Props) {
           </div>
 
           {/* Footer controls */}
-          <div className="flex gap-3 px-5 py-4 border-t border-surface-border">
+          <div className="flex flex-shrink-0 gap-3 px-5 py-4 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:pb-4 border-t border-surface-border">
             <Button type="button" variant="secondary" className="flex-1" onClick={onClose}>
               Cancel
             </Button>

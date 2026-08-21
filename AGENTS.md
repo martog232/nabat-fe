@@ -117,8 +117,15 @@ The hook is the single owner of the WebSocket lifecycle and the sole data source
 
 ### Photo upload (two-step)
 - `CreateAlertModal.tsx` — "Choose photo" button + image preview + size/type validation.
+  The accepted types (`ACCEPTED_IMAGE_TYPES`) must mirror the server's `ImageContentType`
+  allow-list; SVG is excluded on both sides because it can carry script.
 - `uploadsApi.upload(File)` → `POST /api/v1/uploads` → returns `{ url }`.
-- URL is passed to `alertsApi.create({ ...form, photoUrl })` in a second JSON step.
+  It passes `Content-Type: undefined` so axios can set `multipart/form-data` with a
+  boundary — `apiClient`'s global `application/json` default otherwise wins and the
+  request body is unparseable.
+- URL is passed to `alertsApi.create({ ...form, photoUrl })` in a second JSON step. The
+  uploaded URL is held in a ref so a retry after a failed create reuses it instead of
+  uploading a second copy (the first would be orphaned server-side either way).
 - `Alert.photoUrl?: string` displayed in `AlertDetail`/`AlertCard` when present.
 
 ### Alert API (`api/alerts.ts`)
@@ -133,10 +140,21 @@ The hook is the single owner of the WebSocket lifecycle and the sole data source
 ### Types (`types/index.ts`)
 All types mirror backend DTOs exactly. Key contracts:
 
-- `Alert` — includes `upvoteCount`, `downvoteCount`, `confirmationCount`, `photoUrl?`.
+- `Alert` — includes `upvoteCount`, `downvoteCount`, `confirmationCount`,
+  `credibilityScore` and `photoUrl?`. Because the score is on every alert, components
+  showing only totals should read them off the `Alert` rather than calling
+  `useVoteData`, which costs two extra requests per card.
 - `CreateAlertRequest` — includes optional `photoUrl`.
+- `VoteReceipt` — the `POST .../votes` response, carrying the resulting `stats`. Use
+  these rather than re-fetching `/votes/stats`, which is eventually consistent.
 - `WsFrame` union: `WsNewAlertFrame | WsAlertUpdatedFrame | WsNotificationFrame`.
-- `Notification` — matches `NotificationResponse` from backend.
+- `Notification` — matches `NotificationResponse`, the same shape the WebSocket sends.
+- `ErrorResponse.code` (`ErrorCode`) — **branch on this, never on `message`.** The
+  backend returns curated prose that may be reworded.
+
+**Never recompute `credibilityScore` on the client.** The voting service owns the
+formula; there were previously four independent copies of it across the two backends
+and this app.
 
 ---
 
@@ -149,13 +167,28 @@ All types mirror backend DTOs exactly. Key contracts:
 - **Error handling**: API errors from `GlobalExceptionHandler` arrive as `ErrorResponse` or `ValidationErrorResponse`. Surface them via `toastStore.addToast(...)`, not `console.error` or `alert`.
 - `buildWebSocketUrl(path, params)` in `api/client.ts` constructs the full WS URL from `VITE_API_BASE_URL`. Use it everywhere — never hardcode WebSocket URLs.
 
+### Responsive layout
+
+This is a safety app; the screen it is opened on during an incident is a phone. Mobile is the base layout and desktop is the breakpoint override, not the other way round.
+
+- **Layout differences are Tailwind breakpoints; behaviour differences are `useMediaQuery`.** Which edge a panel slides from is CSS and needs no JavaScript. Whether the alert list *starts* open, and that selecting an alert collapses it on a phone, cannot be expressed in CSS — those go through `useIsDesktop()` (`hooks/useMediaQuery.ts`) and are covered by `AlertSidebar.test.tsx`. Do not add a resize listener; do not branch layout in JS that a class can do.
+- **`xs: 400px` exists because `sm` is 640px**, which is wider than any phone in portrait. The 360–400px range is the most common screen this app will ever see.
+- **Heights are `dvh`, never `vh` or `100%` of the window.** On a phone the browser chrome counts toward `100vh`, so anything bottom-anchored hides under the URL bar. `html, body, #root` are `100dvh` behind an `@supports`.
+- **`--sheet-peek` is the contract between the bottom sheet and everything above it.** The collapsed alert sheet reserves that much space; the report button, the map's zoom and follow controls and the detail sheet all offset by `calc(var(--sheet-peek) + …)`. It is `0rem` from `md` up, so the same classes work on desktop. Anything new anchored to the bottom of the map uses it too, or it will end up under the sheet.
+- **Two sheets never share the screen.** The detail sheet and the list sheet occupy the same place on a phone, which is why opening an alert closes the list.
+- **Touch targets are ≥44px at base, shrinking at `sm`/`md`** (`w-11 h-11 sm:w-8 sm:h-8`, `min-h-[2.75rem]`). A 32px control is comfortable with a mouse and a miss with a thumb.
+- **Bottom-anchored and top-anchored chrome pads for `env(safe-area-inset-*)`.** It resolves to zero everywhere without a notch or home indicator, so it costs nothing to be correct.
+- **Panels that can outgrow the screen are `flex flex-col` with a `flex-1 min-h-0 overflow-y-auto overscroll-contain` body**, so the header and the action buttons stay put while the content scrolls. `overscroll-contain` matters here: without it a flick at the end of a list drags the map underneath.
+- **Form controls are 16px on phones** (`index.css`). iOS zooms the page when a focused input is smaller and does not zoom back out.
+- **Both toggles are always in the DOM**, hidden by CSS. jsdom loads no stylesheet, so tests must query by accessible name — `getByRole('button', { expanded: false })` matches both and throws.
+
 ---
 
 ## Environment variables
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `VITE_API_BASE_URL` | Base URL — goes through Kong by default for dev/prod parity | `http://localhost:8000/api/v1` |
+| `VITE_API_BASE_URL` | Base URL. Defaults straight to nabat-app; point it at Kong (:8000) for prod parity | `http://127.0.0.1:8080/api/v1` |
 
 Use `127.0.0.1`, not `localhost` (Windows IPv6 quirk — backend also uses `127.0.0.1`).
 
@@ -165,7 +198,7 @@ Use `127.0.0.1`, not `localhost` (Windows IPv6 quirk — backend also uses `127.
 
 ```bash
 npm install
-npm run dev          # Vite dev server on :5173, proxies /api → Kong (:8000) by default
+npm run dev          # Vite dev server on :5173, proxies /api → nabat-app (127.0.0.1:8080)
 npm run build        # production build to dist/
 npm run lint         # ESLint
 npm run type-check   # tsc --noEmit
@@ -185,3 +218,5 @@ npm run test:watch   # vitest in watch mode
 | Photo upload UI | ✅ Done | File picker, preview, validation in `CreateAlertModal` |
 | Admin role enforcement | ❌ Missing | `Role.ADMIN` exists; no UI gates any action behind it |
 | Photo display in AlertCard/AlertDetail | ❌ Missing | `photoUrl` field exists on `Alert` type but no UI renders it yet |
+| Mobile layout | ✅ Done | Mobile-first throughout: alert list is a bottom sheet under `md`, create form is a full-height sheet, controls clear `--sheet-peek`, `dvh` heights, safe-area padding, 44px touch targets. See "Responsive layout" under Conventions. |
+| Verified on a real device | ❌ Not done | The responsive work was checked by reading the generated CSS, the type-checker and the test suite — no browser and no phone. Nothing here has been *looked at* on hardware. |

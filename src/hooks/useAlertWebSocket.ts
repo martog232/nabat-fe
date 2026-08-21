@@ -11,15 +11,23 @@ import type { Alert, WsFrame } from '../types'
 
 const WS_FLUSH_INTERVAL_MS = 400
 
+/**
+ * Merges incoming alerts into every cached nearby-alerts query.
+ *
+ * Writes to all `['alerts','nearby',…]` entries rather than reconstructing the key
+ * from the store's *current* centre and radius. The old approach dropped frames: if
+ * the user panned the map between a frame arriving and the 400 ms flush running, the
+ * merge wrote to a key nothing was subscribed to and the new alert simply never
+ * appeared.
+ */
 function mergeAlertsIntoCache(
   qc: ReturnType<typeof useQueryClient>,
   incoming: Alert[],
 ) {
   if (!incoming.length) return
-  const { mapCenter, radiusKm } = useAlertStore.getState()
-  const key = ['alerts', 'nearby', mapCenter, radiusKm]
-  qc.setQueryData<Alert[]>(key, (old) => {
-    if (!old) return incoming
+
+  qc.setQueriesData<Alert[]>({ queryKey: ['alerts', 'nearby'] }, (old) => {
+    if (!old) return old
     const map = new Map(old.map((a) => [a.id, a]))
     for (const a of incoming) map.set(a.id, a)
     return Array.from(map.values())
@@ -82,6 +90,8 @@ export function useAlertWebSocket() {
           scheduleFlush()
         } else if (frame.type === 'ALERT_UPDATED') {
           mergeAlertsIntoCache(qc, [frame.alert])
+          // Vote tallies changed, so any per-alert vote query is stale too.
+          qc.invalidateQueries({ queryKey: ['votes', frame.alert.id] })
         } else if (frame.type === 'NOTIFICATION') {
           qc.invalidateQueries({ queryKey: ['notifications'] })
           useToastStore.getState().addToast({

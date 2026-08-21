@@ -4,6 +4,12 @@ export default {
   darkMode: 'class',
   theme: {
     extend: {
+      screens: {
+        // Small phones. `sm` is 640px, which is wider than every phone in portrait, so
+        // without a stop below it the 360–400px range — the most common screen this app
+        // will ever be opened on — shares a layout with nothing that fits it.
+        xs: '400px',
+      },
       colors: {
         brand: {
           50: '#fff1f2',
@@ -20,6 +26,10 @@ export default {
           card: 'rgb(var(--surface-card) / <alpha-value>)',
           elevated: 'rgb(var(--surface-elevated) / <alpha-value>)',
           border: 'rgb(var(--surface-border) / <alpha-value>)',
+          // Five components already used `hover:bg-surface-hover` — the map's zoom and
+          // follow buttons, the radius pills, the theme toggle. It was never defined, so
+          // Tailwind emitted no rule and none of those controls had a hover state at all.
+          hover: 'rgb(var(--surface-hover) / <alpha-value>)',
         },
         severity: {
           low: '#22c55e',
