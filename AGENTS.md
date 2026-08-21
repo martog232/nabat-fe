@@ -216,7 +216,8 @@ npm run test:watch   # vitest in watch mode
 | Resolve alert UI | ✅ Done | `AlertDetail.tsx` has resolve button (reporter + admin only) |
 | Notification panel | ✅ Done | Navbar bell + dropdown with type icons, timestamps, mark read |
 | Photo upload UI | ✅ Done | File picker, preview, validation in `CreateAlertModal` |
-| Admin role enforcement | ❌ Missing | `Role.ADMIN` exists; no UI gates any action behind it |
+| Role-aware UI | ✅ Done | `utils/permissions.ts` mirrors the backend capabilities (`canModerateContent`, `canAdministerUsers`, `canResolveAlert`); the resolve button and the role badge read from it. Deciding what to *show* only — the server re-checks everything. |
+| Admin screens | ❌ Missing | `PATCH /api/v1/admin/users/{id}/role` and `/enabled` exist server-side with no UI; role changes are made with curl. |
 | Photo display in AlertCard/AlertDetail | ❌ Missing | `photoUrl` field exists on `Alert` type but no UI renders it yet |
 | Mobile layout | ✅ Done | Mobile-first throughout: alert list is a bottom sheet under `md`, create form is a full-height sheet, controls clear `--sheet-peek`, `dvh` heights, safe-area padding, 44px touch targets. See "Responsive layout" under Conventions. |
 | Verified on a real device | ❌ Not done | The responsive work was checked by reading the generated CSS, the type-checker and the test suite — no browser and no phone. Nothing here has been *looked at* on hardware. |

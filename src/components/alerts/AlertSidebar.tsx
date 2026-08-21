@@ -9,6 +9,7 @@ import { AlertCard } from './AlertCard'
 import { AlertFilters } from './AlertFilters'
 import type { AlertSeverity, AlertType } from '../../types'
 import { RadiusSelector } from '../map/RadiusSelector'
+import { ROLE_LABELS } from '../../utils/permissions'
 
 type SeverityFilter = AlertSeverity | 'ALL'
 
@@ -38,6 +39,7 @@ export function AlertSidebar() {
   const theme = useThemeStore((s) => s.theme)
   const toggleTheme = useThemeStore((s) => s.toggleTheme)
   const navigate = useNavigate()
+  const roleLabel = user ? ROLE_LABELS[user.role] : undefined
 
   // Follow the breakpoint when it changes — rotating a phone into landscape, or dragging a
   // desktop window narrow, should land on that layout's default rather than keeping a state
@@ -203,9 +205,19 @@ export function AlertSidebar() {
 
           <div className="flex-1 min-w-0">
             <p className="text-xs text-slate-500 dark:text-slate-400 truncate leading-none mb-0.5">Signed in as</p>
-            <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate leading-none">
-              {user?.displayName ?? user?.email ?? '—'}
-            </p>
+            <div className="flex items-center gap-1.5 min-w-0">
+              <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate leading-none">
+                {user?.displayName ?? user?.email ?? '—'}
+              </p>
+              {/* Only for roles that carry extra powers. Someone who can close other people's
+                  alerts should be able to see that they can, rather than inferring it from a
+                  button appearing on a report that is not theirs. */}
+              {user && roleLabel && (
+                <span className="flex-shrink-0 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-brand-600/20 text-brand-400">
+                  {roleLabel}
+                </span>
+              )}
+            </div>
           </div>
 
           <button
