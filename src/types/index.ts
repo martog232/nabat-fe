@@ -15,7 +15,7 @@ export type AlertType =
 export type AlertSeverity = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
 export type AlertStatus   = 'ACTIVE' | 'RESOLVED'
 export type VoteType      = 'UPVOTE' | 'DOWNVOTE' | 'CONFIRM'
-export type Role          = 'USER' | 'ADMIN'
+export type Role          = 'USER' | 'MODERATOR' | 'ADMIN'
 
 // ─── Domain models (match backend AlertResponse / UserResponse) ──────────────
 

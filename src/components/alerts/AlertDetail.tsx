@@ -5,6 +5,7 @@ import { useAuthStore } from '../../store/authStore'
 import { ALERT_TYPE_ICONS, ALERT_TYPE_LABELS } from '../../types'
 import { SeverityBadge } from '../common/Badge'
 import type { VoteType } from '../../types'
+import { canResolveAlert } from '../../utils/permissions'
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleString('en-US', {
@@ -33,10 +34,9 @@ export function AlertDetail() {
   // The vote type currently being submitted — used to show a per-button spinner
   const pendingVoteType = vote.isPending ? vote.variables : undefined
   const isMutating = vote.isPending || removeVote.isPending
-  const canResolve =
-    a.status === 'ACTIVE' &&
-    !!user &&
-    (user.id === a.reportedBy || user.role === 'ADMIN')
+  // Mirrors the server rule: your own alert, or anyone's if you moderate. A moderator was
+  // previously shown no resolve button at all, since the check named the ADMIN role directly.
+  const canResolve = canResolveAlert(user, a)
 
   const credibilityScore = stats
     ? stats.credibilityScore
