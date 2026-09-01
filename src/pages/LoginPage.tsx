@@ -15,7 +15,7 @@ export function LoginPage() {
     e.preventDefault()
     try {
       await login(email, password)
-      navigate('/')
+      navigate('/map')
     } catch {
       // error is in store
     }

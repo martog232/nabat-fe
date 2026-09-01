@@ -4,7 +4,10 @@ import { useEffect } from 'react'
 import { LoginPage } from './pages/LoginPage'
 import { RegisterPage } from './pages/RegisterPage'
 import { MapPage } from './pages/MapPage'
+import { SettingsPage } from './pages/SettingsPage'
+import { LandingPage } from './pages/LandingPage'
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
+import { PublicOnlyRoute } from './components/auth/PublicOnlyRoute'
 import { ErrorBoundary } from './components/common/ErrorBoundary'
 import { ToastContainer } from './components/common/ToastContainer'
 import { useThemeStore } from './store/themeStore'
@@ -31,8 +34,24 @@ export default function App() {
           <Route
             path="/"
             element={
+              <PublicOnlyRoute>
+                <LandingPage />
+              </PublicOnlyRoute>
+            }
+          />
+          <Route
+            path="/map"
+            element={
               <ProtectedRoute>
                 <MapPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute>
+                <SettingsPage />
               </ProtectedRoute>
             }
           />

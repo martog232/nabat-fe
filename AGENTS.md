@@ -46,9 +46,11 @@ src/
     useNotifications.ts    # React Query: notifications list, unread count, mark read
     useGeolocation.ts      # GPS watch + store updates + throttled preference sync
   pages/
-    LoginPage.tsx
-    RegisterPage.tsx
-    MapPage.tsx
+    LandingPage.tsx   # `/`     — public; what Nabat is, for someone who has not signed in
+    LoginPage.tsx     # /login
+    RegisterPage.tsx  # /register
+    MapPage.tsx       # /map      (ProtectedRoute)
+    SettingsPage.tsx  # /settings (ProtectedRoute) — radius, theme, sign out
   store/
     alertStore.ts   # Zustand — UI-only: selectedAlertId, mapCenter, mapZoom, radiusKm, user location, wsConnected
     authStore.ts    # Zustand — current user, tokens, login/logout actions
@@ -69,8 +71,19 @@ src/
 - **Zustand owns only UI state**: `selectedAlertId`, `mapCenter`, `mapZoom`, `radiusKm`, user GPS location, `followUser`, `wsConnected`.
 - No server data duplication between stores and React Query.
 
+### Landing hero video (`pages/LandingPage.tsx`)
+- The hero plays `public/hero.mp4` behind the header, with `public/hero-poster.jpg` as the still. **Neither file is in the repository** — footage carries a licence, and committing something found online is a problem deferred, not avoided. Drop them in and the hero animates; leave them out and it stays a dark panel.
+- It is decorative: muted, looping, `aria-hidden`, no controls. It is skipped under `prefers-reduced-motion`, skipped below `md` (megabytes of mobile data for something the text sits on top of), and removed on `error`. All four paths land on the same solid background, so none of them can look broken.
+- The `src` is on the `<video>` element rather than a `<source>` child: a failing child does not reliably fire `onError`, and the fallback would never run.
+
+### Routing (`App.tsx`, `components/auth/`)
+- **`/` is the public landing page, not the map.** The map is `/map`. After signing in or registering, navigate to `/map` — sending someone to `/` bounces them through marketing before `PublicOnlyRoute` redirects them back.
+- Two mirrored guards, and they check the same pair of values on purpose: `ProtectedRoute` (user **and** access token, else `/login`) and `PublicOnlyRoute` (user **and** access token, then `/map`). Gating either on `user` alone makes them disagree once the axios interceptor has cleared a token, and the two redirect into each other.
+- The catch-all sends unknown paths to `/`, which resolves to the map for a signed-in visitor and to the landing page for everyone else.
+
 ### Authentication (`store/authStore.ts`, `api/auth.ts`)
 - `authStore` persists `accessToken`, `refreshToken`, and `user` to `localStorage`.
+- `applyUserChanges(partial)` merges server-confirmed fields into the persisted user — used by the settings page after a preferences PATCH. It is not a login: it never touches tokens, and it does nothing when nobody is signed in.
 - Axios request interceptor attaches `Authorization: Bearer <accessToken>` on every API call.
 - Axios response interceptor catches `401`, calls `POST /api/v1/auth/refresh`, retries the original request once, then logs the user out on a second failure.
 

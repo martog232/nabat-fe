@@ -16,7 +16,7 @@ export function RegisterPage() {
     e.preventDefault()
     try {
       await register(email, password, displayName)
-      navigate('/')
+      navigate('/map')
     } catch {
       // error is in store
     }

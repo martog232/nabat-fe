@@ -61,6 +61,15 @@ interface AuthState {
   register: (email: string, password: string, displayName: string) => Promise<void>
   logout: () => void
   clearError: () => void
+
+  /**
+   * Replaces fields on the signed-in user without touching the tokens.
+   *
+   * <p>For settings the server has accepted: the response is the new truth, and the copy the
+   * app renders from — persisted, so a reload does not show the old value back — has to move
+   * with it. Not a login, so nothing here may clear or reissue a token.
+   */
+  applyUserChanges: (changes: Partial<User>) => void
 }
 
 type PersistedAuth = Pick<AuthState, 'user' | 'accessToken' | 'refreshToken'>
@@ -127,6 +136,11 @@ const createAuthState: StateCreator<
   },
 
   clearError: () => set({ error: null }),
+
+  applyUserChanges: (changes) =>
+    // Guarded: with no signed-in user there is nothing to merge into, and creating one out of
+    // a partial would leave a half-built User behind a route that only checks for its presence.
+    set((s) => (s.user ? { user: { ...s.user, ...changes } } : {})),
 })
 
 export const useAuthStore = create<AuthState>()(persist(createAuthState, persistOptions))

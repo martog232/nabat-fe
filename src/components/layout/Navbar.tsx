@@ -23,7 +23,7 @@ export function Navbar() {
     <nav className="absolute top-0 left-0 right-0 z-[1000] flex items-center justify-between px-3 sm:px-4 py-2 sm:py-3 pt-[calc(0.5rem+env(safe-area-inset-top))] sm:pt-3">
       {/* Logo */}
       <Link
-        to="/"
+        to="/map"
         className="flex items-center gap-2 rounded-full bg-surface-card/80 backdrop-blur border border-surface-border px-2.5 py-1.5 sm:border-transparent sm:bg-transparent sm:backdrop-blur-none sm:px-0 sm:py-0"
       >
         <div className="w-8 h-8 rounded-full bg-brand-600 flex items-center justify-center shadow-lg shadow-brand-600/40">
@@ -56,8 +56,32 @@ export function Navbar() {
 
           {/* Notification dropdown */}
           {showNotifications && <NotificationPanel onClose={closeNotifications} />}
+
+          {/* The way into everything that is not the map. A link rather than a menu: the
+              settings page already holds the theme, the notification radius and signing out,
+              and a dropdown repeating them would be a second place to keep in step. */}
+          <Link
+            to="/settings"
+            aria-label={`Settings for ${user.displayName}`}
+            title="Settings"
+            className="flex h-11 w-11 items-center justify-center rounded-full border border-surface-border bg-brand-600 text-sm font-semibold text-white shadow-lg shadow-brand-600/30 transition-transform hover:scale-105 sm:h-9 sm:w-9"
+          >
+            {initialsOf(user.displayName)}
+          </Link>
         </div>
       )}
     </nav>
   )
+}
+
+/** At most two letters, so the avatar stays a circle rather than a lozenge. */
+function initialsOf(displayName: string): string {
+  const letters = displayName
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((word) => word[0]?.toUpperCase() ?? '')
+    .join('')
+
+  return letters || displayName.slice(0, 1).toUpperCase() || '?'
 }

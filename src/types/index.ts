@@ -24,7 +24,22 @@ export interface User {
   email: string
   displayName: string
   role: Role
+  /**
+   * How far from you an alert has to be before you stop being notified about it.
+   *
+   * `UserResponse` has carried this all along; this type did not, so the settings screen had
+   * nothing to show as the current value and the PATCH endpoint was unreachable from the UI.
+   * There is no GET for preferences — `/auth/me` is where the value comes from.
+   */
+  notificationRadiusKm: number
 }
+
+/**
+ * The radii the backend accepts, and the reason the setting is a set of choices rather than a
+ * slider: `UserController` validates against exactly this list and answers 400 to anything
+ * else.
+ */
+export const NOTIFICATION_RADII_KM = [1, 5, 10, 25, 50] as const
 
 /**
  * Mirrors backend AlertResponse exactly.

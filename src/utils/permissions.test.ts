@@ -7,6 +7,7 @@ const user = (id: string, role: User['role']): User => ({
   email: `${id}@example.com`,
   displayName: id,
   role,
+  notificationRadiusKm: 5,
 })
 
 const alert = (reportedBy: string, status: Alert['status'] = 'ACTIVE'): Alert => ({
