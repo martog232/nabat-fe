@@ -8,6 +8,8 @@ const user = (id: string, role: User['role']): User => ({
   displayName: id,
   role,
   notificationRadiusKm: 5,
+  enabled: true,
+  emailVerified: false,
 })
 
 const alert = (reportedBy: string, status: Alert['status'] = 'ACTIVE'): Alert => ({

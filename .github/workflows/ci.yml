@@ -39,6 +39,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # Before the typecheck, because it explains the typecheck failures that follow it.
+      # src/types/api.d.ts is generated from contracts/openapi.json, which is a copy of a file
+      # nabat-app owns; a stale copy compiles perfectly and describes an API that no longer
+      # exists. There is no sibling checkout here, so this reads the source from GitHub.
+      - name: Check the API contract against nabat-app
+        run: npm run contract:check
+
       - name: Typecheck
         run: npm run typecheck
 

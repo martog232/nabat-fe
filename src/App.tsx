@@ -6,8 +6,10 @@ import { RegisterPage } from './pages/RegisterPage'
 import { MapPage } from './pages/MapPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { LandingPage } from './pages/LandingPage'
+import { AdminPage } from './pages/AdminPage'
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
 import { PublicOnlyRoute } from './components/auth/PublicOnlyRoute'
+import { AdminRoute } from './components/auth/AdminRoute'
 import { ErrorBoundary } from './components/common/ErrorBoundary'
 import { ToastContainer } from './components/common/ToastContainer'
 import { useThemeStore } from './store/themeStore'
@@ -55,6 +57,15 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/admin"
+            element={
+              <AdminRoute>
+                <AdminPage />
+              </AdminRoute>
+            }
+          />
+
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         </ErrorBoundary>

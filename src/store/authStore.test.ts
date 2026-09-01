@@ -7,6 +7,8 @@ const mockUser = {
   displayName: 'Test',
   role: 'USER' as const,
   notificationRadiusKm: 5,
+  enabled: true,
+  emailVerified: false,
 }
 
 beforeEach(() => {

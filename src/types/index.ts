@@ -1,3 +1,5 @@
+import type { components } from './api'
+
 // ─── Domain enums ────────────────────────────────────────────────────────────
 
 export type AlertType =
@@ -15,23 +17,47 @@ export type AlertType =
 export type AlertSeverity = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
 export type AlertStatus   = 'ACTIVE' | 'RESOLVED'
 export type VoteType      = 'UPVOTE' | 'DOWNVOTE' | 'CONFIRM'
-export type Role          = 'USER' | 'MODERATOR' | 'ADMIN'
 
 // ─── Domain models (match backend AlertResponse / UserResponse) ──────────────
 
-export interface User {
-  id: string                 // UUID
-  email: string
-  displayName: string
-  role: Role
-  /**
-   * How far from you an alert has to be before you stop being notified about it.
-   *
-   * `UserResponse` has carried this all along; this type did not, so the settings screen had
-   * nothing to show as the current value and the PATCH endpoint was unreachable from the UI.
-   * There is no GET for preferences — `/auth/me` is where the value comes from.
-   */
-  notificationRadiusKm: number
+/**
+ * The backend's own `UserResponse`, generated from `contracts/openapi.json`.
+ *
+ * <p>Not imported anywhere else. `User` below is what the application uses; this exists so
+ * that the field names come from the server's contract rather than from memory.
+ */
+type ApiUser = components['schemas']['UserResponse']
+
+/**
+ * Signed-in user, derived from the server's schema rather than retyped from it.
+ *
+ * <p>Three fields had gone missing from the hand-written version — `notificationRadiusKm`,
+ * `enabled`, `emailVerified` — all of them returned by the server for months. Nothing failed:
+ * the settings screen simply had no value to show and the admin screen could not have been
+ * written. `Pick` is what makes that impossible now, because naming a field the contract does
+ * not have is a compile error.
+ *
+ * <p>`Required` because springdoc marks nothing as required, so every generated field is
+ * optional. That is a gap in the spec, not in the API — `/auth/me` always returns all of
+ * these — and tightening it here beats making every caller check for undefined.
+ */
+export type User = Required<
+  Pick<
+    ApiUser,
+    'id' | 'email' | 'displayName' | 'role' | 'notificationRadiusKm' | 'enabled' | 'emailVerified'
+  >
+>
+
+/**
+ * Also from the contract, so adding a role on the backend needs no edit here — and removing
+ * one breaks whatever still refers to it.
+ */
+export type Role = NonNullable<ApiUser['role']>
+
+/** What `GET /api/v1/admin/users` returns. `total` is how a caller knows there is another page. */
+export interface AdminUserPage {
+  users: User[]
+  total: number
 }
 
 /**
