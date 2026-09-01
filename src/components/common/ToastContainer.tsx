@@ -115,9 +115,18 @@ export function ToastContainer() {
         }
       `}</style>
 
+      {/*
+        Below the navbar, not on top of it. Toasts sit at z-[9999] and the navbar at z-[1000],
+        so at `top-4` they covered the notification bell and the account avatar — the two
+        controls in the corner they land in, and the bell is where someone goes to read the
+        notification the toast is about.
+
+        The offset clears the navbar's tallest state: 44px controls plus its padding, plus the
+        safe-area inset on a notched phone.
+      */}
       <div
         aria-label="Notifications"
-        className="fixed top-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none"
+        className="fixed right-4 top-[calc(4.5rem+env(safe-area-inset-top))] z-[9999] flex flex-col gap-2 pointer-events-none"
       >
         {toasts.map((t) => (
           <div key={t.id} className="pointer-events-auto">

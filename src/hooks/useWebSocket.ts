@@ -22,10 +22,8 @@ export function useWebSocket({
   reconnectBaseDelayMs = DEFAULT_BASE_DELAY,
   reconnectMaxDelayMs = DEFAULT_MAX_DELAY,
 }: UseWebSocketOptions) {
-  const wsRef = useRef<WebSocket | null>(null)
   const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const reconnectAttempt = useRef(0)
-  const shouldReconnect = useRef(true)
 
   const getUrlRef = useRef(getUrl)
   const onMessageRef = useRef(onMessage)
@@ -40,10 +38,23 @@ export function useWebSocket({
   onConnectionChangeRef.current = onConnectionChange
 
   useEffect(() => {
-    shouldReconnect.current = true
+    /*
+     * Local to this run of the effect, not a ref, and that is the whole point.
+     *
+     * `connect` awaits a WebSocket ticket over HTTP, so a run can still be in flight when its
+     * own cleanup fires — which under StrictMode is every mount. With the cancelled flag on a
+     * ref shared by all runs, the second mount set it back to true while the first run was
+     * still awaiting, that run then sailed past its guard and opened a socket nobody could
+     * close, and the second opened another. Two live sockets, every frame delivered twice,
+     * every toast shown twice.
+     *
+     * Closing over it means a run can only ever be cancelled by its own cleanup.
+     */
+    let cancelled = false
+    let socket: WebSocket | null = null
 
     const scheduleReconnect = () => {
-      if (!shouldReconnect.current) return
+      if (cancelled) return
 
       reconnectAttempt.current += 1
       const delay = Math.min(
@@ -68,7 +79,7 @@ export function useWebSocket({
         url = null
       }
 
-      if (!shouldReconnect.current) return
+      if (cancelled) return
 
       if (!url) {
         onConnectionChangeRef.current?.(false)
@@ -82,7 +93,7 @@ export function useWebSocket({
       }
 
       const ws = new WebSocket(url)
-      wsRef.current = ws
+      socket = ws
 
       ws.onopen = () => {
         reconnectAttempt.current = 0
@@ -111,10 +122,17 @@ export function useWebSocket({
     void connect()
 
     return () => {
-      shouldReconnect.current = false
+      cancelled = true
       onConnectionChangeRef.current?.(false)
-      if (reconnectTimer.current) clearTimeout(reconnectTimer.current)
-      wsRef.current?.close()
+      if (reconnectTimer.current) {
+        clearTimeout(reconnectTimer.current)
+        reconnectTimer.current = null
+      }
+      // This run's socket. It used to be a ref shared by every run, which a later run had
+      // already overwritten by the time this ran — so the cleanup closed the connection meant
+      // to survive and left its own behind.
+      socket?.close()
+      socket = null
     }
   }, [reconnectBaseDelayMs, reconnectMaxDelayMs])
 }
