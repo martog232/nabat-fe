@@ -582,6 +582,7 @@ export interface components {
         /** @description Request body for creating a new user account */
         RegisterRequest: {
             /**
+             * Format: email
              * @description E-mail address (used as login)
              * @example alice@example.com
              */
@@ -609,6 +610,7 @@ export interface components {
              * @example 86400000
              */
             expiresIn?: number;
+            /** @description Basic profile of the authenticated user */
             user?: components["schemas"]["UserResponse"];
         };
         /** @description Public profile of a user */
@@ -657,6 +659,7 @@ export interface components {
         /** @description Credentials for logging in */
         LoginRequest: {
             /**
+             * Format: email
              * @description Registered e-mail address
              * @example alice@example.com
              */
@@ -668,6 +671,7 @@ export interface components {
             password: string;
         };
         ForgotPasswordRequest: {
+            /** Format: email */
             email: string;
         };
         /** @description Request body for creating a new safety alert */
@@ -819,6 +823,7 @@ export interface components {
              * @description When the vote was recorded
              */
             createdAt?: string;
+            /** @description Tallies after this vote */
             stats?: components["schemas"]["VoteStatsResponse"];
         };
         /** @description Aggregate vote statistics for an alert */
