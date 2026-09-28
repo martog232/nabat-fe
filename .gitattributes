@@ -1,0 +1,7 @@
+# Anything that runs inside a Linux container keeps LF whatever the checkout does.
+# core.autocrlf rewrites the working copy on Windows, Docker copies the working copy,
+# and sh then reads the trailing carriage return as part of every command.
+*.sh    text eol=lf
+*.envsh text eol=lf
+nginx.conf            text eol=lf
+security-headers.conf text eol=lf
