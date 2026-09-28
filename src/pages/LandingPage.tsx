@@ -57,18 +57,18 @@ export function LandingPage() {
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-500 opacity-75" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-brand-600" />
             </span>
-            Live alerts from people nearby
+            Reports from the people of Sofia
           </p>
 
           <h1 className="max-w-3xl text-4xl font-bold leading-tight tracking-tight text-white sm:text-6xl">
-            Know what is happening
-            <span className="text-brand-500"> around you</span>, as it happens.
+            See a problem in the city.
+            <span className="text-brand-500"> Get it to the district</span> that fixes it.
           </h1>
 
           <p className="mt-6 max-w-2xl text-lg leading-relaxed text-white/75">
-            Nabat is a safety map built by the people on it. Someone reports a hazard, a road closure
-            or an incident; everyone close enough to care hears about it within seconds, and the
-            people who are there decide whether it holds up.
+            A pothole, a missing manhole cover, a dump on the corner. Put it on the map and nabat
+            sends it to the district administration responsible — then shows everyone what has
+            happened to it since, whether anyone picked it up or it is still waiting.
           </p>
 
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
@@ -84,6 +84,12 @@ export function LandingPage() {
             >
               I already have one
             </Link>
+            <Link
+              to="/reports"
+              className="inline-flex items-center justify-center rounded-xl px-7 py-3.5 text-base font-semibold text-white/90 underline-offset-4 transition-colors hover:underline"
+            >
+              See what has been reported
+            </Link>
           </div>
         </section>
       </div>
@@ -92,7 +98,7 @@ export function LandingPage() {
         <section className="grid gap-5 pb-16 sm:grid-cols-3 sm:pb-24">
           <Feature
             title="A map, not a feed"
-            body="Every alert is a place first. Open the map and see what is active around you, filtered by type and by how far each report has got."
+            body="Every report is a place first. Open the map and see what is open around you, filtered by type and by how far each report has got."
             icon={
               <path
                 d="M9 20l-5.5 2.5V6L9 3.5m0 16.5l6-3m-6 3V3.5m6 13.5l5.5 2.5V4L15 6.5m0 10.5V6.5m0 0L9 3.5"
@@ -102,8 +108,8 @@ export function LandingPage() {
             }
           />
           <Feature
-            title="Checked by the people there"
-            body="Anyone can report. Everyone else can confirm or dispute, and the credibility score follows those votes rather than whoever shouted first."
+            title="Confirmed by the people there"
+            body="Anyone can report. Everyone else can confirm or dispute it — and the reports most people confirm rise to the top of the public list."
             icon={
               <>
                 <path d="M9 12l2 2 4-4" strokeLinecap="round" strokeLinejoin="round" />
@@ -116,8 +122,8 @@ export function LandingPage() {
             }
           />
           <Feature
-            title="Your radius, your business"
-            body="Choose how far you care about — 1 km if you want your street, 50 km if you want the region. Nothing outside it reaches you."
+            title="Out in the open"
+            body="Every report, every district and every answer is on a public list anyone can read, signed in or not — including what has been left waiting longest."
             icon={
               <>
                 <circle cx="12" cy="12" r="3" />
@@ -140,13 +146,13 @@ export function LandingPage() {
             />
             <Step
               number={2}
-              title="Neighbours weigh in"
-              body="People nearby confirm it, dispute it, or say nothing — and the alert's credibility moves with them."
+              title="It goes to the district"
+              body="Nabat works out which of Sofia's 24 districts it is in and emails the report there, with the place, the details and who sent it."
             />
             <Step
               number={3}
-              title="Everyone close finds out"
-              body="Anyone within their chosen radius is notified while it still matters, on the map and in their notifications."
+              title="Everyone can see what happens"
+              body="The district acknowledges it, starts work, marks it fixed — or does not, and the public list shows that too."
             />
           </ol>
         </section>
@@ -170,7 +176,7 @@ export function LandingPage() {
 
       <footer className="border-t border-surface-border">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-4 py-8 pb-[calc(2rem+env(safe-area-inset-bottom))] text-sm text-slate-500 sm:flex-row sm:px-8 dark:text-slate-400">
-          <span>Nabat — real-time safety alerts</span>
+          <span>Nabat — reports about Sofia, and what became of them</span>
           <span className="flex items-center gap-4">
             <Link to="/login" className="transition-colors hover:text-slate-800 dark:hover:text-slate-200">
               Sign in

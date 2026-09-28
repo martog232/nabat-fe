@@ -96,7 +96,7 @@ export function DistrictPage() {
                   </div>
                   <p className="mt-1 text-sm text-slate-700 dark:text-slate-300">{r.description}</p>
                   <p className="mt-2 text-xs text-slate-500">
-                    {ALERT_TYPE_LABELS[r.type]} · {formatDate(r.createdAt)} · {r.confirmationCount + r.upvoteCount} supporting
+                    {ALERT_TYPE_LABELS[r.type]} · {formatDate(r.createdAt)} · {Math.max(0, r.confirmationCount + r.upvoteCount - r.downvoteCount)} supporting
                     {' · '}
                     <a
                       className="underline hover:text-slate-700 dark:hover:text-slate-300"

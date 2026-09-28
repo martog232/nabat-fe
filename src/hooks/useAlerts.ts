@@ -3,7 +3,7 @@ import { alertsApi } from '../api/alerts'
 import { useAlertStore } from '../store/alertStore'
 import { useToastStore } from '../store/toastStore'
 import { errorCodeOf } from '../api/errors'
-import type { Alert, AlertStatus, CreateAlertRequest } from '../types'
+import type { Alert, AlertStatus, CreateAlertRequest, ReportRanking } from '../types'
 import { isOpen } from '../types'
 
 /**
@@ -160,5 +160,23 @@ export function useDistrictReports(statuses: AlertStatus[] = []) {
   return useQuery({
     queryKey: ['alerts', 'district', [...statuses].sort()],
     queryFn: () => alertsApi.listForOwnDistrict(statuses),
+  })
+}
+
+/**
+ * One page of the public list. Keyed on everything that changes the answer, and keeps the
+ * previous page on screen while the next loads so switching order does not blank the list.
+ */
+export function useRankedReports(params: {
+  ranking: ReportRanking
+  district?: string
+  statuses: AlertStatus[]
+  page: number
+  size: number
+}) {
+  return useQuery({
+    queryKey: ['alerts', 'ranked', params.ranking, params.district ?? '', [...params.statuses].sort(), params.page, params.size],
+    queryFn: () => alertsApi.listRanked(params),
+    placeholderData: (previous) => previous,
   })
 }

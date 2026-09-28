@@ -8,6 +8,7 @@ import { SettingsPage } from './pages/SettingsPage'
 import { LandingPage } from './pages/LandingPage'
 import { AdminPage } from './pages/AdminPage'
 import { DistrictPage } from './pages/DistrictPage'
+import { ReportsPage } from './pages/ReportsPage'
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
 import { PublicOnlyRoute } from './components/auth/PublicOnlyRoute'
 import { AdminRoute } from './components/auth/AdminRoute'
@@ -67,6 +68,10 @@ export default function App() {
               </AdminRoute>
             }
           />
+          {/* Public on purpose: no ProtectedRoute, and the two endpoints it reads need no
+              session. Signed in or not, anyone can see what has been reported and what the
+              districts have done about it. */}
+          <Route path="/reports" element={<ReportsPage />} />
           <Route
             path="/district"
             element={

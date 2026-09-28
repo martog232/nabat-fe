@@ -38,6 +38,13 @@ export function Navbar() {
       {/* Right section */}
       {user && (
         <div className="relative flex items-center gap-2">
+          <Link
+            to="/reports"
+            className="hidden h-9 items-center rounded-full px-3 text-sm font-medium text-slate-700 transition-colors hover:bg-surface-elevated sm:flex dark:text-slate-200"
+          >
+            All reports
+          </Link>
+
           {/* An official's working list is the thing they open the app for, so it gets a
               way in from the map rather than only from settings. */}
           {canActForADistrict(user.role) && (
