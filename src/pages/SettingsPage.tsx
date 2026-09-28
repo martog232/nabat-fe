@@ -2,7 +2,8 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '../components/common/Button'
 import { useAuthStore } from '../store/authStore'
 import { useThemeStore } from '../store/themeStore'
-import { canAdministerUsers } from '../utils/permissions'
+import { canActForADistrict, canAdministerUsers, ROLE_LABELS } from '../utils/permissions'
+import { useDistrictNames } from '../hooks/useDistricts'
 
 /**
  * Everything about the account that is not the map.
@@ -17,6 +18,7 @@ export function SettingsPage() {
   const logout = useAuthStore((s) => s.logout)
   const { theme, toggleTheme } = useThemeStore()
   const navigate = useNavigate()
+  const districtNames = useDistrictNames()
 
   if (!user) {
     return null
@@ -55,12 +57,33 @@ export function SettingsPage() {
             </div>
             {user.role !== 'USER' && (
               <span className="ml-auto rounded-full border border-brand-600/30 bg-brand-600/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-brand-700 dark:text-brand-400">
-                {user.role.toLowerCase()}
+                {ROLE_LABELS[user.role] ?? user.role.toLowerCase()}
               </span>
             )}
           </div>
         </section>
 
+
+        {canActForADistrict(user.role) && user.districtCode && (
+          <section className="mb-6 rounded-2xl border border-surface-border bg-surface-card p-6 shadow-sm">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <h2 className="text-base font-semibold text-slate-900 dark:text-white">
+                  {districtNames.get(user.districtCode) ?? user.districtCode}
+                </h2>
+                <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+                  The reports sent to your district, and what has been done about them.
+                </p>
+              </div>
+              <Link
+                to="/district"
+                className="rounded-lg border border-surface-border bg-surface-elevated px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-surface-hover dark:text-slate-200"
+              >
+                Open
+              </Link>
+            </div>
+          </section>
+        )}
 
         {/* Only an admin sees this, and only as a courtesy: the route redirects and every
             endpoint behind it refuses anyone else. */}

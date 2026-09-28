@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useAuthStore } from '../../store/authStore'
 import { useUnreadCount } from '../../hooks/useNotifications'
 import { NotificationPanel } from '../notifications/NotificationPanel'
+import { canActForADistrict } from '../../utils/permissions'
 
 export function Navbar() {
   const [showNotifications, setShowNotifications] = useState(false)
@@ -37,6 +38,17 @@ export function Navbar() {
       {/* Right section */}
       {user && (
         <div className="relative flex items-center gap-2">
+          {/* An official's working list is the thing they open the app for, so it gets a
+              way in from the map rather than only from settings. */}
+          {canActForADistrict(user.role) && (
+            <Link
+              to="/district"
+              className="flex h-11 items-center rounded-full border border-surface-border bg-surface-card/80 px-4 text-sm font-medium text-slate-700 backdrop-blur transition-colors hover:bg-surface-elevated sm:h-9 dark:text-slate-200"
+            >
+              My district
+            </Link>
+          )}
+
           {/* Notification bell */}
           <button
             onClick={toggleNotifications}
@@ -58,7 +70,7 @@ export function Navbar() {
           {showNotifications && <NotificationPanel onClose={closeNotifications} />}
 
           {/* The way into everything that is not the map. A link rather than a menu: the
-              settings page already holds the theme, the notification radius and signing out,
+              settings page already holds the theme, the district link and signing out,
               and a dropdown repeating them would be a second place to keep in step. */}
           <Link
             to="/settings"

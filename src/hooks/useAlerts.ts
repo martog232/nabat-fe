@@ -2,7 +2,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { alertsApi } from '../api/alerts'
 import { useAlertStore } from '../store/alertStore'
 import { useToastStore } from '../store/toastStore'
-import type { Alert, CreateAlertRequest } from '../types'
+import { errorCodeOf } from '../api/errors'
+import type { Alert, AlertStatus, CreateAlertRequest } from '../types'
 import { isOpen } from '../types'
 
 /**
@@ -99,5 +100,65 @@ export function useResolveAlert(alertId: string) {
     onSettled: () => {
       qc.invalidateQueries({ queryKey: ['alerts'] })
     },
+  })
+}
+
+/** What a district can say about one of its reports, besides "fixed". */
+export type ReportAction = 'acknowledge' | 'startWork' | 'reject'
+
+const ACTION_CALLS: Record<ReportAction, (id: string) => Promise<Alert>> = {
+  acknowledge: alertsApi.acknowledge,
+  startWork: alertsApi.startWork,
+  reject: alertsApi.reject,
+}
+
+/**
+ * Moves a report on, as its district or a moderator.
+ *
+ * Not optimistic, unlike resolving your own report: these are statements by the body
+ * responsible, the server decides whether they are allowed, and a 409 is a real answer —
+ * the report may have moved on since the list was loaded. What the server returns replaces
+ * the report wherever it is cached, on the map and in the district list alike.
+ */
+export function useReportAction(alertId: string) {
+  const qc = useQueryClient()
+
+  return useMutation({
+    mutationFn: (action: ReportAction) => ACTION_CALLS[action](alertId),
+
+    onSuccess: (updated) => {
+      qc.setQueriesData<Alert[]>({ queryKey: ['alerts', 'nearby'] }, (old) =>
+        old?.map((a) => (a.id === updated.id ? updated : a)),
+      )
+      qc.setQueriesData<Alert[]>({ queryKey: ['alerts', 'district'] }, (old) =>
+        old?.map((a) => (a.id === updated.id ? updated : a)),
+      )
+    },
+
+    onError: (err) => {
+      const code = errorCodeOf(err)
+      useToastStore.getState().addToast({
+        type: 'error',
+        message: code === 'CONFLICT' || code === 'CONCURRENT_UPDATE'
+          ? 'This report has changed since you opened it. The list has been refreshed.'
+          : 'Could not update the report. Please try again.',
+      })
+    },
+
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ['alerts'] })
+    },
+  })
+}
+
+/**
+ * A district official's working list — their own district, the open reports unless
+ * `statuses` says otherwise. The district is not a parameter: the server takes it from the
+ * account.
+ */
+export function useDistrictReports(statuses: AlertStatus[] = []) {
+  return useQuery({
+    queryKey: ['alerts', 'district', [...statuses].sort()],
+    queryFn: () => alertsApi.listForOwnDistrict(statuses),
   })
 }

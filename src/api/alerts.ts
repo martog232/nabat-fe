@@ -1,4 +1,4 @@
-import type { Alert, CreateAlertRequest, NearbyAlertsResponse } from '../types'
+import type { Alert, AlertStatus, CreateAlertRequest, NearbyAlertsResponse, RankedReportsResponse, ReportRanking } from '../types'
 import { apiClient } from './client'
 
 export const alertsApi = {
@@ -33,4 +33,43 @@ export const alertsApi = {
 
   resolve: (id: string) =>
     apiClient.patch<Alert>(`/alerts/${id}/resolve`).then((r) => r.data),
+
+  /** The district has received the report. Its own officials only. */
+  acknowledge: (id: string) =>
+    apiClient.patch<Alert>(`/alerts/${id}/acknowledge`).then((r) => r.data),
+
+  /** The district has started work on it. Its own officials only. */
+  startWork: (id: string) =>
+    apiClient.patch<Alert>(`/alerts/${id}/start-work`).then((r) => r.data),
+
+  /** Closed without a fix. The district or a moderator — not the reporter. */
+  reject: (id: string) =>
+    apiClient.patch<Alert>(`/alerts/${id}/reject`).then((r) => r.data),
+
+  /**
+   * An official's working list: the reports in their own district. Which district comes from
+   * the account on the server — there is no parameter for it here, by design.
+   */
+  listForOwnDistrict: (statuses: AlertStatus[] = []) =>
+    apiClient
+      .get<Alert[]>('/alerts/district', {
+        params: { status: statuses },
+        paramsSerializer: { indexes: null },
+      })
+      .then((r) => r.data),
+
+  /** The public list. Needs no session. */
+  listRanked: (params: { ranking: ReportRanking; district?: string; statuses?: AlertStatus[]; page?: number; size?: number }) =>
+    apiClient
+      .get<RankedReportsResponse>('/alerts/ranked', {
+        params: {
+          ranking: params.ranking,
+          district: params.district || undefined,
+          status: params.statuses ?? [],
+          page: params.page ?? 0,
+          size: params.size ?? 50,
+        },
+        paramsSerializer: { indexes: null },
+      })
+      .then((r) => r.data),
 }

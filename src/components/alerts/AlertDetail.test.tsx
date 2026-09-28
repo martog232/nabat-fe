@@ -48,6 +48,11 @@ const user: User = {
 vi.mock('../../hooks/useAlerts', () => ({
   useNearbyAlerts: () => ({ data: [alert] }),
   useResolveAlert: () => ({ mutate: vi.fn(), isPending: false }),
+  useReportAction: () => ({ mutate: vi.fn(), isPending: false }),
+}))
+
+vi.mock('../../hooks/useDistricts', () => ({
+  useDistrictNames: () => new Map([['LOZENETS', 'Район Лозенец']]),
 }))
 
 vi.mock('../../api/votes', () => ({

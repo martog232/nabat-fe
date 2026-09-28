@@ -13,8 +13,11 @@ export const adminApi = {
       .get<AdminUserPage>('/admin/users', { params: { page, size } })
       .then((r) => r.data),
 
-  changeRole: (id: string, role: Role) =>
-    apiClient.patch<User>(`/admin/users/${id}/role`, { role }).then((r) => r.data),
+  /** `districtCode` is required for DISTRICT_OFFICIAL and refused for every other role. */
+  changeRole: (id: string, role: Role, districtCode?: string) =>
+    apiClient
+      .patch<User>(`/admin/users/${id}/role`, { role, districtCode: districtCode ?? null })
+      .then((r) => r.data),
 
   /**
    * Disabling ends the account's sessions at once — the backend bumps its token version, so

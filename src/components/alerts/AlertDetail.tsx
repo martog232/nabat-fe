@@ -1,12 +1,12 @@
 import { useAlertStore } from '../../store/alertStore'
 import { useVoteData, useVote, useRemoveVote } from '../../hooks/useVotes'
-import { useResolveAlert, useNearbyAlerts } from '../../hooks/useAlerts'
+import { useNearbyAlerts } from '../../hooks/useAlerts'
 import { useAuthStore } from '../../store/authStore'
 import { ALERT_TYPE_ICONS, ALERT_TYPE_LABELS, CLOSED_BY_LABELS } from '../../types'
 import { StatusBadge } from '../common/Badge'
 import { useDistrictNames } from '../../hooks/useDistricts'
 import type { VoteType } from '../../types'
-import { canResolveAlert } from '../../utils/permissions'
+import { ReportActions } from './ReportActions'
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleString('en-US', {
@@ -27,7 +27,6 @@ export function AlertDetail() {
   const myVote = voteData?.myVote
   const vote = useVote(selectedAlert?.id ?? '')
   const removeVote = useRemoveVote(selectedAlert?.id ?? '')
-  const resolveAlert = useResolveAlert(selectedAlert?.id ?? '')
 
   if (!selectedAlert) return null
 
@@ -36,9 +35,6 @@ export function AlertDetail() {
   // The vote type currently being submitted — used to show a per-button spinner
   const pendingVoteType = vote.isPending ? vote.variables : undefined
   const isMutating = vote.isPending || removeVote.isPending
-  // Mirrors the server rule: your own alert, or anyone's if you moderate. A moderator was
-  // previously shown no resolve button at all, since the check named the ADMIN role directly.
-  const canResolve = canResolveAlert(user, a)
 
   const credibilityScore = stats
     ? stats.credibilityScore
@@ -55,10 +51,6 @@ export function AlertDetail() {
     }
   }
 
-  const handleResolve = () => {
-    if (!canResolve || resolveAlert.isPending) return
-    resolveAlert.mutate()
-  }
 
   return (
     /*
@@ -114,16 +106,9 @@ export function AlertDetail() {
             </div>
           )}
 
-          {/* Resolve button */}
-          {canResolve && (
-            <button
-              onClick={handleResolve}
-              disabled={resolveAlert.isPending}
-              className="w-full rounded-xl border border-brand-500/40 bg-brand-500/10 text-brand-400 py-3 sm:py-2 text-sm font-semibold hover:border-brand-500/70 hover:bg-brand-500/15 transition disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              {resolveAlert.isPending ? 'Resolving…' : 'Mark as fixed'}
-            </button>
-          )}
+          {/* What this user may do to move the report along — the district's steps, and
+              "fixed" for whoever may say so. Renders nothing for everyone else. */}
+          <ReportActions alert={a} />
 
           {/*
             Vote buttons.

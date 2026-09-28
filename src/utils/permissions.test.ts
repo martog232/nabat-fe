@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest'
-import { canAdministerUsers, canModerateContent, canResolveAlert } from './permissions'
+import {
+  actsForDistrictOf,
+  canAdministerUsers,
+  canAdvanceTo,
+  canModerateContent,
+  canRejectAlert,
+  canResolveAlert,
+} from './permissions'
 import type { Alert, User } from '../types'
 
 const user = (id: string, role: User['role']): User => ({
@@ -73,5 +80,57 @@ describe('canResolveAlert', () => {
 
   it('offers nothing to an anonymous visitor', () => {
     expect(canResolveAlert(null, alert('u1'))).toBe(false)
+  })
+})
+
+describe('a district official', () => {
+  const official = (district: string): User => ({ ...user('o1', 'DISTRICT_OFFICIAL'), districtCode: district })
+
+  it('acts for their own district and no other', () => {
+    expect(actsForDistrictOf(official('LOZENETS'), alert('u2'))).toBe(true)
+    expect(actsForDistrictOf(official('TRIADITSA'), alert('u2'))).toBe(false)
+  })
+
+  /** The rule the role exists for: another district's report offers them nothing at all. */
+  it('may do nothing to a report in another district', () => {
+    const other = official('TRIADITSA')
+    expect(canResolveAlert(other, alert('u2'))).toBe(false)
+    expect(canRejectAlert(other, alert('u2'))).toBe(false)
+    expect(canAdvanceTo(other, alert('u2'), 'ACKNOWLEDGED')).toBe(false)
+  })
+
+  it('moves their district\'s report forward, skipping allowed, never back', () => {
+    const lozenets = official('LOZENETS')
+    expect(canAdvanceTo(lozenets, alert('u2', 'SENT'), 'ACKNOWLEDGED')).toBe(true)
+    expect(canAdvanceTo(lozenets, alert('u2', 'SENT'), 'IN_PROGRESS')).toBe(true)
+    expect(canAdvanceTo(lozenets, alert('u2', 'IN_PROGRESS'), 'ACKNOWLEDGED')).toBe(false)
+    expect(canAdvanceTo(lozenets, alert('u2', 'ACKNOWLEDGED'), 'ACKNOWLEDGED')).toBe(false)
+    expect(canAdvanceTo(lozenets, alert('u2', 'RESOLVED'), 'IN_PROGRESS')).toBe(false)
+  })
+
+  it('is not a moderator', () => {
+    expect(canModerateContent('DISTRICT_OFFICIAL')).toBe(false)
+  })
+})
+
+describe('canRejectAlert', () => {
+  /** "Not a real problem" is the district's or a moderator's call about someone's report. */
+  it('is not the reporter\'s', () => {
+    expect(canRejectAlert(user('u1', 'USER'), alert('u1'))).toBe(false)
+  })
+
+  it('is a moderator\'s', () => {
+    expect(canRejectAlert(user('m1', 'MODERATOR'), alert('u2'))).toBe(true)
+  })
+
+  it('is nobody\'s on a closed report', () => {
+    expect(canRejectAlert(user('m1', 'MODERATOR'), alert('u2', 'REJECTED'))).toBe(false)
+  })
+})
+
+describe('acknowledging and starting work', () => {
+  it('belongs to the district alone — not the reporter, not a moderator', () => {
+    expect(canAdvanceTo(user('u1', 'USER'), alert('u1', 'SENT'), 'ACKNOWLEDGED')).toBe(false)
+    expect(canAdvanceTo(user('m1', 'MODERATOR'), alert('u2', 'SENT'), 'IN_PROGRESS')).toBe(false)
   })
 })

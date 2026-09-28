@@ -5,9 +5,11 @@ import { Button } from '../components/common/Button'
 import { useAuthStore } from '../store/authStore'
 import { useToastStore } from '../store/toastStore'
 import type { Role, User } from '../types'
+import { useDistricts } from '../hooks/useDistricts'
+import { ROLE_LABELS } from '../utils/permissions'
 
 const PAGE_SIZE = 25
-const ASSIGNABLE_ROLES: Role[] = ['USER', 'MODERATOR', 'ADMIN']
+const ASSIGNABLE_ROLES: Role[] = ['USER', 'MODERATOR', 'ADMIN', 'DISTRICT_OFFICIAL']
 
 /**
  * Account administration: who has which role, and whose account is switched off.
@@ -30,6 +32,13 @@ export function AdminPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [busyId, setBusyId] = useState<string | null>(null)
+  /**
+   * The row where "District official" was picked but no district yet. The role cannot be
+   * saved without one — the server refuses it — so choosing it opens the district picker
+   * instead of sending a request that would only come back 400.
+   */
+  const [choosingDistrictFor, setChoosingDistrictFor] = useState<string | null>(null)
+  const { data: districts = [] } = useDistricts()
 
   const load = useCallback(async (which: number) => {
     setLoading(true)
@@ -53,11 +62,17 @@ export function AdminPage() {
   const replace = (updated: User) =>
     setUsers((current) => current.map((u) => (u.id === updated.id ? updated : u)))
 
-  const changeRole = async (user: User, role: Role) => {
+  const changeRole = async (user: User, role: Role, districtCode?: string) => {
+    if (role === 'DISTRICT_OFFICIAL' && !districtCode) {
+      setChoosingDistrictFor(user.id)
+      return
+    }
+    setChoosingDistrictFor(null)
     setBusyId(user.id)
     try {
-      replace(await adminApi.changeRole(user.id, role))
-      addToast({ type: 'success', message: `${user.displayName} is now ${role.toLowerCase()}` })
+      replace(await adminApi.changeRole(user.id, role, districtCode))
+      const where = districtCode ? ` for ${districts.find((d) => d.code === districtCode)?.name ?? districtCode}` : ''
+      addToast({ type: 'success', message: `${user.displayName} is now ${(ROLE_LABELS[role] ?? role).toLowerCase()}${where}` })
     } catch {
       addToast({ type: 'error', message: `Could not change ${user.displayName}'s role` })
     } finally {
@@ -162,17 +177,37 @@ export function AdminPage() {
                     </label>
                     <select
                       id={`role-${user.id}`}
-                      value={user.role}
+                      value={choosingDistrictFor === user.id ? 'DISTRICT_OFFICIAL' : user.role}
                       disabled={isSelf || busy}
                       onChange={(e) => void changeRole(user, e.target.value as Role)}
                       className="rounded-lg border border-surface-border bg-surface-elevated px-3 py-2 text-sm text-slate-800 disabled:opacity-50 dark:text-slate-100"
                     >
                       {ASSIGNABLE_ROLES.map((role) => (
                         <option key={role} value={role}>
-                          {role.charAt(0) + role.slice(1).toLowerCase()}
+                          {ROLE_LABELS[role] ?? role.charAt(0) + role.slice(1).toLowerCase()}
                         </option>
                       ))}
                     </select>
+
+                    {(user.role === 'DISTRICT_OFFICIAL' || choosingDistrictFor === user.id) && (
+                      <>
+                        <label className="sr-only" htmlFor={`district-${user.id}`}>
+                          District for {user.displayName}
+                        </label>
+                        <select
+                          id={`district-${user.id}`}
+                          value={choosingDistrictFor === user.id ? '' : user.districtCode ?? ''}
+                          disabled={isSelf || busy}
+                          onChange={(e) => void changeRole(user, 'DISTRICT_OFFICIAL', e.target.value)}
+                          className="rounded-lg border border-surface-border bg-surface-elevated px-3 py-2 text-sm text-slate-800 disabled:opacity-50 dark:text-slate-100"
+                        >
+                          <option value="" disabled>Choose a district…</option>
+                          {districts.map((d) => (
+                            <option key={d.code} value={d.code}>{d.name}</option>
+                          ))}
+                        </select>
+                      </>
+                    )}
 
                     <Button
                       type="button"
