@@ -18,19 +18,26 @@ import type { Alert, CreateAlertRequest } from '../types'
  * It also belongs to the fetch rather than to the live set: once the socket has pushed a few
  * alerts in, `count` is no longer what the server said, while "your first page was capped"
  * stays true and is still the thing worth telling the user.
+ *
+ * The key is built from `queryCenter`, not `mapCenter`: the store rounds and debounces the
+ * map's centre so that panning does not spend a request per `moveend`. See its comment for
+ * why that belongs there and not here.
  */
 export function useNearbyAlerts() {
-  const mapCenter = useAlertStore((s) => s.mapCenter)
+  const queryCenter = useAlertStore((s) => s.queryCenter)
   const radiusKm = useAlertStore((s) => s.radiusKm)
   const setNearbyTruncation = useAlertStore((s) => s.setNearbyTruncation)
 
   return useQuery({
-    queryKey: ['alerts', 'nearby', mapCenter, radiusKm],
+    queryKey: ['alerts', 'nearby', queryCenter[0], queryCenter[1], radiusKm],
     queryFn: async () => {
-      const response = await alertsApi.getNearby(mapCenter[0], mapCenter[1], radiusKm)
+      const response = await alertsApi.getNearby(queryCenter[0], queryCenter[1], radiusKm)
       setNearbyTruncation(response.truncated, response.limit)
       return response.alerts
     },
+    // Keeps the previous list on screen while the next centre loads, so a pan does not
+    // blank the map and the sidebar between two answers that mostly overlap.
+    placeholderData: (previous) => previous,
   })
 }
 
@@ -48,14 +55,20 @@ export function useResolveAlert(alertId: string) {
   return useMutation({
     mutationFn: () => alertsApi.resolve(alertId),
 
+    /*
+      Every write below goes through the `['alerts','nearby']` prefix rather than a key
+      rebuilt from the store, for the same reason `mergeAlertsIntoCache` does: the key
+      the user is subscribed to is not necessarily the one the store describes right
+      now. That was already true when the map moved mid-request, and it is now true by
+      construction, because the store's query centre trails the map by a debounce — a
+      reconstructed key would have addressed an entry nobody was reading.
+    */
     onMutate: async () => {
       await qc.cancelQueries({ queryKey: ['alerts'] })
 
-      const { mapCenter, radiusKm, selectedAlertId: prevSelectedId } = useAlertStore.getState()
-      const key = ['alerts', 'nearby', mapCenter, radiusKm]
-      const prevAlerts = qc.getQueryData<Alert[]>(key)
+      const prevAlerts = qc.getQueriesData<Alert[]>({ queryKey: ['alerts', 'nearby'] })
 
-      qc.setQueryData<Alert[]>(key, (old) =>
+      qc.setQueriesData<Alert[]>({ queryKey: ['alerts', 'nearby'] }, (old) =>
         old?.map((a) =>
           a.id === alertId && a.status === 'ACTIVE'
             ? { ...a, status: 'RESOLVED', resolvedAt: new Date().toISOString() }
@@ -63,12 +76,12 @@ export function useResolveAlert(alertId: string) {
         ),
       )
 
-      return { prevAlerts, prevSelectedId, key }
+      return { prevAlerts }
     },
 
     onError: (_err, _vars, context) => {
-      if (context?.prevAlerts) {
-        qc.setQueryData(context.key, context.prevAlerts)
+      for (const [key, data] of context?.prevAlerts ?? []) {
+        qc.setQueryData(key, data)
       }
       useToastStore.getState().addToast({
         type: 'error',
@@ -77,9 +90,7 @@ export function useResolveAlert(alertId: string) {
     },
 
     onSuccess: (resolved) => {
-      const { mapCenter, radiusKm } = useAlertStore.getState()
-      const key = ['alerts', 'nearby', mapCenter, radiusKm]
-      qc.setQueryData<Alert[]>(key, (old) =>
+      qc.setQueriesData<Alert[]>({ queryKey: ['alerts', 'nearby'] }, (old) =>
         old?.map((a) => (a.id === alertId ? resolved : a)),
       )
     },
@@ -89,5 +100,3 @@ export function useResolveAlert(alertId: string) {
     },
   })
 }
-
-
