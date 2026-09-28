@@ -1,0 +1,17 @@
+services:
+  # Serves the built bundle on http://localhost:5173. That port, not 3000: Grafana in the
+  # backend stack already holds 3000, and Kong's CORS plugin allows both.
+  nabat-fe:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      # Vite inlines import.meta.env at build time, so these are build args rather than
+      # `environment:` — a value set at run time reaches nginx and nothing else.
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8000/api/v1}
+        VITE_WS_BASE: ${VITE_WS_BASE:-}
+    image: nabat-fe:local
+    container_name: nabat-fe
+    ports:
+      - "${FE_HOST_PORT:-5173}:80"
+    restart: unless-stopped

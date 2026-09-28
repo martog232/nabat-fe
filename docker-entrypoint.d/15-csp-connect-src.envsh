@@ -1,0 +1,39 @@
+#!/bin/sh
+# Sourced by nginx's entrypoint before 20-envsubst-on-templates.sh, which is what
+# expands ${CSP_CONNECT_SRC} in security-headers.conf.template.
+#
+# The bundle's API base is baked in at build time, but the CSP that has to allow it
+# is a response header — so the same value is carried into the image as API_BASE_URL
+# and turned into origins here, rather than being written down twice and drifting.
+# A relative base (the default, /api/v1) needs no entry at all: 'self' covers it.
+set -e
+
+api_origin=""
+ws_origin=""
+
+origin_of() {
+  echo "$1" | sed -n -E 's#^(https?://[^/]+).*#\1#p'
+}
+
+if [ -n "${API_BASE_URL:-}" ]; then
+  api_origin=$(origin_of "$API_BASE_URL")
+fi
+
+if [ -n "${WS_BASE_URL:-}" ]; then
+  # An explicit ws:// or wss:// base is used as-is; an http:// one is converted.
+  case "$WS_BASE_URL" in
+    ws://*|wss://*) ws_origin=$(echo "$WS_BASE_URL" | sed -n -E 's#^(wss?://[^/]+).*#\1#p') ;;
+    *) ws_origin=$(origin_of "$WS_BASE_URL") ;;
+  esac
+elif [ -n "$api_origin" ]; then
+  ws_origin=$api_origin
+fi
+
+case "$ws_origin" in
+  https://*) ws_origin="wss://${ws_origin#https://}" ;;
+  http://*) ws_origin="ws://${ws_origin#http://}" ;;
+esac
+
+CSP_CONNECT_SRC=$(echo "$api_origin $ws_origin" | tr -s ' ' | sed -e 's/^ //' -e 's/ $//')
+export CSP_CONNECT_SRC
+echo "$0: CSP connect-src additions: '${CSP_CONNECT_SRC:-<none, same-origin>}'"
