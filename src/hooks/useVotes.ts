@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { AxiosError } from 'axios'
 import { votesApi } from '../api/votes'
 import { useToastStore } from '../store/toastStore'
-import type { ErrorResponse, VoteDetails, VoteStats, VoteType } from '../types'
+import type { Alert, ErrorResponse, VoteDetails, VoteStats, VoteType } from '../types'
 
 const voteDataKey = (alertId: string) => ['votes', alertId] as const
 
@@ -27,6 +27,40 @@ function applyVoteChange(stats: VoteStats, from: VoteType | null, to: VoteType |
   if (from) next[COUNTER_KEY[from]] = Math.max(0, next[COUNTER_KEY[from]] - 1)
   if (to) next[COUNTER_KEY[to]] += 1
   return next
+}
+
+/**
+ * Copies authoritative tallies onto every cached copy of the alert.
+ *
+ * Alert payloads carry the same four counts, so a vote makes them stale — but refetching
+ * them is the wrong repair. `/alerts/nearby` and `/votes/stats` are both served from a
+ * projection that trails the voting service, so the invalidation this replaces could
+ * overwrite the exact numbers the vote response had just returned with older ones, and
+ * spent three requests to do it. Writing the receipt's stats into the cache is both
+ * correct and free.
+ *
+ * Writes across the `['alerts','nearby']` prefix rather than rebuilding the key from the
+ * store, for the reason `mergeAlertsIntoCache` gives: the map may have moved since the
+ * request went out, and a reconstructed key addresses an entry nobody is subscribed to.
+ */
+function applyStatsToAlerts(
+  qc: ReturnType<typeof useQueryClient>,
+  alertId: string,
+  stats: VoteStats,
+) {
+  qc.setQueriesData<Alert[]>({ queryKey: ['alerts', 'nearby'] }, (old) =>
+    old?.map((a) =>
+      a.id === alertId
+        ? {
+            ...a,
+            upvoteCount: stats.upvotes,
+            downvoteCount: stats.downvotes,
+            confirmationCount: stats.confirmations,
+            credibilityScore: stats.credibilityScore,
+          }
+        : a,
+    ),
+  )
 }
 
 function errorCode(err: unknown): string | undefined {
@@ -76,17 +110,25 @@ export function useVote(alertId: string) {
       return { prev }
     },
 
-    // The server returns the authoritative tallies with the vote, so the cache can be
-    // corrected immediately instead of waiting for a refetch.
+    // The server returns the authoritative tallies with the vote, so both caches are
+    // corrected here and nothing is invalidated on the success path.
     onSuccess: (receipt) => {
       qc.setQueryData<VoteDetails>(voteDataKey(alertId), {
         stats: receipt.stats,
         myVote: { hasVoted: true, voteType: receipt.voteType },
       })
+      applyStatsToAlerts(qc, alertId, receipt.stats)
     },
 
     onError: (err, _voteType, context) => {
       if (context?.prev) qc.setQueryData(voteDataKey(alertId), context.prev)
+
+      // A failure is the one case with no authoritative answer to trust, so this is
+      // where a refetch belongs: the rollback above restores what was on screen, and
+      // this settles what the services actually recorded. It covers VOTE_ALREADY_CAST
+      // too, which returns below without a toast but still needs the resync.
+      qc.invalidateQueries({ queryKey: voteDataKey(alertId) })
+      qc.invalidateQueries({ queryKey: ['alerts'] })
 
       // VOTE_ALREADY_CAST means the identical vote is already recorded — the UI was
       // already right, so resync quietly.
@@ -104,12 +146,6 @@ export function useVote(alertId: string) {
             ? 'Voting is temporarily unavailable. Please try again in a moment.'
             : 'Vote failed — your action was undone. Please try again.',
       })
-    },
-
-    onSettled: () => {
-      qc.invalidateQueries({ queryKey: voteDataKey(alertId) })
-      // Alert payloads carry the tallies too, so they are now stale as well.
-      qc.invalidateQueries({ queryKey: ['alerts'] })
     },
   })
 }
@@ -135,15 +171,21 @@ export function useRemoveVote(alertId: string) {
       return { prev }
     },
 
+    // Removal answers with the resulting tallies too — same reasoning as useVote.
     onSuccess: (stats) => {
       qc.setQueryData<VoteDetails>(voteDataKey(alertId), {
         stats,
         myVote: { hasVoted: false, voteType: null },
       })
+      applyStatsToAlerts(qc, alertId, stats)
     },
 
     onError: (err, _vars, context) => {
       if (context?.prev) qc.setQueryData(voteDataKey(alertId), context.prev)
+
+      qc.invalidateQueries({ queryKey: voteDataKey(alertId) })
+      qc.invalidateQueries({ queryKey: ['alerts'] })
+
       useToastStore.getState().addToast({
         type: 'error',
         message:
@@ -151,11 +193,6 @@ export function useRemoveVote(alertId: string) {
             ? 'Voting is temporarily unavailable. Please try again in a moment.'
             : 'Could not remove your vote — action was undone. Please try again.',
       })
-    },
-
-    onSettled: () => {
-      qc.invalidateQueries({ queryKey: voteDataKey(alertId) })
-      qc.invalidateQueries({ queryKey: ['alerts'] })
     },
   })
 }

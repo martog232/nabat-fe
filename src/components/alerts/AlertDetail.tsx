@@ -118,7 +118,16 @@ export function AlertDetail() {
             </button>
           )}
 
-          {/* Vote buttons */}
+          {/*
+            Vote buttons.
+
+            The counts render straight from the cache, which `useVote.onMutate` has
+            already moved — so the number changes on the click, not on the response.
+            Nothing here may hide it while the request is in flight: a spinner laid over
+            the count used to do exactly that, which made an optimistic update look like
+            a three-second one. The pressed state is the only in-flight cue, and a failed
+            vote rolls the cache back and raises a toast.
+          */}
           {stats && (
             <div className="grid grid-cols-3 gap-2">
               {(
@@ -130,7 +139,10 @@ export function AlertDetail() {
               ).map(({ label, emoji, val, type }) => {
                 const isThisPending = pendingVoteType === type
                 const isRemoving    = removeVote.isPending && myVote?.voteType === type
-                const isActive      = myVote?.voteType === type && !isMutating
+                // Read from the optimistic cache, so this does not wait for the server
+                // either. It used to be qualified with `&& !isMutating`, which dropped
+                // the highlight off the button for the duration of its own request.
+                const isActive      = myVote?.voteType === type
                 const isAnyPending  = isMutating && !isThisPending && !isRemoving
 
                 return (
@@ -146,19 +158,15 @@ export function AlertDetail() {
                         : isActive
                           ? 'border-brand-500/50 bg-brand-500/10'
                           : 'border-surface-border bg-surface-elevated hover:border-brand-500/30 hover:scale-[1.03]'}
-                      disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100
+                      ${isThisPending || isRemoving
+                        ? ''
+                        : 'disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100'}
                     `}
                   >
-                    {/* Spinner overlay when this button is pending */}
-                    {(isThisPending || isRemoving) && (
-                      <span className="absolute inset-0 flex items-center justify-center bg-brand-500/10 rounded-xl">
-                        <span className="w-4 h-4 border-2 border-brand-400 border-t-transparent rounded-full animate-spin" />
-                      </span>
-                    )}
-                    <span className={`text-xs font-bold text-slate-900 dark:text-white transition-opacity ${isThisPending || isRemoving ? 'opacity-0' : 'opacity-100'}`}>
+                    <span className="text-xs font-bold text-slate-900 dark:text-white">
                       {val}
                     </span>
-                    <span className={`text-xs text-slate-600 dark:text-slate-400 transition-opacity ${isThisPending || isRemoving ? 'opacity-0' : 'opacity-100'}`}>
+                    <span className="text-xs text-slate-600 dark:text-slate-400">
                       {emoji} {label}
                     </span>
                   </button>
