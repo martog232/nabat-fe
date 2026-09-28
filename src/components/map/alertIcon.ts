@@ -1,9 +1,9 @@
 import { divIcon } from 'leaflet'
 import type { Alert } from '../../types'
-import { ALERT_TYPE_ICONS, SEVERITY_MARKER_COLORS } from '../../types'
+import { ALERT_TYPE_ICONS, STATUS_MARKER_COLORS } from '../../types'
 
 export function createAlertIcon(alert: Alert, isSelected: boolean) {
-  const color = SEVERITY_MARKER_COLORS[alert.severity]
+  const color = STATUS_MARKER_COLORS[alert.status]
   const emoji = ALERT_TYPE_ICONS[alert.type]
   // The selected pin gets a disc behind it rather than a bigger pin: growing the marker
   // would move its tip off the coordinate it is reporting. The disc is centred on the

@@ -2,7 +2,8 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { useAlertStore } from '../../store/alertStore'
 import { useCreateAlert } from '../../hooks/useAlerts'
 import { uploadsApi } from '../../api/uploads'
-import type { AlertType, AlertSeverity, CreateAlertRequest } from '../../types'
+import type { AlertType, CreateAlertRequest } from '../../types'
+import { errorCodeOf } from '../../api/errors'
 import { ALERT_TYPE_LABELS, ALERT_TYPE_ICONS } from '../../types'
 import { Button } from '../common/Button'
 import { Input } from '../common/Input'
@@ -15,14 +16,6 @@ interface Props {
 }
 
 const ALERT_TYPES = Object.keys(ALERT_TYPE_LABELS) as AlertType[]
-const SEVERITIES: AlertSeverity[] = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']
-
-const SEVERITY_STYLES: Record<AlertSeverity, string> = {
-  LOW: 'border-green-500/50 bg-green-500/10 text-green-400',
-  MEDIUM: 'border-yellow-500/50 bg-yellow-500/10 text-yellow-400',
-  HIGH: 'border-orange-500/50 bg-orange-500/10 text-orange-400',
-  CRITICAL: 'border-red-500/50 bg-red-500/10 text-red-400',
-}
 
 const MAX_PHOTO_SIZE_MB = 10
 const MAX_PHOTO_SIZE_BYTES = MAX_PHOTO_SIZE_MB * 1024 * 1024
@@ -38,7 +31,6 @@ export function CreateAlertModal({ onClose, prefillLat, prefillLng }: Props) {
     title: '',
     description: '',
     type: 'OTHER',
-    severity: 'MEDIUM',
     latitude: prefillLat ?? mapCenter[0],
     longitude: prefillLng ?? mapCenter[1],
   })
@@ -169,7 +161,7 @@ export function CreateAlertModal({ onClose, prefillLat, prefillLng }: Props) {
           {/* Header */}
           <div className="flex flex-shrink-0 items-center justify-between px-5 py-4 border-b border-surface-border">
             <h2 id="modal-title" className="text-base font-bold text-slate-900 dark:text-white">
-              Report Incident
+              Report a problem
             </h2>
             <button
                 type="button"
@@ -235,28 +227,6 @@ export function CreateAlertModal({ onClose, prefillLat, prefillLng }: Props) {
               </div>
             </div>
 
-            {/* Severity selector */}
-            <div>
-              <label className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wide block mb-2">
-                Severity
-              </label>
-              <div className="grid grid-cols-4 gap-2">
-                {SEVERITIES.map((s) => (
-                    <button
-                        key={s}
-                        type="button"
-                        onClick={() => setForm((f) => ({ ...f, severity: s }))}
-                        className={`
-                    min-h-[2.75rem] py-2 rounded-xl border text-xs font-semibold transition-all cursor-pointer
-                    ${form.severity === s ? SEVERITY_STYLES[s] : 'border-surface-border bg-surface-elevated text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'}
-                  `}
-                    >
-                      {s}
-                    </button>
-                ))}
-              </div>
-            </div>
-
             {/* Location Picker integration */}
             <LocationPicker
                 value={{ latitude: form.latitude, longitude: form.longitude }}
@@ -310,7 +280,12 @@ export function CreateAlertModal({ onClose, prefillLat, prefillLng }: Props) {
 
             {mutation.isError && (
                 <p role="alert" className="text-sm text-red-400 bg-red-400/10 border border-red-400/30 rounded-lg px-3 py-2">
-                  Failed to create alert. Please try again.
+                  {/* The one refusal worth its own words: the report is fine, the place is
+                      not somewhere nabat has a district to send it to, and "try again"
+                      would send the user round the same loop. */}
+                  {errorCodeOf(mutation.error) === 'OUTSIDE_SERVICE_AREA'
+                    ? 'Nabat covers Sofia only. Move the pin to a place inside the city.'
+                    : 'Failed to send the report. Please try again.'}
                 </p>
             )}
           </div>
@@ -321,7 +296,7 @@ export function CreateAlertModal({ onClose, prefillLat, prefillLng }: Props) {
               Cancel
             </Button>
             <Button type="submit" className="flex-1" isLoading={mutation.isPending || photoUploading}>
-              {photoUploading ? 'Uploading photo…' : '🚨 Report Incident'}
+              {photoUploading ? 'Uploading photo…' : 'Send report'}
             </Button>
           </div>
         </form>

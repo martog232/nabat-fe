@@ -36,22 +36,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/subscriptions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["listMine"];
-        put?: never;
-        post: operations["create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/notifications/{id}/read": {
         parameters: {
             query?: never;
@@ -212,7 +196,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/users/me/preferences": {
+    "/api/v1/alerts/{id}/start-work": {
         parameters: {
             query?: never;
             header?: never;
@@ -225,7 +209,8 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        patch: operations["updatePreferences"];
+        /** The report's district says work has started */
+        patch: operations["startWork"];
         trace?: never;
     };
     "/api/v1/alerts/{id}/resolve": {
@@ -242,6 +227,40 @@ export interface paths {
         options?: never;
         head?: never;
         patch: operations["resolve"];
+        trace?: never;
+    };
+    "/api/v1/alerts/{id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Close a report without a fix: a duplicate, not a real problem, not anyone's to fix */
+        patch: operations["reject"];
+        trace?: never;
+    };
+    "/api/v1/alerts/{id}/acknowledge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** The report's district confirms it has received it */
+        patch: operations["acknowledge"];
         trace?: never;
     };
     "/api/v1/admin/users/{id}/role": {
@@ -340,6 +359,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/districts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The districts of Sofia that reports are routed to */
+        get: operations["list_1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/me": {
         parameters: {
             query?: never;
@@ -404,6 +440,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/alerts/ranked": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** All reports, or one district's, in HOT, LONGEST_WAITING or NEWEST order */
+        get: operations["listRanked"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/alerts/nearby": {
         parameters: {
             query?: never;
@@ -413,6 +466,23 @@ export interface paths {
         };
         /** Active alerts within a radius, optionally filtered and newer than `since` */
         get: operations["getNearbyAlerts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/alerts/district": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Reports in the district the caller acts for, newest first */
+        get: operations["listForOwnDistrict"];
         put?: never;
         post?: never;
         delete?: never;
@@ -437,22 +507,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/subscriptions/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete: operations["delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -461,73 +515,6 @@ export interface components {
             ticket?: string;
             /** Format: date-time */
             expiresAt?: string;
-        };
-        /** @description Request body for creating an alert subscription */
-        SubscriptionRequest: {
-            /**
-             * @description Alert type to subscribe to
-             * @example GAS_LEAK
-             * @enum {string}
-             */
-            alertType: "CRIME" | "FIRE" | "ACCIDENT" | "MEDICAL_EMERGENCY" | "NATURAL_DISASTER" | "SUSPICIOUS_ACTIVITY" | "TRAFFIC" | "HAZARD" | "MISSING_PERSON" | "OTHER";
-            /**
-             * Format: double
-             * @description Center latitude of the watch area
-             * @example 40.7128
-             */
-            latitude: number;
-            /**
-             * Format: double
-             * @description Center longitude of the watch area
-             * @example -74.006
-             */
-            longitude: number;
-            /**
-             * Format: double
-             * @description Radius in kilometres around the center point
-             * @example 5
-             */
-            radiusKm: number;
-        };
-        /** @description Active subscription details */
-        SubscriptionResponse: {
-            /**
-             * Format: uuid
-             * @description Subscription identifier
-             */
-            id?: string;
-            /**
-             * Format: uuid
-             * @description Owner of the subscription
-             */
-            userId?: string;
-            /**
-             * @description Subscribed alert type
-             * @enum {string}
-             */
-            alertType?: "CRIME" | "FIRE" | "ACCIDENT" | "MEDICAL_EMERGENCY" | "NATURAL_DISASTER" | "SUSPICIOUS_ACTIVITY" | "TRAFFIC" | "HAZARD" | "MISSING_PERSON" | "OTHER";
-            /**
-             * Format: double
-             * @description Center latitude
-             */
-            latitude?: number;
-            /**
-             * Format: double
-             * @description Center longitude
-             */
-            longitude?: number;
-            /**
-             * Format: double
-             * @description Watch radius in km
-             */
-            radiusKm?: number;
-            /** @description Whether the subscription is active */
-            active?: boolean;
-            /**
-             * Format: date-time
-             * @description Creation timestamp
-             */
-            createdAt?: string;
         };
         /** @description A user notification (vote event or milestone) */
         NotificationResponse: {
@@ -635,17 +622,16 @@ export interface components {
              * @example USER
              * @enum {string}
              */
-            role?: "USER" | "MODERATOR" | "ADMIN";
+            role?: "USER" | "MODERATOR" | "ADMIN" | "DISTRICT_OFFICIAL";
             /** @description Whether the email address has been verified */
             emailVerified?: boolean;
             /** @description Whether the account may sign in — an admin can switch this off */
             enabled?: boolean;
             /**
-             * Format: int32
-             * @description Configured notification radius in kilometres
-             * @example 5
+             * @description For a district official, the district they act for; null for every other role
+             * @example LOZENETS
              */
-            notificationRadiusKm?: number;
+            districtCode?: string;
         };
         RefreshTokenRequest: {
             refreshToken: string;
@@ -674,40 +660,34 @@ export interface components {
             /** Format: email */
             email: string;
         };
-        /** @description Request body for creating a new safety alert */
+        /** @description Request body for reporting a problem in the city */
         CreateAlertRequest: {
             /**
              * @description Short title of the alert
-             * @example Gas leak on Main St
+             * @example Дупка на ул. Шипка
              */
             title: string;
             /**
              * @description Detailed description of the alert
-             * @example Strong smell of gas near intersection
+             * @example Дълбока дупка в дясното платно, пред номер 12
              */
             description: string;
             /**
-             * @description Category of the alert
-             * @example GAS_LEAK
+             * @description Category of the problem
+             * @example POTHOLE
              * @enum {string}
              */
-            type: "CRIME" | "FIRE" | "ACCIDENT" | "MEDICAL_EMERGENCY" | "NATURAL_DISASTER" | "SUSPICIOUS_ACTIVITY" | "TRAFFIC" | "HAZARD" | "MISSING_PERSON" | "OTHER";
-            /**
-             * @description Severity level
-             * @example HIGH
-             * @enum {string}
-             */
-            severity: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+            type: "POTHOLE" | "MANHOLE" | "WASTE" | "POLLUTION" | "STREET_LIGHT" | "ILLEGAL_PARKING" | "OTHER";
             /**
              * Format: double
-             * @description WGS-84 latitude of the incident
-             * @example 40.7128
+             * @description WGS-84 latitude of the problem
+             * @example 42.6977
              */
             latitude: number;
             /**
              * Format: double
-             * @description WGS-84 longitude of the incident
-             * @example -74.006
+             * @description WGS-84 longitude of the problem
+             * @example 23.3219
              */
             longitude: number;
             /**
@@ -731,12 +711,7 @@ export interface components {
              * @description Alert category
              * @enum {string}
              */
-            type?: "CRIME" | "FIRE" | "ACCIDENT" | "MEDICAL_EMERGENCY" | "NATURAL_DISASTER" | "SUSPICIOUS_ACTIVITY" | "TRAFFIC" | "HAZARD" | "MISSING_PERSON" | "OTHER";
-            /**
-             * @description Severity level
-             * @enum {string}
-             */
-            severity?: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+            type?: "POTHOLE" | "MANHOLE" | "WASTE" | "POLLUTION" | "STREET_LIGHT" | "ILLEGAL_PARKING" | "OTHER";
             /**
              * Format: double
              * @description Latitude of the incident location
@@ -758,7 +733,7 @@ export interface components {
              * @description Current lifecycle status
              * @enum {string}
              */
-            status?: "ACTIVE" | "RESOLVED";
+            status?: "SUBMITTED" | "SENT" | "ACKNOWLEDGED" | "IN_PROGRESS" | "RESOLVED" | "REJECTED";
             /**
              * Format: uuid
              * @description ID of the user who reported the alert
@@ -791,6 +766,17 @@ export interface components {
             resolvedAt?: string;
             /** @description URL of the uploaded photo, if any */
             photoUrl?: string;
+            /**
+             * @description Code of the Sofia district the report is in; null only on reports older than districts
+             * @example LOZENETS
+             */
+            districtCode?: string;
+            /**
+             * @description Who closed the report — the district, the reporter, or a moderator. Null while open, and on reports closed before this was recorded
+             * @example DISTRICT
+             * @enum {string}
+             */
+            closedBy?: "DISTRICT" | "REPORTER" | "MODERATOR";
         };
         /** @description Request body for casting a vote on an alert */
         VoteRequest: {
@@ -849,27 +835,6 @@ export interface components {
              */
             credibilityScore?: number;
         };
-        /** @description Request body for updating notification preferences */
-        UpdateUserPreferencesRequest: {
-            /**
-             * Format: int32
-             * @description Allowed radius preset in kilometres
-             * @example 10
-             */
-            notificationRadiusKm: number;
-            /**
-             * Format: double
-             * @description Latest known latitude
-             * @example 42.3601
-             */
-            lastKnownLat?: number;
-            /**
-             * Format: double
-             * @description Latest known longitude
-             * @example -71.0589
-             */
-            lastKnownLng?: number;
-        };
         /** @description Assigns a role to an account */
         ChangeRoleRequest: {
             /**
@@ -877,7 +842,12 @@ export interface components {
              * @example MODERATOR
              * @enum {string}
              */
-            role: "USER" | "MODERATOR" | "ADMIN";
+            role: "USER" | "MODERATOR" | "ADMIN" | "DISTRICT_OFFICIAL";
+            /**
+             * @description Required for DISTRICT_OFFICIAL, and only for it: the district the account acts for
+             * @example LOZENETS
+             */
+            districtCode?: string;
         };
         /** @description Enables or disables an account */
         SetEnabledRequest: {
@@ -886,6 +856,19 @@ export interface components {
              * @example false
              */
             enabled: boolean;
+        };
+        /** @description A district of Sofia */
+        DistrictResponse: {
+            /**
+             * @description Stable code, as carried by a report's districtCode
+             * @example LOZENETS
+             */
+            code?: string;
+            /**
+             * @description Name of the district
+             * @example Район Лозенец
+             */
+            name?: string;
         };
         /** @description Indicates whether the current user has voted on an alert */
         UserVoteResponse: {
@@ -896,6 +879,35 @@ export interface components {
              * @enum {string}
              */
             voteType?: "UPVOTE" | "DOWNVOTE" | "CONFIRM";
+        };
+        /** @description One page of the public list of reports */
+        RankedReportsResponse: {
+            /** @description The reports on this page, in order */
+            alerts?: components["schemas"]["AlertResponse"][];
+            /**
+             * @description The order that was applied
+             * @example HOT
+             * @enum {string}
+             */
+            ranking?: "HOT" | "LONGEST_WAITING" | "NEWEST";
+            /**
+             * Format: int32
+             * @description Zero-based page number
+             * @example 0
+             */
+            page?: number;
+            /**
+             * Format: int32
+             * @description Page size that was applied
+             * @example 50
+             */
+            size?: number;
+            /**
+             * Format: int64
+             * @description How many reports match in all, across every page
+             * @example 137
+             */
+            total?: number;
         };
         /** @description Active alerts near a point, capped at `limit` */
         NearbyAlertsResponse: {
@@ -914,7 +926,7 @@ export interface components {
              */
             limit?: number;
             /**
-             * @description True when the cap was reached and older matches were dropped. Narrow the radius or filter by type/severity to see them.
+             * @description True when the cap was reached and older matches were dropped. Narrow the radius or filter by type to see them.
              * @example false
              */
             truncated?: boolean;
@@ -979,50 +991,6 @@ export interface operations {
                     "*/*": {
                         [key: string]: string;
                     };
-                };
-            };
-        };
-    };
-    listMine: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["SubscriptionResponse"][];
-                };
-            };
-        };
-    };
-    create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SubscriptionRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["SubscriptionResponse"];
                 };
             };
         };
@@ -1212,7 +1180,7 @@ export interface operations {
     listByStatus: {
         parameters: {
             query?: {
-                status?: "ACTIVE" | "RESOLVED";
+                status?: "SUBMITTED" | "SENT" | "ACKNOWLEDGED" | "IN_PROGRESS" | "RESOLVED" | "REJECTED";
             };
             header?: never;
             path?: never;
@@ -1303,18 +1271,16 @@ export interface operations {
             };
         };
     };
-    updatePreferences: {
+    startWork: {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                id: string;
+            };
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateUserPreferencesRequest"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description OK */
             200: {
@@ -1322,12 +1288,56 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["UserResponse"];
+                    "*/*": components["schemas"]["AlertResponse"];
                 };
             };
         };
     };
     resolve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AlertResponse"];
+                };
+            };
+        };
+    };
+    reject: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AlertResponse"];
+                };
+            };
+        };
+    };
+    acknowledge: {
         parameters: {
             query?: never;
             header?: never;
@@ -1485,6 +1495,26 @@ export interface operations {
             };
         };
     };
+    list_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["DistrictResponse"][];
+                };
+            };
+        };
+    };
     getCurrentUser: {
         parameters: {
             query?: never;
@@ -1571,6 +1601,32 @@ export interface operations {
             };
         };
     };
+    listRanked: {
+        parameters: {
+            query?: {
+                district?: string;
+                status?: ("SUBMITTED" | "SENT" | "ACKNOWLEDGED" | "IN_PROGRESS" | "RESOLVED" | "REJECTED")[];
+                ranking?: "HOT" | "LONGEST_WAITING" | "NEWEST";
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RankedReportsResponse"];
+                };
+            };
+        };
+    };
     getNearbyAlerts: {
         parameters: {
             query: {
@@ -1578,8 +1634,7 @@ export interface operations {
                 longitude: number;
                 radiusKm?: number;
                 since?: string;
-                type?: "CRIME" | "FIRE" | "ACCIDENT" | "MEDICAL_EMERGENCY" | "NATURAL_DISASTER" | "SUSPICIOUS_ACTIVITY" | "TRAFFIC" | "HAZARD" | "MISSING_PERSON" | "OTHER";
-                severity?: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+                type?: "POTHOLE" | "MANHOLE" | "WASTE" | "POLLUTION" | "STREET_LIGHT" | "ILLEGAL_PARKING" | "OTHER";
                 limit?: number;
             };
             header?: never;
@@ -1595,6 +1650,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["NearbyAlertsResponse"];
+                };
+            };
+        };
+    };
+    listForOwnDistrict: {
+        parameters: {
+            query?: {
+                status?: ("SUBMITTED" | "SENT" | "ACKNOWLEDGED" | "IN_PROGRESS" | "RESOLVED" | "REJECTED")[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AlertResponse"][];
                 };
             };
         };
@@ -1619,26 +1696,6 @@ export interface operations {
                 content: {
                     "*/*": components["schemas"]["UserPageResponse"];
                 };
-            };
-        };
-    };
-    delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
         };
     };

@@ -3,6 +3,7 @@ import { alertsApi } from '../api/alerts'
 import { useAlertStore } from '../store/alertStore'
 import { useToastStore } from '../store/toastStore'
 import type { Alert, CreateAlertRequest } from '../types'
+import { isOpen } from '../types'
 
 /**
  * The cached value stays an `Alert[]`, even though the endpoint answers an envelope.
@@ -70,7 +71,7 @@ export function useResolveAlert(alertId: string) {
 
       qc.setQueriesData<Alert[]>({ queryKey: ['alerts', 'nearby'] }, (old) =>
         old?.map((a) =>
-          a.id === alertId && a.status === 'ACTIVE'
+          a.id === alertId && isOpen(a.status)
             ? { ...a, status: 'RESOLVED', resolvedAt: new Date().toISOString() }
             : a,
         ),

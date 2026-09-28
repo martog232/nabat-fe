@@ -1,5 +1,6 @@
 import type { Alert } from '../../types'
-import { ALERT_TYPE_ICONS, ALERT_TYPE_LABELS, SEVERITY_COLORS } from '../../types'
+import { ALERT_TYPE_ICONS, ALERT_TYPE_LABELS } from '../../types'
+import { StatusBadge } from '../common/Badge'
 import { useAlertStore } from '../../store/alertStore'
 
 interface AlertCardProps {
@@ -42,11 +43,7 @@ export function AlertCard({ alert }: AlertCardProps) {
           <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-2 mb-1.5">{alert.description}</p>
           <div className="flex items-center gap-2">
             <span className="text-xs text-slate-500">{ALERT_TYPE_LABELS[alert.type]}</span>
-            <span
-              className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-semibold ${SEVERITY_COLORS[alert.severity]}`}
-            >
-              {alert.severity}
-            </span>
+            <StatusBadge status={alert.status} />
           </div>
         </div>
       </div>

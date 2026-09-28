@@ -92,7 +92,7 @@ export function LandingPage() {
         <section className="grid gap-5 pb-16 sm:grid-cols-3 sm:pb-24">
           <Feature
             title="A map, not a feed"
-            body="Every alert is a place first. Open the map and see what is active around you, filtered by type and severity."
+            body="Every alert is a place first. Open the map and see what is active around you, filtered by type and by how far each report has got."
             icon={
               <path
                 d="M9 20l-5.5 2.5V6L9 3.5m0 16.5l6-3m-6 3V3.5m6 13.5l5.5 2.5V4L15 6.5m0 10.5V6.5m0 0L9 3.5"
@@ -136,7 +136,7 @@ export function LandingPage() {
             <Step
               number={1}
               title="Report what you see"
-              body="Drop it on the map, pick a type and a severity, add a photo if you have one."
+              body="Drop it on the map, pick what kind of problem it is, add a photo if you have one."
             />
             <Step
               number={2}

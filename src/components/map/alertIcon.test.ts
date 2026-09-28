@@ -6,18 +6,19 @@ const baseAlert: Alert = {
   id: 'alert-1',
   title: 'Fire on Main St',
   description: 'A fire broke out near the intersection',
-  type: 'FIRE',
-  severity: 'HIGH',
+  type: 'POTHOLE',
   latitude: 42.7,
   longitude: 23.3,
   createdAt: new Date().toISOString(),
-  status: 'ACTIVE',
+  status: 'SUBMITTED',
   reportedBy: 'user-1',
   upvoteCount: 5,
   downvoteCount: 1,
   confirmationCount: 3,
   credibilityScore: 10,
   resolvedAt: null,
+  districtCode: 'LOZENETS',
+  closedBy: null,
 }
 
 function htmlOf(isSelected: boolean) {
@@ -42,10 +43,10 @@ describe('createAlertIcon', () => {
     }
   })
 
-  it('tints both states from the severity colour', () => {
-    // #f97316 is HIGH. A selected pin is the same hue, more opaque — not a new colour,
-    // which would read as a different severity.
-    expect(htmlOf(false)).toContain('#f9731622')
-    expect(htmlOf(true)).toContain('#f9731666')
+  it('tints both states from the status colour', () => {
+    // #94a3b8 is SUBMITTED. A selected pin is the same hue, more opaque — not a new colour,
+    // which would read as a different status.
+    expect(htmlOf(false)).toContain('#94a3b822')
+    expect(htmlOf(true)).toContain('#94a3b866')
   })
 })

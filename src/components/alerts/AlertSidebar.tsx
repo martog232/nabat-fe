@@ -6,12 +6,10 @@ import { useAuthStore } from '../../store/authStore'
 import { useAlertStore } from '../../store/alertStore'
 import { useThemeStore } from '../../store/themeStore'
 import { AlertCard } from './AlertCard'
-import { AlertFilters } from './AlertFilters'
-import type { AlertSeverity, AlertType } from '../../types'
+import { AlertFilters, type StatusFilter } from './AlertFilters'
+import type { AlertType } from '../../types'
 import { RadiusSelector } from '../map/RadiusSelector'
 import { ROLE_LABELS } from '../../utils/permissions'
-
-type SeverityFilter = AlertSeverity | 'ALL'
 
 /**
  * The alert list, in two shapes.
@@ -27,7 +25,7 @@ type SeverityFilter = AlertSeverity | 'ALL'
  */
 export function AlertSidebar() {
   const { data: alerts = [], isLoading, isFetching } = useNearbyAlerts()
-  const [severityFilter, setSeverityFilter] = useState<SeverityFilter>('ALL')
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('ALL')
   const [typeFilter, setTypeFilter] = useState<AlertType | 'ALL'>('ALL')
   const isDesktop = useIsDesktop()
   const [isOpen, setIsOpen] = useState(isDesktop)
@@ -55,7 +53,7 @@ export function AlertSidebar() {
   }, [isDesktop, selectedAlertId])
 
   const filtered = alerts.filter((a) => {
-    if (severityFilter !== 'ALL' && a.severity !== severityFilter) return false
+    if (statusFilter !== 'ALL' && a.status !== statusFilter) return false
     if (typeFilter !== 'ALL' && a.type !== typeFilter) return false
     return true
   })
@@ -144,9 +142,9 @@ export function AlertSidebar() {
           </div>
 
           <AlertFilters
-            severityFilter={severityFilter}
+            statusFilter={statusFilter}
             typeFilter={typeFilter}
-            onSeverityChange={setSeverityFilter}
+            onStatusChange={setStatusFilter}
             onTypeChange={setTypeFilter}
           />
 

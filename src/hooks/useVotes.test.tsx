@@ -22,18 +22,19 @@ const alert: Alert = {
   id: 'alert-1',
   title: 'Fire on Main St',
   description: 'A fire broke out near the intersection',
-  type: 'FIRE',
-  severity: 'HIGH',
+  type: 'POTHOLE',
   latitude: 42.7,
   longitude: 23.3,
   createdAt: new Date().toISOString(),
-  status: 'ACTIVE',
+  status: 'SUBMITTED',
   reportedBy: 'user-2',
   upvoteCount: 5,
   downvoteCount: 1,
   confirmationCount: 3,
   credibilityScore: 10,
   resolvedAt: null,
+  districtCode: 'LOZENETS',
+  closedBy: null,
 }
 
 const receipt: VoteReceipt = {

@@ -2,8 +2,9 @@ import { useAlertStore } from '../../store/alertStore'
 import { useVoteData, useVote, useRemoveVote } from '../../hooks/useVotes'
 import { useResolveAlert, useNearbyAlerts } from '../../hooks/useAlerts'
 import { useAuthStore } from '../../store/authStore'
-import { ALERT_TYPE_ICONS, ALERT_TYPE_LABELS } from '../../types'
-import { SeverityBadge } from '../common/Badge'
+import { ALERT_TYPE_ICONS, ALERT_TYPE_LABELS, CLOSED_BY_LABELS } from '../../types'
+import { StatusBadge } from '../common/Badge'
+import { useDistrictNames } from '../../hooks/useDistricts'
 import type { VoteType } from '../../types'
 import { canResolveAlert } from '../../utils/permissions'
 
@@ -19,6 +20,7 @@ export function AlertDetail() {
   const { data: alerts = [] } = useNearbyAlerts()
   const selectedAlert = alerts.find((a) => a.id === selectedAlertId) ?? null
   const user = useAuthStore((s) => s.user)
+  const districtNames = useDistrictNames()
 
   const { data: voteData } = useVoteData(selectedAlert?.id ?? '')
   const stats = voteData?.stats
@@ -81,7 +83,7 @@ export function AlertDetail() {
             <div>
               <h3 className="font-bold text-slate-900 dark:text-slate-200 text-base leading-tight mb-1">{a.title}</h3>
               <div className="flex items-center gap-2">
-                <SeverityBadge severity={a.severity} />
+                <StatusBadge status={a.status} />
                 <span className="text-xs text-slate-500">{ALERT_TYPE_LABELS[a.type]}</span>
               </div>
             </div>
@@ -92,19 +94,24 @@ export function AlertDetail() {
         <div className="flex-1 overflow-y-auto overscroll-contain p-4 space-y-3">
           <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">{a.description}</p>
 
-          <div className="flex items-center gap-4 text-xs text-slate-500">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
             <span>📅 {formatDate(a.createdAt)}</span>
-            <span
-              className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                a.status === 'ACTIVE' ? 'bg-green-500/10 text-green-400' : 'bg-slate-500/10 text-slate-400'
-              }`}
-            >
-              {a.status}
-            </span>
+            {a.districtCode && (
+              <span>🏛️ {districtNames.get(a.districtCode) ?? a.districtCode}</span>
+            )}
           </div>
 
+          {/* Who closed it matters as much as that it closed: the district saying "fixed"
+              and the reporter saying so are not the same claim. */}
           {a.status === 'RESOLVED' && a.resolvedAt && (
-            <div className="text-xs text-slate-500">Resolved {formatDate(a.resolvedAt)}</div>
+            <div className="text-xs text-slate-500">
+              Resolved {a.closedBy ? CLOSED_BY_LABELS[a.closedBy] + ' ' : ''}{formatDate(a.resolvedAt)}
+            </div>
+          )}
+          {a.status === 'REJECTED' && (
+            <div className="text-xs text-slate-500">
+              Rejected{a.closedBy ? ' ' + CLOSED_BY_LABELS[a.closedBy] : ''}
+            </div>
           )}
 
           {/* Resolve button */}
@@ -114,7 +121,7 @@ export function AlertDetail() {
               disabled={resolveAlert.isPending}
               className="w-full rounded-xl border border-brand-500/40 bg-brand-500/10 text-brand-400 py-3 sm:py-2 text-sm font-semibold hover:border-brand-500/70 hover:bg-brand-500/15 transition disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {resolveAlert.isPending ? 'Resolving…' : 'Resolve alert'}
+              {resolveAlert.isPending ? 'Resolving…' : 'Mark as fixed'}
             </button>
           )}
 

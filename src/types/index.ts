@@ -2,20 +2,18 @@ import type { components } from './api'
 
 // ─── Domain enums ────────────────────────────────────────────────────────────
 
-export type AlertType =
-    | 'CRIME'
-    | 'FIRE'
-    | 'ACCIDENT'
-    | 'MEDICAL_EMERGENCY'
-    | 'NATURAL_DISASTER'
-    | 'SUSPICIOUS_ACTIVITY'
-    | 'TRAFFIC'
-    | 'HAZARD'
-    | 'MISSING_PERSON'
-    | 'OTHER'
+type ApiAlert = components['schemas']['AlertResponse']
 
-export type AlertSeverity = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
-export type AlertStatus   = 'ACTIVE' | 'RESOLVED'
+/**
+ * Categories, statuses and closers come from the contract rather than being retyped here.
+ * The first two used to be hand-written unions, and when the backend replaced them the only
+ * sign in this repository was a map full of labels reading `undefined`. Derived, a change
+ * on the server is a compile error at every place that has to handle it — which is the
+ * point, since `Record<AlertType, …>` below then refuses to build until each gets a label.
+ */
+export type AlertType   = NonNullable<ApiAlert['type']>
+export type AlertStatus = NonNullable<ApiAlert['status']>
+export type ClosedBy    = NonNullable<ApiAlert['closedBy']>
 export type VoteType      = 'UPVOTE' | 'DOWNVOTE' | 'CONFIRM'
 
 // ─── Domain models (match backend AlertResponse / UserResponse) ──────────────
@@ -31,8 +29,8 @@ type ApiUser = components['schemas']['UserResponse']
 /**
  * Signed-in user, derived from the server's schema rather than retyped from it.
  *
- * <p>Three fields had gone missing from the hand-written version — `notificationRadiusKm`,
- * `enabled`, `emailVerified` — all of them returned by the server for months. Nothing failed:
+ * <p>Fields had gone missing from the hand-written version — `enabled` and
+ * `emailVerified` among them — all of them returned by the server for months. Nothing failed:
  * the settings screen simply had no value to show and the admin screen could not have been
  * written. `Pick` is what makes that impossible now, because naming a field the contract does
  * not have is a compile error.
@@ -42,11 +40,11 @@ type ApiUser = components['schemas']['UserResponse']
  * these — and tightening it here beats making every caller check for undefined.
  */
 export type User = Required<
-  Pick<
-    ApiUser,
-    'id' | 'email' | 'displayName' | 'role' | 'notificationRadiusKm' | 'enabled' | 'emailVerified'
-  >
->
+  Pick<ApiUser, 'id' | 'email' | 'displayName' | 'role' | 'enabled' | 'emailVerified'>
+> & {
+  /** The district a DISTRICT_OFFICIAL acts for; null for every other role. */
+  districtCode: string | null
+}
 
 /**
  * Also from the contract, so adding a role on the backend needs no edit here — and removing
@@ -61,13 +59,6 @@ export interface AdminUserPage {
 }
 
 /**
- * The radii the backend accepts, and the reason the setting is a set of choices rather than a
- * slider: `UserController` validates against exactly this list and answers 400 to anything
- * else.
- */
-export const NOTIFICATION_RADII_KM = [1, 5, 10, 25, 50] as const
-
-/**
  * Mirrors backend AlertResponse exactly.
  *
  * Carries the vote tallies *and* `credibilityScore`, so a list of alerts is enough to
@@ -78,7 +69,6 @@ export interface Alert {
   title: string
   description: string
   type: AlertType
-  severity: AlertSeverity
   latitude: number
   longitude: number
   createdAt: string          // ISO Instant
@@ -88,8 +78,26 @@ export interface Alert {
   downvoteCount: number
   confirmationCount: number
   credibilityScore: number   // computed by the voting service — never recomputed here
-  resolvedAt: string | null  // ISO Instant or null while ACTIVE
+  resolvedAt: string | null  // ISO Instant, set only when RESOLVED
   photoUrl?: string          // URL of uploaded photo, if any
+  /** The Sofia district the report is in — who it was sent to. Null only on old reports. */
+  districtCode: string | null
+  /** Who closed it; null while open. "The district says fixed" is not "the reporter says so". */
+  closedBy: ClosedBy | null
+}
+
+/** One of Sofia's 24 districts, as `GET /api/v1/districts` lists them. */
+export type District = Required<components['schemas']['DistrictResponse']>
+
+export type ReportRanking = NonNullable<components['schemas']['RankedReportsResponse']['ranking']>
+
+/** One page of the public list: `GET /api/v1/alerts/ranked`. */
+export interface RankedReportsResponse {
+  alerts: Alert[]
+  ranking: ReportRanking
+  page: number
+  size: number
+  total: number
 }
 
 /**
@@ -106,10 +114,6 @@ export interface NearbyAlertsResponse {
   /** The cap the server applied, so the client can say how much it is missing. */
   limit: number
   truncated: boolean
-}
-
-export interface UserPreferencesResponse {
-  notificationRadiusKm: number
 }
 
 export interface VoteStats {
@@ -158,7 +162,6 @@ export interface CreateAlertRequest {
   title: string              // 1–200
   description: string        // 1–2000
   type: AlertType
-  severity: AlertSeverity
   latitude: number           // -90..90
   longitude: number          // -180..180
   photoUrl?: string          // URL from upload endpoint, if any
@@ -204,6 +207,8 @@ export type ErrorCode =
   | 'INVALID_REQUEST'
   | 'VALIDATION_FAILED'
   | 'CONFLICT'
+  | 'CONCURRENT_UPDATE'
+  | 'OUTSIDE_SERVICE_AREA'
   | 'VOTE_ALREADY_CAST'
   | 'EMAIL_ALREADY_REGISTERED'
   | 'UNSUPPORTED_FILE_TYPE'
@@ -275,41 +280,78 @@ export type WsFrame = WsNewAlertFrame | WsAlertUpdatedFrame | WsNotificationFram
 // ─── UI helpers (unchanged) ──────────────────────────────────────────────────
 
 export const ALERT_TYPE_LABELS: Record<AlertType, string> = {
-  CRIME: 'Crime',
-  FIRE: 'Fire',
-  ACCIDENT: 'Accident',
-  MEDICAL_EMERGENCY: 'Medical Emergency',
-  NATURAL_DISASTER: 'Natural Disaster',
-  SUSPICIOUS_ACTIVITY: 'Suspicious Activity',
-  TRAFFIC: 'Traffic',
-  HAZARD: 'Hazard',
-  MISSING_PERSON: 'Missing Person',
+  POTHOLE: 'Pothole',
+  MANHOLE: 'Manhole',
+  WASTE: 'Waste',
+  POLLUTION: 'Pollution',
+  STREET_LIGHT: 'Street light',
+  ILLEGAL_PARKING: 'Illegal parking',
   OTHER: 'Other',
 }
 
 export const ALERT_TYPE_ICONS: Record<AlertType, string> = {
-  CRIME: '🔫',
-  FIRE: '🔥',
-  ACCIDENT: '💥',
-  MEDICAL_EMERGENCY: '🚑',
-  NATURAL_DISASTER: '🌪️',
-  SUSPICIOUS_ACTIVITY: '👁️',
-  TRAFFIC: '🚗',
-  HAZARD: '⚠️',
-  MISSING_PERSON: '🔍',
+  POTHOLE: '🕳️',
+  MANHOLE: '⚠️',
+  WASTE: '🗑️',
+  POLLUTION: '🏭',
+  STREET_LIGHT: '💡',
+  ILLEGAL_PARKING: '🚗',
   OTHER: '📍',
 }
 
-export const SEVERITY_COLORS: Record<AlertSeverity, string> = {
-  LOW:      'text-green-400 bg-green-400/10 border-green-400/30',
-  MEDIUM:   'text-yellow-400 bg-yellow-400/10 border-yellow-400/30',
-  HIGH:     'text-orange-400 bg-orange-400/10 border-orange-400/30',
-  CRITICAL: 'text-red-400 bg-red-400/10 border-red-400/30',
+/**
+ * The states a report is still waiting in. Mirrors `AlertStatus.isOpen()` on the backend,
+ * which is why it names the open states and derives the rest: RESOLVED and REJECTED are the
+ * only two that are final, and everything else is on the map.
+ */
+export const OPEN_STATUSES: readonly AlertStatus[] = ['SUBMITTED', 'SENT', 'ACKNOWLEDGED', 'IN_PROGRESS']
+
+export function isOpen(status: AlertStatus): boolean {
+  return OPEN_STATUSES.includes(status)
 }
 
-export const SEVERITY_MARKER_COLORS: Record<AlertSeverity, string> = {
-  LOW:      '#22c55e',
-  MEDIUM:   '#f59e0b',
-  HIGH:     '#f97316',
-  CRITICAL: '#ef4444',
+/** Where a report is, in the words of the person waiting on it. */
+export const STATUS_LABELS: Record<AlertStatus, string> = {
+  SUBMITTED: 'Submitted',
+  SENT: 'Sent to district',
+  ACKNOWLEDGED: 'Acknowledged',
+  IN_PROGRESS: 'In progress',
+  RESOLVED: 'Resolved',
+  REJECTED: 'Rejected',
+}
+
+export const STATUS_COLORS: Record<AlertStatus, string> = {
+  SUBMITTED:    'text-slate-300 bg-slate-400/10 border-slate-400/30',
+  SENT:         'text-sky-400 bg-sky-400/10 border-sky-400/30',
+  ACKNOWLEDGED: 'text-violet-400 bg-violet-400/10 border-violet-400/30',
+  IN_PROGRESS:  'text-amber-400 bg-amber-400/10 border-amber-400/30',
+  RESOLVED:     'text-green-400 bg-green-400/10 border-green-400/30',
+  REJECTED:     'text-rose-400 bg-rose-400/10 border-rose-400/30',
+}
+
+/**
+ * Marker colour by status, which replaced colour by severity when severity went. The
+ * useful question on a map of the city is no longer "how bad" but "has anyone picked this
+ * up": grey until it reaches the district, then warmer as work gets closer.
+ */
+export const STATUS_MARKER_COLORS: Record<AlertStatus, string> = {
+  SUBMITTED:    '#94a3b8',
+  SENT:         '#38bdf8',
+  ACKNOWLEDGED: '#a78bfa',
+  IN_PROGRESS:  '#f59e0b',
+  RESOLVED:     '#22c55e',
+  REJECTED:     '#f43f5e',
+}
+
+/** Who closed a report, said so a reader knows how much weight to give it. */
+export const CLOSED_BY_LABELS: Record<ClosedBy, string> = {
+  DISTRICT: 'by the district',
+  REPORTER: 'by the reporter',
+  MODERATOR: 'by a moderator',
+}
+
+export const RANKING_LABELS: Record<ReportRanking, string> = {
+  HOT: 'Most supported now',
+  LONGEST_WAITING: 'Waiting longest',
+  NEWEST: 'Newest',
 }

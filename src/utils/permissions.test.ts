@@ -7,17 +7,16 @@ const user = (id: string, role: User['role']): User => ({
   email: `${id}@example.com`,
   displayName: id,
   role,
-  notificationRadiusKm: 5,
+  districtCode: null,
   enabled: true,
   emailVerified: false,
 })
 
-const alert = (reportedBy: string, status: Alert['status'] = 'ACTIVE'): Alert => ({
+const alert = (reportedBy: string, status: Alert['status'] = 'SUBMITTED'): Alert => ({
   id: 'alert-1',
   title: 'Fire',
   description: 'Smoke on the third floor',
-  type: 'FIRE',
-  severity: 'HIGH',
+  type: 'POTHOLE',
   latitude: 42.7,
   longitude: 23.3,
   createdAt: '2026-08-21T05:00:00Z',
@@ -28,6 +27,8 @@ const alert = (reportedBy: string, status: Alert['status'] = 'ACTIVE'): Alert =>
   confirmationCount: 0,
   credibilityScore: 0,
   resolvedAt: status === 'RESOLVED' ? '2026-08-21T06:00:00Z' : null,
+  districtCode: 'LOZENETS',
+  closedBy: null,
 })
 
 describe('capabilities', () => {

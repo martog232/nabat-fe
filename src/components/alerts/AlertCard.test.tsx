@@ -9,12 +9,11 @@ const baseAlert: Alert = {
   id: 'alert-1',
   title: 'Fire on Main St',
   description: 'A fire broke out near the intersection',
-  type: 'FIRE',
-  severity: 'HIGH',
+  type: 'POTHOLE',
   latitude: 42.7,
   longitude: 23.3,
   createdAt: new Date().toISOString(),
-  status: 'ACTIVE',
+  status: 'SUBMITTED',
   reportedBy: 'user-1',
   upvoteCount: 5,
   downvoteCount: 1,
@@ -23,6 +22,8 @@ const baseAlert: Alert = {
   // than derived client-side.
   credibilityScore: 10,
   resolvedAt: null,
+  districtCode: 'LOZENETS',
+  closedBy: null,
 }
 
 beforeEach(() => {
@@ -45,12 +46,12 @@ describe('AlertCard', () => {
   it('renders the alert title and type', () => {
     render(<AlertCard alert={baseAlert} />)
     expect(screen.getByText('Fire on Main St')).toBeInTheDocument()
-    expect(screen.getByText('Fire')).toBeInTheDocument()
+    expect(screen.getByText('Pothole')).toBeInTheDocument()
   })
 
-  it('renders the severity badge', () => {
-    render(<AlertCard alert={baseAlert} />)
-    expect(screen.getByText('HIGH')).toBeInTheDocument()
+  it('says how far the report has got', () => {
+    render(<AlertCard alert={{ ...baseAlert, status: 'SENT' }} />)
+    expect(screen.getByText('Sent to district')).toBeInTheDocument()
   })
 
   it('calls selectAlert on click', async () => {

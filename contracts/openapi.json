@@ -68,53 +68,6 @@
         }
       }
     },
-    "/api/v1/subscriptions" : {
-      "get" : {
-        "tags" : [ "subscription-controller" ],
-        "operationId" : "listMine",
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "*/*" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/SubscriptionResponse"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "post" : {
-        "tags" : [ "subscription-controller" ],
-        "operationId" : "create",
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/SubscriptionRequest"
-              }
-            }
-          },
-          "required" : true
-        },
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "*/*" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/SubscriptionResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/notifications/{id}/read" : {
       "post" : {
         "tags" : [ "notification-controller" ],
@@ -335,8 +288,8 @@
           "required" : false,
           "schema" : {
             "type" : "string",
-            "default" : "ACTIVE",
-            "enum" : [ "ACTIVE", "RESOLVED" ]
+            "default" : "SUBMITTED",
+            "enum" : [ "SUBMITTED", "SENT", "ACKNOWLEDGED", "IN_PROGRESS", "RESOLVED", "REJECTED" ]
           }
         } ],
         "responses" : {
@@ -444,27 +397,27 @@
         }
       }
     },
-    "/api/v1/users/me/preferences" : {
+    "/api/v1/alerts/{id}/start-work" : {
       "patch" : {
-        "tags" : [ "user-controller" ],
-        "operationId" : "updatePreferences",
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/UpdateUserPreferencesRequest"
-              }
-            }
-          },
-          "required" : true
-        },
+        "tags" : [ "alert-controller" ],
+        "summary" : "The report's district says work has started",
+        "operationId" : "startWork",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
         "responses" : {
           "200" : {
             "description" : "OK",
             "content" : {
               "*/*" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/UserResponse"
+                  "$ref" : "#/components/schemas/AlertResponse"
                 }
               }
             }
@@ -476,6 +429,62 @@
       "patch" : {
         "tags" : [ "alert-controller" ],
         "operationId" : "resolve",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AlertResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/alerts/{id}/reject" : {
+      "patch" : {
+        "tags" : [ "alert-controller" ],
+        "summary" : "Close a report without a fix: a duplicate, not a real problem, not anyone's to fix",
+        "operationId" : "reject",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AlertResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/alerts/{id}/acknowledge" : {
+      "patch" : {
+        "tags" : [ "alert-controller" ],
+        "summary" : "The report's district confirms it has received it",
+        "operationId" : "acknowledge",
         "parameters" : [ {
           "name" : "id",
           "in" : "path",
@@ -664,6 +673,29 @@
         }
       }
     },
+    "/api/v1/districts" : {
+      "get" : {
+        "tags" : [ "district-controller" ],
+        "summary" : "The districts of Sofia that reports are routed to",
+        "operationId" : "list_1",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/DistrictResponse"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security" : [ ]
+      }
+    },
     "/api/v1/auth/me" : {
       "get" : {
         "tags" : [ "auth-controller" ],
@@ -763,6 +795,76 @@
         }
       }
     },
+    "/api/v1/alerts/ranked" : {
+      "get" : {
+        "tags" : [ "alert-controller" ],
+        "summary" : "All reports, or one district's, in HOT, LONGEST_WAITING or NEWEST order",
+        "operationId" : "listRanked",
+        "parameters" : [ {
+          "name" : "district",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "status",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "enum" : [ "SUBMITTED", "SENT", "ACKNOWLEDGED", "IN_PROGRESS", "RESOLVED", "REJECTED" ]
+            },
+            "uniqueItems" : true
+          }
+        }, {
+          "name" : "ranking",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "default" : "HOT",
+            "enum" : [ "HOT", "LONGEST_WAITING", "NEWEST" ]
+          }
+        }, {
+          "name" : "page",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 0,
+            "minimum" : 0
+          }
+        }, {
+          "name" : "size",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 50,
+            "maximum" : 100,
+            "minimum" : 1
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RankedReportsResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ ]
+      }
+    },
     "/api/v1/alerts/nearby" : {
       "get" : {
         "tags" : [ "alert-controller" ],
@@ -813,15 +915,7 @@
           "required" : false,
           "schema" : {
             "type" : "string",
-            "enum" : [ "CRIME", "FIRE", "ACCIDENT", "MEDICAL_EMERGENCY", "NATURAL_DISASTER", "SUSPICIOUS_ACTIVITY", "TRAFFIC", "HAZARD", "MISSING_PERSON", "OTHER" ]
-          }
-        }, {
-          "name" : "severity",
-          "in" : "query",
-          "required" : false,
-          "schema" : {
-            "type" : "string",
-            "enum" : [ "LOW", "MEDIUM", "HIGH", "CRITICAL" ]
+            "enum" : [ "POTHOLE", "MANHOLE", "WASTE", "POLLUTION", "STREET_LIGHT", "ILLEGAL_PARKING", "OTHER" ]
           }
         }, {
           "name" : "limit",
@@ -842,6 +936,41 @@
               "*/*" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/NearbyAlertsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/alerts/district" : {
+      "get" : {
+        "tags" : [ "alert-controller" ],
+        "summary" : "Reports in the district the caller acts for, newest first",
+        "operationId" : "listForOwnDistrict",
+        "parameters" : [ {
+          "name" : "status",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "enum" : [ "SUBMITTED", "SENT", "ACKNOWLEDGED", "IN_PROGRESS", "RESOLVED", "REJECTED" ]
+            },
+            "uniqueItems" : true
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/AlertResponse"
+                  }
                 }
               }
             }
@@ -885,26 +1014,6 @@
           }
         }
       }
-    },
-    "/api/v1/subscriptions/{id}" : {
-      "delete" : {
-        "tags" : [ "subscription-controller" ],
-        "operationId" : "delete",
-        "parameters" : [ {
-          "name" : "id",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string",
-            "format" : "uuid"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK"
-          }
-        }
-      }
     }
   },
   "components" : {
@@ -918,82 +1027,6 @@
           "expiresAt" : {
             "type" : "string",
             "format" : "date-time"
-          }
-        }
-      },
-      "SubscriptionRequest" : {
-        "type" : "object",
-        "description" : "Request body for creating an alert subscription",
-        "properties" : {
-          "alertType" : {
-            "type" : "string",
-            "description" : "Alert type to subscribe to",
-            "enum" : [ "CRIME", "FIRE", "ACCIDENT", "MEDICAL_EMERGENCY", "NATURAL_DISASTER", "SUSPICIOUS_ACTIVITY", "TRAFFIC", "HAZARD", "MISSING_PERSON", "OTHER" ],
-            "example" : "GAS_LEAK"
-          },
-          "latitude" : {
-            "type" : "number",
-            "format" : "double",
-            "description" : "Center latitude of the watch area",
-            "example" : 40.7128
-          },
-          "longitude" : {
-            "type" : "number",
-            "format" : "double",
-            "description" : "Center longitude of the watch area",
-            "example" : -74.006
-          },
-          "radiusKm" : {
-            "type" : "number",
-            "format" : "double",
-            "description" : "Radius in kilometres around the center point",
-            "example" : 5.0
-          }
-        },
-        "required" : [ "alertType", "latitude", "longitude", "radiusKm" ]
-      },
-      "SubscriptionResponse" : {
-        "type" : "object",
-        "description" : "Active subscription details",
-        "properties" : {
-          "id" : {
-            "type" : "string",
-            "format" : "uuid",
-            "description" : "Subscription identifier"
-          },
-          "userId" : {
-            "type" : "string",
-            "format" : "uuid",
-            "description" : "Owner of the subscription"
-          },
-          "alertType" : {
-            "type" : "string",
-            "description" : "Subscribed alert type",
-            "enum" : [ "CRIME", "FIRE", "ACCIDENT", "MEDICAL_EMERGENCY", "NATURAL_DISASTER", "SUSPICIOUS_ACTIVITY", "TRAFFIC", "HAZARD", "MISSING_PERSON", "OTHER" ]
-          },
-          "latitude" : {
-            "type" : "number",
-            "format" : "double",
-            "description" : "Center latitude"
-          },
-          "longitude" : {
-            "type" : "number",
-            "format" : "double",
-            "description" : "Center longitude"
-          },
-          "radiusKm" : {
-            "type" : "number",
-            "format" : "double",
-            "description" : "Watch radius in km"
-          },
-          "active" : {
-            "type" : "boolean",
-            "description" : "Whether the subscription is active"
-          },
-          "createdAt" : {
-            "type" : "string",
-            "format" : "date-time",
-            "description" : "Creation timestamp"
           }
         }
       },
@@ -1142,7 +1175,7 @@
           "role" : {
             "type" : "string",
             "description" : "Assigned role",
-            "enum" : [ "USER", "MODERATOR", "ADMIN" ],
+            "enum" : [ "USER", "MODERATOR", "ADMIN", "DISTRICT_OFFICIAL" ],
             "example" : "USER"
           },
           "emailVerified" : {
@@ -1153,11 +1186,10 @@
             "type" : "boolean",
             "description" : "Whether the account may sign in — an admin can switch this off"
           },
-          "notificationRadiusKm" : {
-            "type" : "integer",
-            "format" : "int32",
-            "description" : "Configured notification radius in kilometres",
-            "example" : 5
+          "districtCode" : {
+            "type" : "string",
+            "description" : "For a district official, the district they act for; null for every other role",
+            "example" : "LOZENETS"
           }
         }
       },
@@ -1219,47 +1251,41 @@
       },
       "CreateAlertRequest" : {
         "type" : "object",
-        "description" : "Request body for creating a new safety alert",
+        "description" : "Request body for reporting a problem in the city",
         "properties" : {
           "title" : {
             "type" : "string",
             "description" : "Short title of the alert",
-            "example" : "Gas leak on Main St",
+            "example" : "Дупка на ул. Шипка",
             "maxLength" : 200,
             "minLength" : 0
           },
           "description" : {
             "type" : "string",
             "description" : "Detailed description of the alert",
-            "example" : "Strong smell of gas near intersection",
+            "example" : "Дълбока дупка в дясното платно, пред номер 12",
             "maxLength" : 2000,
             "minLength" : 0
           },
           "type" : {
             "type" : "string",
-            "description" : "Category of the alert",
-            "enum" : [ "CRIME", "FIRE", "ACCIDENT", "MEDICAL_EMERGENCY", "NATURAL_DISASTER", "SUSPICIOUS_ACTIVITY", "TRAFFIC", "HAZARD", "MISSING_PERSON", "OTHER" ],
-            "example" : "GAS_LEAK"
-          },
-          "severity" : {
-            "type" : "string",
-            "description" : "Severity level",
-            "enum" : [ "LOW", "MEDIUM", "HIGH", "CRITICAL" ],
-            "example" : "HIGH"
+            "description" : "Category of the problem",
+            "enum" : [ "POTHOLE", "MANHOLE", "WASTE", "POLLUTION", "STREET_LIGHT", "ILLEGAL_PARKING", "OTHER" ],
+            "example" : "POTHOLE"
           },
           "latitude" : {
             "type" : "number",
             "format" : "double",
-            "description" : "WGS-84 latitude of the incident",
-            "example" : 40.7128,
+            "description" : "WGS-84 latitude of the problem",
+            "example" : 42.6977,
             "maximum" : 90.0,
             "minimum" : -90.0
           },
           "longitude" : {
             "type" : "number",
             "format" : "double",
-            "description" : "WGS-84 longitude of the incident",
-            "example" : -74.006,
+            "description" : "WGS-84 longitude of the problem",
+            "example" : 23.3219,
             "maximum" : 180.0,
             "minimum" : -180.0
           },
@@ -1269,7 +1295,7 @@
             "example" : "/api/v1/uploads/uuid.jpg"
           }
         },
-        "required" : [ "description", "latitude", "longitude", "severity", "title", "type" ]
+        "required" : [ "description", "latitude", "longitude", "title", "type" ]
       },
       "AlertResponse" : {
         "type" : "object",
@@ -1291,12 +1317,7 @@
           "type" : {
             "type" : "string",
             "description" : "Alert category",
-            "enum" : [ "CRIME", "FIRE", "ACCIDENT", "MEDICAL_EMERGENCY", "NATURAL_DISASTER", "SUSPICIOUS_ACTIVITY", "TRAFFIC", "HAZARD", "MISSING_PERSON", "OTHER" ]
-          },
-          "severity" : {
-            "type" : "string",
-            "description" : "Severity level",
-            "enum" : [ "LOW", "MEDIUM", "HIGH", "CRITICAL" ]
+            "enum" : [ "POTHOLE", "MANHOLE", "WASTE", "POLLUTION", "STREET_LIGHT", "ILLEGAL_PARKING", "OTHER" ]
           },
           "latitude" : {
             "type" : "number",
@@ -1318,7 +1339,7 @@
           "status" : {
             "type" : "string",
             "description" : "Current lifecycle status",
-            "enum" : [ "ACTIVE", "RESOLVED" ]
+            "enum" : [ "SUBMITTED", "SENT", "ACKNOWLEDGED", "IN_PROGRESS", "RESOLVED", "REJECTED" ]
           },
           "reportedBy" : {
             "type" : "string",
@@ -1353,6 +1374,17 @@
           "photoUrl" : {
             "type" : "string",
             "description" : "URL of the uploaded photo, if any"
+          },
+          "districtCode" : {
+            "type" : "string",
+            "description" : "Code of the Sofia district the report is in; null only on reports older than districts",
+            "example" : "LOZENETS"
+          },
+          "closedBy" : {
+            "type" : "string",
+            "description" : "Who closed the report — the district, the reporter, or a moderator. Null while open, and on reports closed before this was recorded",
+            "enum" : [ "DISTRICT", "REPORTER", "MODERATOR" ],
+            "example" : "DISTRICT"
           }
         }
       },
@@ -1425,35 +1457,6 @@
           }
         }
       },
-      "UpdateUserPreferencesRequest" : {
-        "type" : "object",
-        "description" : "Request body for updating notification preferences",
-        "properties" : {
-          "notificationRadiusKm" : {
-            "type" : "integer",
-            "format" : "int32",
-            "description" : "Allowed radius preset in kilometres",
-            "example" : 10
-          },
-          "lastKnownLat" : {
-            "type" : "number",
-            "format" : "double",
-            "description" : "Latest known latitude",
-            "example" : 42.3601,
-            "maximum" : 90.0,
-            "minimum" : -90.0
-          },
-          "lastKnownLng" : {
-            "type" : "number",
-            "format" : "double",
-            "description" : "Latest known longitude",
-            "example" : -71.0589,
-            "maximum" : 180.0,
-            "minimum" : -180.0
-          }
-        },
-        "required" : [ "notificationRadiusKm" ]
-      },
       "ChangeRoleRequest" : {
         "type" : "object",
         "description" : "Assigns a role to an account",
@@ -1461,8 +1464,13 @@
           "role" : {
             "type" : "string",
             "description" : "The role to assign",
-            "enum" : [ "USER", "MODERATOR", "ADMIN" ],
+            "enum" : [ "USER", "MODERATOR", "ADMIN", "DISTRICT_OFFICIAL" ],
             "example" : "MODERATOR"
+          },
+          "districtCode" : {
+            "type" : "string",
+            "description" : "Required for DISTRICT_OFFICIAL, and only for it: the district the account acts for",
+            "example" : "LOZENETS"
           }
         },
         "required" : [ "role" ]
@@ -1479,6 +1487,22 @@
         },
         "required" : [ "enabled" ]
       },
+      "DistrictResponse" : {
+        "type" : "object",
+        "description" : "A district of Sofia",
+        "properties" : {
+          "code" : {
+            "type" : "string",
+            "description" : "Stable code, as carried by a report's districtCode",
+            "example" : "LOZENETS"
+          },
+          "name" : {
+            "type" : "string",
+            "description" : "Name of the district",
+            "example" : "Район Лозенец"
+          }
+        }
+      },
       "UserVoteResponse" : {
         "type" : "object",
         "description" : "Indicates whether the current user has voted on an alert",
@@ -1491,6 +1515,43 @@
             "type" : "string",
             "description" : "The vote type, or null if hasVoted is false",
             "enum" : [ "UPVOTE", "DOWNVOTE", "CONFIRM" ]
+          }
+        }
+      },
+      "RankedReportsResponse" : {
+        "type" : "object",
+        "description" : "One page of the public list of reports",
+        "properties" : {
+          "alerts" : {
+            "type" : "array",
+            "description" : "The reports on this page, in order",
+            "items" : {
+              "$ref" : "#/components/schemas/AlertResponse"
+            }
+          },
+          "ranking" : {
+            "type" : "string",
+            "description" : "The order that was applied",
+            "enum" : [ "HOT", "LONGEST_WAITING", "NEWEST" ],
+            "example" : "HOT"
+          },
+          "page" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Zero-based page number",
+            "example" : 0
+          },
+          "size" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Page size that was applied",
+            "example" : 50
+          },
+          "total" : {
+            "type" : "integer",
+            "format" : "int64",
+            "description" : "How many reports match in all, across every page",
+            "example" : 137
           }
         }
       },
@@ -1519,7 +1580,7 @@
           },
           "truncated" : {
             "type" : "boolean",
-            "description" : "True when the cap was reached and older matches were dropped. Narrow the radius or filter by type/severity to see them.",
+            "description" : "True when the cap was reached and older matches were dropped. Narrow the radius or filter by type to see them.",
             "example" : false
           }
         }

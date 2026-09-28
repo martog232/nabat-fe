@@ -1,50 +1,25 @@
-import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { userApi } from '../api/user'
 import { Button } from '../components/common/Button'
 import { useAuthStore } from '../store/authStore'
 import { useThemeStore } from '../store/themeStore'
-import { NOTIFICATION_RADII_KM } from '../types'
 import { canAdministerUsers } from '../utils/permissions'
 
 /**
  * Everything about the account that is not the map.
  *
- * <p>It exists because the app had nowhere to put any of this. The notification radius has a
- * backend endpoint that no component called, so the setting was unreachable; the theme toggle
- * appeared on the sign-in screens and nowhere after them, so it could not be changed once you
- * were in; and signing out lived at the bottom of the alert list.
+ * <p>It exists because the app had nowhere to put any of this. The theme toggle appeared on
+ * the sign-in screens and nowhere after them, so it could not be changed once you were in;
+ * and signing out lived at the bottom of the alert list. The notification radius it once held
+ * went with the proximity push on the backend.
  */
 export function SettingsPage() {
   const user = useAuthStore((s) => s.user)
-  const applyUserChanges = useAuthStore((s) => s.applyUserChanges)
   const logout = useAuthStore((s) => s.logout)
   const { theme, toggleTheme } = useThemeStore()
   const navigate = useNavigate()
 
-  const [savingRadius, setSavingRadius] = useState<number | null>(null)
-  const [error, setError] = useState<string | null>(null)
-
   if (!user) {
     return null
-  }
-
-  const saveRadius = async (km: number) => {
-    if (km === user.notificationRadiusKm) {
-      return
-    }
-
-    setSavingRadius(km)
-    setError(null)
-    try {
-      const saved = await userApi.updatePreferences({ notificationRadiusKm: km })
-      // The response is the new truth, not the value that was clicked.
-      applyUserChanges({ notificationRadiusKm: saved.notificationRadiusKm })
-    } catch {
-      setError('That could not be saved. Check your connection and try again.')
-    } finally {
-      setSavingRadius(null)
-    }
   }
 
   return (
@@ -62,7 +37,7 @@ export function SettingsPage() {
           </Link>
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Settings</h1>
-            <p className="text-sm text-slate-600 dark:text-slate-400">Your account and how Nabat reaches you</p>
+            <p className="text-sm text-slate-600 dark:text-slate-400">Your account</p>
           </div>
         </header>
 
@@ -86,42 +61,6 @@ export function SettingsPage() {
           </div>
         </section>
 
-        <section className="mb-6 rounded-2xl border border-surface-border bg-surface-card p-6 shadow-sm">
-          <h2 className="text-base font-semibold text-slate-900 dark:text-white">Notification radius</h2>
-          <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-            How close an alert has to be before we tell you about it.
-          </p>
-
-          {/* Five choices rather than a slider: the backend accepts exactly these and answers
-              400 to anything between them. */}
-          <div className="mt-4 flex flex-wrap gap-2" role="group" aria-label="Notification radius">
-            {NOTIFICATION_RADII_KM.map((km) => {
-              const selected = km === user.notificationRadiusKm
-              return (
-                <button
-                  key={km}
-                  type="button"
-                  onClick={() => saveRadius(km)}
-                  disabled={savingRadius !== null}
-                  aria-pressed={selected}
-                  className={`min-w-[4.5rem] rounded-xl border px-4 py-2.5 text-sm font-medium transition-colors disabled:opacity-60 ${
-                    selected
-                      ? 'border-brand-600 bg-brand-600 text-white shadow-lg shadow-brand-600/25'
-                      : 'border-surface-border bg-surface-elevated text-slate-700 hover:bg-surface-hover dark:text-slate-200'
-                  }`}
-                >
-                  {savingRadius === km ? '…' : `${km} km`}
-                </button>
-              )
-            })}
-          </div>
-
-          {error && (
-            <p role="alert" className="mt-3 text-sm text-red-600 dark:text-red-400">
-              {error}
-            </p>
-          )}
-        </section>
 
         {/* Only an admin sees this, and only as a courtesy: the route redirects and every
             endpoint behind it refuses anyone else. */}

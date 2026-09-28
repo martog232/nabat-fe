@@ -19,8 +19,8 @@ afterEach(() => {
 
 const envelope = {
   alerts: [
-    { id: 'a1', title: 'Fire', severity: 'HIGH' },
-    { id: 'a2', title: 'Flood', severity: 'LOW' },
+    { id: 'a1', title: 'Pothole' },
+    { id: 'a2', title: 'Dump' },
   ],
   count: 2,
   limit: 100,

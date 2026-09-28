@@ -1,16 +1,21 @@
-import type { AlertSeverity, AlertType } from '../../types'
-import { ALERT_TYPE_LABELS, ALERT_TYPE_ICONS } from '../../types'
+import type { AlertStatus, AlertType } from '../../types'
+import { ALERT_TYPE_LABELS, ALERT_TYPE_ICONS, OPEN_STATUSES, STATUS_LABELS } from '../../types'
 
-type SeverityFilter = AlertSeverity | 'ALL'
+export type StatusFilter = AlertStatus | 'ALL'
 
 interface AlertFiltersProps {
-  severityFilter: SeverityFilter
+  statusFilter: StatusFilter
   typeFilter: AlertType | 'ALL'
-  onSeverityChange: (s: SeverityFilter) => void
+  onStatusChange: (s: StatusFilter) => void
   onTypeChange: (t: AlertType | 'ALL') => void
 }
 
-const SEVERITIES: SeverityFilter[] = ['ALL', 'CRITICAL', 'HIGH', 'MEDIUM', 'LOW']
+/**
+ * Only the open states: the map shows nothing else, so a "Resolved" pill would always
+ * filter to an empty list. Status replaced severity here — "has the district picked this
+ * up yet" is the question worth narrowing a city map by.
+ */
+const STATUSES: StatusFilter[] = ['ALL', ...OPEN_STATUSES]
 
 /**
  * Pill shared by both rows. `min-h` rather than vertical padding: a 24px-tall pill is a
@@ -26,14 +31,14 @@ const pill = (active: boolean) => `
   }
 `
 
-export function AlertFilters({ severityFilter, typeFilter, onSeverityChange, onTypeChange }: AlertFiltersProps) {
+export function AlertFilters({ statusFilter, typeFilter, onStatusChange, onTypeChange }: AlertFiltersProps) {
   return (
     <div className="space-y-2">
-      {/* Severity: five short labels, so wrapping to a second line is better than scrolling. */}
+      {/* Status: five short labels, so wrapping to a second line is better than scrolling. */}
       <div className="flex gap-1.5 flex-wrap">
-        {SEVERITIES.map((s) => (
-          <button key={s} onClick={() => onSeverityChange(s)} className={pill(severityFilter === s)}>
-            {s === 'ALL' ? 'All' : s.charAt(0) + s.slice(1).toLowerCase()}
+        {STATUSES.map((s) => (
+          <button key={s} onClick={() => onStatusChange(s)} className={pill(statusFilter === s)}>
+            {s === 'ALL' ? 'All' : STATUS_LABELS[s]}
           </button>
         ))}
       </div>

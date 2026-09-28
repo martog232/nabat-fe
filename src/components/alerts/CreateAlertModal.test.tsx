@@ -37,13 +37,13 @@ afterEach(cleanup)
 describe('CreateAlertModal', () => {
   it('renders the modal with title', () => {
     renderModal()
-    expect(screen.getByText('Report Incident')).toBeInTheDocument()
+    expect(screen.getByText('Report a problem')).toBeInTheDocument()
   })
 
   it('shows validation errors on empty submit', async () => {
     const user = userEvent.setup()
     renderModal()
-    await user.click(screen.getByRole('button', { name: /report incident/i }))
+    await user.click(screen.getByRole('button', { name: /send report/i }))
     await waitFor(() => {
       expect(screen.getByText('Title is required')).toBeInTheDocument()
       expect(screen.getByText('Description is required')).toBeInTheDocument()

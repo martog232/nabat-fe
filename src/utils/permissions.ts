@@ -1,4 +1,5 @@
 import type { Alert, Role, User } from '../types'
+import { isOpen } from '../types'
 
 /**
  * The client-side mirror of the backend's `Role` capabilities.
@@ -30,7 +31,7 @@ export function canAdministerUsers(role: Role | undefined): boolean {
  */
 export function canResolveAlert(user: User | null, alert: Alert): boolean {
   if (!user) return false
-  if (alert.status !== 'ACTIVE') return false
+  if (!isOpen(alert.status)) return false
   return alert.reportedBy === user.id || canModerateContent(user.role)
 }
 
