@@ -85,6 +85,7 @@ function ToastItem({ toast }: { toast: Toast }) {
       {/* Close */}
       <button
         onClick={(e) => { e.stopPropagation(); dismiss() }}
+        aria-label="Затвори"
         className="absolute top-2 right-2 w-5 h-5 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-700 transition-colors text-xs"
       >
         ✕
@@ -125,7 +126,7 @@ export function ToastContainer() {
         safe-area inset on a notched phone.
       */}
       <div
-        aria-label="Notifications"
+        aria-label="Известия"
         className="fixed right-4 top-[calc(4.5rem+env(safe-area-inset-top))] z-[9999] flex flex-col gap-2 pointer-events-none"
       >
         {toasts.map((t) => (

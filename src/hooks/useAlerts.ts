@@ -28,12 +28,15 @@ import { isOpen } from '../types'
 export function useNearbyAlerts() {
   const queryCenter = useAlertStore((s) => s.queryCenter)
   const radiusKm = useAlertStore((s) => s.radiusKm)
+  const categoryFilter = useAlertStore((s) => s.categoryFilter)
   const setNearbyTruncation = useAlertStore((s) => s.setNearbyTruncation)
 
   return useQuery({
-    queryKey: ['alerts', 'nearby', queryCenter[0], queryCenter[1], radiusKm],
+    // The category is the last element, and useAlertWebSocket reads it from there to keep
+    // a filtered list filtered when a new report arrives. Keep it last.
+    queryKey: ['alerts', 'nearby', queryCenter[0], queryCenter[1], radiusKm, categoryFilter],
     queryFn: async () => {
-      const response = await alertsApi.getNearby(queryCenter[0], queryCenter[1], radiusKm)
+      const response = await alertsApi.getNearby(queryCenter[0], queryCenter[1], radiusKm, categoryFilter)
       setNearbyTruncation(response.truncated, response.limit)
       return response.alerts
     },
@@ -87,7 +90,7 @@ export function useResolveAlert(alertId: string) {
       }
       useToastStore.getState().addToast({
         type: 'error',
-        message: 'Could not resolve the alert — changes were rolled back.',
+        message: 'Сигналът не можа да бъде отбелязан като решен — промяната е отменена.',
       })
     },
 
@@ -140,8 +143,8 @@ export function useReportAction(alertId: string) {
       useToastStore.getState().addToast({
         type: 'error',
         message: code === 'CONFLICT' || code === 'CONCURRENT_UPDATE'
-          ? 'This report has changed since you opened it. The list has been refreshed.'
-          : 'Could not update the report. Please try again.',
+          ? 'Сигналът е променен, откакто го отворихте. Списъкът е обновен.'
+          : 'Сигналът не можа да бъде обновен. Опитайте отново.',
       })
     },
 

@@ -3,6 +3,7 @@ import { Marker } from 'react-leaflet'
 import type { Alert } from '../../types'
 import { useAlertStore } from '../../store/alertStore'
 import { createAlertIcon } from './alertIcon'
+import { useResolvedCategory } from '../../hooks/useCategories'
 
 interface AlertMarkerProps {
   alert: Alert
@@ -11,7 +12,8 @@ interface AlertMarkerProps {
 function AlertMarkerInner({ alert }: AlertMarkerProps) {
   const selectAlert = useAlertStore((s) => s.selectAlert)
   const isSelected = useAlertStore((s) => s.selectedAlertId === alert.id)
-  const icon = useMemo(() => createAlertIcon(alert, isSelected), [alert, isSelected])
+  const groupCode = useResolvedCategory(alert.categoryCode)?.group.code
+  const icon = useMemo(() => createAlertIcon(alert, isSelected, groupCode), [alert, isSelected, groupCode])
 
   return (
     <Marker

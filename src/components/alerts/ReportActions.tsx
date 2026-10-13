@@ -21,10 +21,10 @@ export function ReportActions({ alert }: Props) {
   const resolve = useResolveAlert(alert.id)
 
   const buttons: { key: ReportAction | 'resolve'; label: string; show: boolean; tone: 'primary' | 'plain' | 'danger' }[] = [
-    { key: 'acknowledge', label: 'Acknowledge', show: canAdvanceTo(user, alert, 'ACKNOWLEDGED'), tone: 'plain' },
-    { key: 'startWork', label: 'Start work', show: canAdvanceTo(user, alert, 'IN_PROGRESS'), tone: 'plain' },
-    { key: 'resolve', label: 'Mark as fixed', show: canResolveAlert(user, alert), tone: 'primary' },
-    { key: 'reject', label: 'Reject', show: canRejectAlert(user, alert), tone: 'danger' },
+    { key: 'acknowledge', label: 'Приеми', show: canAdvanceTo(user, alert, 'ACKNOWLEDGED'), tone: 'plain' },
+    { key: 'startWork', label: 'Започни работа', show: canAdvanceTo(user, alert, 'IN_PROGRESS'), tone: 'plain' },
+    { key: 'resolve', label: 'Маркирай като решен', show: canResolveAlert(user, alert), tone: 'primary' },
+    { key: 'reject', label: 'Отхвърли', show: canRejectAlert(user, alert), tone: 'danger' },
   ]
   const visible = buttons.filter((b) => b.show)
   if (visible.length === 0) return null
@@ -45,7 +45,7 @@ export function ReportActions({ alert }: Props) {
   }
 
   return (
-    <div className="grid grid-cols-2 gap-2" role="group" aria-label="Report actions">
+    <div className="grid grid-cols-2 gap-2" role="group" aria-label="Действия по сигнала">
       {visible.map((b) => (
         <button
           key={b.key}

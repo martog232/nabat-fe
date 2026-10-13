@@ -45,12 +45,12 @@ export function MapPage() {
         <div className="absolute z-[1000] left-4 bottom-[calc(var(--sheet-peek)+1rem)] sm:left-auto sm:right-4 sm:bottom-6">
           <Button
             onClick={() => setShowCreateModal(true)}
-            aria-label="Report a problem"
+            aria-label="Подай сигнал"
             className="h-14 w-14 sm:h-auto sm:w-auto sm:px-5 sm:py-3 sm:text-sm justify-center shadow-2xl shadow-brand-600/40 rounded-full sm:rounded-2xl"
             size="icon"
           >
             <span className="text-xl sm:text-lg">🚨</span>
-            <span className="hidden sm:inline">Report a problem</span>
+            <span className="hidden sm:inline">Подай сигнал</span>
           </Button>
         </div>
       )}
@@ -63,7 +63,7 @@ export function MapPage() {
       <div className="absolute z-[1000] top-14 left-1/2 -translate-x-1/2 sm:top-auto sm:bottom-6">
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-card/80 backdrop-blur border border-surface-border text-xs text-slate-600">
           <span className={`w-2 h-2 rounded-full ${wsConnected ? 'bg-green-500 animate-pulse-fast' : 'bg-amber-500'}`} />
-          {wsConnected ? 'Live updates' : 'Polling fallback'}
+          {wsConnected ? 'На живо' : 'Периодично обновяване'}
         </div>
       </div>
 

@@ -20,7 +20,7 @@ const alert: Alert = {
   id: 'alert-1',
   title: 'Fire on Main St',
   description: 'A fire broke out near the intersection',
-  type: 'POTHOLE',
+  categoryCode: 1007,
   latitude: 42.7,
   longitude: 23.3,
   createdAt: new Date().toISOString(),
@@ -98,7 +98,7 @@ describe('AlertDetail voting', () => {
     mockedVotesApi.vote.mockReturnValue(new Promise<VoteReceipt>(() => {}))
     renderDetail()
 
-    const upvote = await screen.findByRole('button', { name: /👍 Up/ })
+    const upvote = await screen.findByRole('button', { name: /👍 Подкрепям/ })
     expect(upvote).toHaveTextContent('5')
 
     await userEvent.click(upvote)
@@ -116,7 +116,7 @@ describe('AlertDetail voting', () => {
     mockedVotesApi.vote.mockReturnValue(new Promise<VoteReceipt>(() => {}))
     renderDetail()
 
-    const upvote = await screen.findByRole('button', { name: /👍 Up/ })
+    const upvote = await screen.findByRole('button', { name: /👍 Подкрепям/ })
     await userEvent.click(upvote)
 
     expect(upvote.className).toContain('border-brand-500')
@@ -126,7 +126,7 @@ describe('AlertDetail voting', () => {
     mockedVotesApi.vote.mockRejectedValue(new Error('network down'))
     renderDetail()
 
-    const upvote = await screen.findByRole('button', { name: /👍 Up/ })
+    const upvote = await screen.findByRole('button', { name: /👍 Подкрепям/ })
     await userEvent.click(upvote)
 
     await waitFor(() => expect(upvote).toHaveTextContent('5'))

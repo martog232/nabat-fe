@@ -34,17 +34,17 @@ export function RegisterPage() {
               <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
             </svg>
           </div>
-          <h1 className="text-2xl font-bold text-slate-900">Create account</h1>
-          <p className="text-sm text-slate-600 mt-1">Join the Nabat safety community</p>
+          <h1 className="text-2xl font-bold text-slate-900">Регистрация</h1>
+          <p className="text-sm text-slate-600 mt-1">Подавайте сигнали за проблеми в София</p>
         </div>
 
         {/* Card */}
         <div className="bg-surface-card border border-surface-border rounded-2xl p-6 shadow-2xl">
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input
-              label="Display name"
+              label="Име"
               type="text"
-              placeholder="Jane Doe"
+              placeholder="Иван Иванов"
               value={displayName}
               onChange={(e) => { setDisplayName(e.target.value); clearError() }}
               required
@@ -52,7 +52,7 @@ export function RegisterPage() {
               maxLength={50}
             />
             <Input
-              label="Email"
+              label="Имейл"
               type="email"
               placeholder="you@example.com"
               value={email}
@@ -60,7 +60,7 @@ export function RegisterPage() {
               required
             />
             <Input
-              label="Password"
+              label="Парола"
               type="password"
               placeholder="••••••••"
               value={password}
@@ -76,14 +76,14 @@ export function RegisterPage() {
             )}
 
             <Button type="submit" className="w-full" isLoading={isLoading} size="lg">
-              Create account
+              Създайте профил
             </Button>
           </form>
 
           <p className="text-center text-sm text-slate-600 mt-4">
-            Already have an account?{' '}
+            Вече имате профил?{' '}
             <Link to="/login" className="text-brand-400 hover:underline font-medium">
-              Sign in
+              Вход
             </Link>
           </p>
         </div>

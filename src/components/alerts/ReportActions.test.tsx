@@ -17,7 +17,7 @@ const report: Alert = {
   id: 'r1',
   title: 'Pothole',
   description: 'Outside number 12',
-  type: 'POTHOLE',
+  categoryCode: 1007,
   latitude: 42.67,
   longitude: 23.32,
   createdAt: '2026-09-28T10:00:00Z',
@@ -49,13 +49,13 @@ describe('ReportActions', () => {
   it('gives the report\'s own district every step it can still take', () => {
     signIn(account('o1', 'DISTRICT_OFFICIAL', 'LOZENETS'))
     render(<ReportActions alert={report} />)
-    expect(labels()).toEqual(['Acknowledge', 'Start work', 'Mark as fixed', 'Reject'])
+    expect(labels()).toEqual(['Приеми', 'Започни работа', 'Маркирай като решен', 'Отхвърли'])
   })
 
   it('stops offering a step the report is already past', () => {
     signIn(account('o1', 'DISTRICT_OFFICIAL', 'LOZENETS'))
     render(<ReportActions alert={{ ...report, status: 'IN_PROGRESS' }} />)
-    expect(labels()).toEqual(['Mark as fixed', 'Reject'])
+    expect(labels()).toEqual(['Маркирай като решен', 'Отхвърли'])
   })
 
   /** Nothing at all, not a set of buttons that would each answer 403. */
@@ -68,13 +68,13 @@ describe('ReportActions', () => {
   it('lets the reporter mark their own report fixed, and nothing more', () => {
     signIn(account('reporter', 'USER'))
     render(<ReportActions alert={report} />)
-    expect(labels()).toEqual(['Mark as fixed'])
+    expect(labels()).toEqual(['Маркирай като решен'])
   })
 
   it('sends the step that was clicked', async () => {
     signIn(account('o1', 'DISTRICT_OFFICIAL', 'LOZENETS'))
     render(<ReportActions alert={report} />)
-    await userEvent.setup().click(screen.getByRole('button', { name: 'Start work' }))
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Започни работа' }))
     expect(actionMutate).toHaveBeenCalledWith('startWork')
     expect(resolveMutate).not.toHaveBeenCalled()
   })

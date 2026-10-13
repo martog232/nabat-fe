@@ -5,13 +5,14 @@ import type { components } from './api'
 type ApiAlert = components['schemas']['AlertResponse']
 
 /**
- * Categories, statuses and closers come from the contract rather than being retyped here.
- * The first two used to be hand-written unions, and when the backend replaced them the only
- * sign in this repository was a map full of labels reading `undefined`. Derived, a change
- * on the server is a compile error at every place that has to handle it — which is the
- * point, since `Record<AlertType, …>` below then refuses to build until each gets a label.
+ * Statuses and closers come from the contract rather than being retyped here. Statuses used
+ * to be a hand-written union, and when the backend replaced them the only sign in this
+ * repository was a map full of labels reading `undefined`. Derived, a change on the server
+ * is a compile error at every place that has to handle it.
+ *
+ * Categories are not an enum any more: they are Call Sofia's catalogue, served by
+ * `GET /api/v1/categories`, and a report carries the code of one subcategory.
  */
-export type AlertType   = NonNullable<ApiAlert['type']>
 export type AlertStatus = NonNullable<ApiAlert['status']>
 export type ClosedBy    = NonNullable<ApiAlert['closedBy']>
 export type VoteType      = 'UPVOTE' | 'DOWNVOTE' | 'CONFIRM'
@@ -68,7 +69,8 @@ export interface Alert {
   id: string                 // UUID
   title: string
   description: string
-  type: AlertType
+  /** Call Sofia's code of a subcategory — never a group. Resolve it with `useCategoryIndex`. */
+  categoryCode: number
   latitude: number
   longitude: number
   createdAt: string          // ISO Instant
@@ -84,6 +86,24 @@ export interface Alert {
   districtCode: string | null
   /** Who closed it; null while open. "The district says fixed" is not "the reporter says so". */
   closedBy: ClosedBy | null
+}
+
+/** A subcategory a report can be filed under, with examples a citizen would recognise. */
+export interface Category {
+  code: number
+  name: string
+  hint: string | null
+}
+
+/**
+ * One of the twelve groups of `GET /api/v1/categories`, in display order. The codes,
+ * names and colours are Call Sofia's, so its data and ours can be compared directly.
+ */
+export interface CategoryGroup {
+  code: number
+  name: string
+  color: string
+  categories: Category[]
 }
 
 /** One of Sofia's 24 districts, as `GET /api/v1/districts` lists them. */
@@ -161,7 +181,7 @@ export interface WebSocketTicketResponse {
 export interface CreateAlertRequest {
   title: string              // 1–200
   description: string        // 1–2000
-  type: AlertType
+  categoryCode: number       // a subcategory; a group code is refused with 400
   latitude: number           // -90..90
   longitude: number          // -180..180
   photoUrl?: string          // URL from upload endpoint, if any
@@ -279,24 +299,30 @@ export type WsFrame = WsNewAlertFrame | WsAlertUpdatedFrame | WsNotificationFram
 
 // ─── UI helpers (unchanged) ──────────────────────────────────────────────────
 
-export const ALERT_TYPE_LABELS: Record<AlertType, string> = {
-  POTHOLE: 'Pothole',
-  MANHOLE: 'Manhole',
-  WASTE: 'Waste',
-  POLLUTION: 'Pollution',
-  STREET_LIGHT: 'Street light',
-  ILLEGAL_PARKING: 'Illegal parking',
-  OTHER: 'Other',
+/**
+ * An icon per category group, by Call Sofia's group code. Presentation, so it lives here
+ * rather than in the catalogue; a group added on the server shows the fallback until it
+ * gets one.
+ */
+export const GROUP_ICONS: Record<number, string> = {
+  1000: '🗑️', // Чистота
+  1006: '🕳️', // Пътища и шахти
+  1012: '🌳', // Паркове, градини и площадки
+  1018: '🚗', // Автомобили
+  1021: '🚌', // Градски транспорт
+  1027: '💡', // Осветление и пътна сигнализация
+  1032: '🐾', // Животни
+  1035: '🏪', // Търговска дейност
+  1038: '🏗️', // Сгради и строежи
+  1042: '🔊', // Нарушаване на обществения ред и шум
+  1046: '🌉', // Подлези и мостове
+  1049: '📍', // Други
 }
 
-export const ALERT_TYPE_ICONS: Record<AlertType, string> = {
-  POTHOLE: '🕳️',
-  MANHOLE: '⚠️',
-  WASTE: '🗑️',
-  POLLUTION: '🏭',
-  STREET_LIGHT: '💡',
-  ILLEGAL_PARKING: '🚗',
-  OTHER: '📍',
+export const FALLBACK_GROUP_ICON = '📍'
+
+export function groupIcon(groupCode: number | null | undefined): string {
+  return (groupCode != null && GROUP_ICONS[groupCode]) || FALLBACK_GROUP_ICON
 }
 
 /**
@@ -312,12 +338,12 @@ export function isOpen(status: AlertStatus): boolean {
 
 /** Where a report is, in the words of the person waiting on it. */
 export const STATUS_LABELS: Record<AlertStatus, string> = {
-  SUBMITTED: 'Submitted',
-  SENT: 'Sent to district',
-  ACKNOWLEDGED: 'Acknowledged',
-  IN_PROGRESS: 'In progress',
-  RESOLVED: 'Resolved',
-  REJECTED: 'Rejected',
+  SUBMITTED: 'Подаден',
+  SENT: 'Изпратен до района',
+  ACKNOWLEDGED: 'Приет',
+  IN_PROGRESS: 'В процес',
+  RESOLVED: 'Решен',
+  REJECTED: 'Отхвърлен',
 }
 
 export const STATUS_COLORS: Record<AlertStatus, string> = {
@@ -345,13 +371,13 @@ export const STATUS_MARKER_COLORS: Record<AlertStatus, string> = {
 
 /** Who closed a report, said so a reader knows how much weight to give it. */
 export const CLOSED_BY_LABELS: Record<ClosedBy, string> = {
-  DISTRICT: 'by the district',
-  REPORTER: 'by the reporter',
-  MODERATOR: 'by a moderator',
+  DISTRICT: 'от района',
+  REPORTER: 'от подателя',
+  MODERATOR: 'от модератор',
 }
 
 export const RANKING_LABELS: Record<ReportRanking, string> = {
-  HOT: 'Most supported now',
-  LONGEST_WAITING: 'Waiting longest',
-  NEWEST: 'Newest',
+  HOT: 'Най-подкрепяни сега',
+  LONGEST_WAITING: 'Чакат най-дълго',
+  NEWEST: 'Най-нови',
 }

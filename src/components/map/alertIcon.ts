@@ -1,10 +1,14 @@
 import { divIcon } from 'leaflet'
 import type { Alert } from '../../types'
-import { ALERT_TYPE_ICONS, STATUS_MARKER_COLORS } from '../../types'
+import { groupIcon, STATUS_MARKER_COLORS } from '../../types'
 
-export function createAlertIcon(alert: Alert, isSelected: boolean) {
+/**
+ * @param groupCode the category group of the alert, for its icon; undefined while the
+ *                  catalogue loads, which draws the fallback pin until it has.
+ */
+export function createAlertIcon(alert: Alert, isSelected: boolean, groupCode?: number) {
   const color = STATUS_MARKER_COLORS[alert.status]
-  const emoji = ALERT_TYPE_ICONS[alert.type]
+  const emoji = groupIcon(groupCode)
   // The selected pin gets a disc behind it rather than a bigger pin: growing the marker
   // would move its tip off the coordinate it is reporting. The disc is centred on the
   // round part of the teardrop (20,20 within the 40x40 box) and overflows it, which a

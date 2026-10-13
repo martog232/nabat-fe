@@ -10,9 +10,12 @@ export const alertsApi = {
    * where it expected a list and the map crashed on `alerts.filter`. Types were no help:
    * `Alert[]` was a claim about the wire, not a check of it.
    */
-  getNearby: (lat: number, lng: number, radiusKm = 5) =>
+  getNearby: (lat: number, lng: number, radiusKm = 5, category: number | null = null) =>
     apiClient
-      .get<NearbyAlertsResponse>('/alerts/nearby', { params: { latitude: lat, longitude: lng, radiusKm } })
+      .get<NearbyAlertsResponse>('/alerts/nearby', {
+        // `category` may be a group (matches all its subcategories) or a subcategory.
+        params: { latitude: lat, longitude: lng, radiusKm, ...(category != null ? { category } : {}) },
+      })
       .then((r) => r.data),
 
   /**

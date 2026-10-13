@@ -18,11 +18,12 @@ const NOTIFICATION_ICONS: Record<NotificationType, string> = {
 function timeAgo(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime()
   const mins = Math.floor(diff / 60000)
-  if (mins < 1) return 'Just now'
-  if (mins < 60) return `${mins}m ago`
+  if (mins < 1) return 'Току-що'
+  if (mins < 60) return `преди ${mins} мин`
   const hrs = Math.floor(mins / 60)
-  if (hrs < 24) return `${hrs}h ago`
-  return `${Math.floor(hrs / 24)}d ago`
+  if (hrs < 24) return `преди ${hrs} ч`
+  const days = Math.floor(hrs / 24)
+  return `преди ${days} ${days === 1 ? 'ден' : 'дни'}`
 }
 
 function NotificationItem({ notification }: { notification: Notification }) {
@@ -101,10 +102,10 @@ export function NotificationPanel({ onClose }: NotificationPanelProps) {
       {/* Header */}
       <div className="flex flex-shrink-0 items-center justify-between px-4 py-3 border-b border-surface-border">
         <h3 className="font-semibold text-sm text-slate-900">
-          Notifications
+          Известия
           {unreadCount > 0 && (
             <span className="ml-2 text-xs text-brand-400 font-normal">
-              ({unreadCount} unread)
+              ({unreadCount} непрочетени)
             </span>
           )}
         </h3>
@@ -113,7 +114,7 @@ export function NotificationPanel({ onClose }: NotificationPanelProps) {
             onClick={() => markAllAsRead.mutate()}
             className="text-xs text-brand-400 hover:text-brand-300 transition-colors font-medium"
           >
-            Mark all as read
+            Маркирай всички като прочетени
           </button>
         )}
       </div>
@@ -128,10 +129,10 @@ export function NotificationPanel({ onClose }: NotificationPanelProps) {
           <div className="flex flex-col items-center justify-center py-10 px-4 text-center">
             <span className="text-3xl mb-2">🔔</span>
             <p className="text-sm text-slate-500">
-              No notifications yet
+              Все още нямате известия
             </p>
             <p className="text-xs text-slate-400 mt-1">
-              Vote on alerts to receive updates.
+              Гласувайте за сигнали, за да получавате новини за тях.
             </p>
           </div>
         ) : (

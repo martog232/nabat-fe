@@ -27,7 +27,7 @@ export function SettingsPage() {
         <header className="mb-8 flex items-center gap-3">
           <Link
             to="/map"
-            aria-label="Back to the map"
+            aria-label="Обратно към картата"
             className="flex h-10 w-10 items-center justify-center rounded-full border border-surface-border bg-surface-card text-slate-600 transition-colors hover:bg-surface-hover"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5">
@@ -35,8 +35,8 @@ export function SettingsPage() {
             </svg>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900">Settings</h1>
-            <p className="text-sm text-slate-600">Your account</p>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900">Настройки</h1>
+            <p className="text-sm text-slate-600">Вашият профил</p>
           </div>
         </header>
 
@@ -69,14 +69,14 @@ export function SettingsPage() {
                   {districtNames.get(user.districtCode) ?? user.districtCode}
                 </h2>
                 <p className="mt-1 text-sm text-slate-600">
-                  The reports sent to your district, and what has been done about them.
+                  Сигналите, изпратени до вашия район, и какво е направено по тях.
                 </p>
               </div>
               <Link
                 to="/district"
                 className="rounded-lg border border-surface-border bg-surface-elevated px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-surface-hover"
               >
-                Open
+                Отвори
               </Link>
             </div>
           </section>
@@ -88,20 +88,21 @@ export function SettingsPage() {
           <section className="mb-6 rounded-2xl border border-surface-border bg-surface-card p-6 shadow-sm">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <h2 className="text-base font-semibold text-slate-900">Accounts</h2>
+                <h2 className="text-base font-semibold text-slate-900">Профили</h2>
                 <p className="mt-1 text-sm text-slate-600">
-                  Roles, and which accounts may sign in.
+                  Роли и кои профили могат да влизат.
                 </p>
               </div>
               <Link
                 to="/admin"
                 className="rounded-lg border border-surface-border bg-surface-elevated px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-surface-hover"
               >
-                Manage
+                Управление
               </Link>
             </div>
           </section>
         )}
+
 
         <Button
           type="button"
@@ -112,7 +113,7 @@ export function SettingsPage() {
             navigate('/login')
           }}
         >
-          Sign out
+          Изход
         </Button>
       </div>
     </div>

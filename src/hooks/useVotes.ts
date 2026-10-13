@@ -143,8 +143,8 @@ export function useVote(alertId: string) {
         type: 'error',
         message:
           errorCode(err) === 'SERVICE_UNAVAILABLE'
-            ? 'Voting is temporarily unavailable. Please try again in a moment.'
-            : 'Vote failed — your action was undone. Please try again.',
+            ? 'Гласуването временно не е достъпно. Опитайте отново след малко.'
+            : 'Гласът не беше записан — действието е отменено. Опитайте отново.',
       })
     },
   })
@@ -190,8 +190,8 @@ export function useRemoveVote(alertId: string) {
         type: 'error',
         message:
           errorCode(err) === 'SERVICE_UNAVAILABLE'
-            ? 'Voting is temporarily unavailable. Please try again in a moment.'
-            : 'Could not remove your vote — action was undone. Please try again.',
+            ? 'Гласуването временно не е достъпно. Опитайте отново след малко.'
+            : 'Гласът ви не можа да бъде оттеглен — действието е отменено. Опитайте отново.',
       })
     },
   })

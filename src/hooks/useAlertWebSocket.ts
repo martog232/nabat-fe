@@ -7,7 +7,9 @@ import { authApi } from '../api/auth'
 import { useToastStore } from '../store/toastStore'
 import { haversineDistanceM } from '../utils/geo'
 import { useWebSocket } from './useWebSocket'
-import type { Alert, WsFrame } from '../types'
+import type { Alert, CategoryGroup, WsFrame } from '../types'
+import { buildCategoryIndex, matchesCategory, resolveCategory } from '../utils/categories'
+import { CATEGORIES_QUERY_KEY } from './useCategories'
 
 const WS_FLUSH_INTERVAL_MS = 400
 
@@ -19,6 +21,9 @@ const WS_FLUSH_INTERVAL_MS = 400
  * the user panned the map between a frame arriving and the 400 ms flush running, the
  * merge wrote to a key nothing was subscribed to and the new alert simply never
  * appeared.
+ *
+ * A list narrowed to a category (the key's last element) only gains alerts in that
+ * category; an alert it already holds is always updated, whatever it is.
  */
 function mergeAlertsIntoCache(
   qc: ReturnType<typeof useQueryClient>,
@@ -26,12 +31,16 @@ function mergeAlertsIntoCache(
 ) {
   if (!incoming.length) return
 
-  qc.setQueriesData<Alert[]>({ queryKey: ['alerts', 'nearby'] }, (old) => {
-    if (!old) return old
+  const index = buildCategoryIndex(qc.getQueryData<CategoryGroup[]>(CATEGORIES_QUERY_KEY))
+  for (const [key, old] of qc.getQueriesData<Alert[]>({ queryKey: ['alerts', 'nearby'] })) {
+    if (!old) continue
+    const filter = (key[5] as number | null | undefined) ?? null
     const map = new Map(old.map((a) => [a.id, a]))
-    for (const a of incoming) map.set(a.id, a)
-    return Array.from(map.values())
-  })
+    for (const a of incoming) {
+      if (map.has(a.id) || matchesCategory(index, a.categoryCode, filter)) map.set(a.id, a)
+    }
+    qc.setQueryData<Alert[]>(key, Array.from(map.values()))
+  }
 }
 
 export function useAlertWebSocket() {
@@ -52,12 +61,14 @@ export function useAlertWebSocket() {
     const { userLat, userLng, radiusKm } = useAlertStore.getState()
     if (userLat === null || userLng === null) return
 
+    const index = buildCategoryIndex(qc.getQueryData<CategoryGroup[]>(CATEGORIES_QUERY_KEY))
     for (const alert of batch) {
       const distM = haversineDistanceM(userLat, userLng, alert.latitude, alert.longitude)
       if (distM <= radiusKm * 1000) {
+        const category = resolveCategory(index, alert.categoryCode)?.category.name
         useToastStore.getState().addToast({
           type: 'info',
-          message: `${alert.type.replace(/_/g, ' ')}: ${alert.title} (${(distM / 1000).toFixed(1)} km away)`,
+          message: `${category ? `${category}: ` : ''}${alert.title} (на ${(distM / 1000).toLocaleString('bg-BG', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} км)`,
           duration: 6_000,
         })
       }

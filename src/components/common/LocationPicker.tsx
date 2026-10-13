@@ -47,14 +47,14 @@ const PIN_ICON = divIcon({
 const NOMINATIM = 'https://nominatim.openstreetmap.org'
 
 async function searchAddress(q: string, signal: AbortSignal): Promise<NominatimResult[]> {
-  const url = `${NOMINATIM}/search?format=json&addressdetails=1&limit=5&q=${encodeURIComponent(q)}`
+  const url = `${NOMINATIM}/search?format=json&addressdetails=1&limit=5&accept-language=bg&q=${encodeURIComponent(q)}`
   const r = await fetch(url, { signal, headers: { Accept: 'application/json' } })
   if (!r.ok) return []
   return r.json()
 }
 
 async function reverseGeocode(lat: number, lon: number, signal: AbortSignal): Promise<string | undefined> {
-  const url = `${NOMINATIM}/reverse?format=json&lat=${lat}&lon=${lon}`
+  const url = `${NOMINATIM}/reverse?format=json&accept-language=bg&lat=${lat}&lon=${lon}`
   const r = await fetch(url, { signal, headers: { Accept: 'application/json' } })
   if (!r.ok) return undefined
   const j = await r.json()
@@ -129,24 +129,25 @@ export function LocationPicker({ value, onChange }: Props) {
   }
 
   const center = useMemo<LatLngExpression>(() => [value.latitude, value.longitude], [value.latitude, value.longitude])
+
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <label className="text-xs font-medium text-slate-600 uppercase tracking-wide">Location</label>
+        <label className="text-xs font-medium text-slate-600 uppercase tracking-wide">Местоположение</label>
         <div className="inline-flex rounded-lg border border-surface-border bg-surface-elevated p-0.5 text-xs">
           <button
             type="button"
             onClick={() => setMode('address')}
             className={`px-3 py-1 rounded-md transition-colors cursor-pointer ${mode === 'address' ? 'bg-brand-500/20 text-brand-300' : 'text-slate-600 hover:text-slate-800'}`}
           >
-            🔎 Address
+            🔎 Адрес
           </button>
           <button
             type="button"
             onClick={() => setMode('map')}
             className={`px-3 py-1 rounded-md transition-colors cursor-pointer ${mode === 'map' ? 'bg-brand-500/20 text-brand-300' : 'text-slate-600 hover:text-slate-800'}`}
           >
-            📍 Map
+            📍 Карта
           </button>
         </div>
       </div>
@@ -156,7 +157,7 @@ export function LocationPicker({ value, onChange }: Props) {
           <input
             type="text"
             value={query}
-            placeholder="Street and number, city…"
+            placeholder="Улица и номер, град…"
             onChange={(e) => setQuery(e.target.value)}
             onFocus={() => suggestions.length > 0 && setOpen(true)}
             className="w-full px-3 py-2.5 rounded-lg text-sm bg-surface-elevated border border-surface-border text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
@@ -181,7 +182,7 @@ export function LocationPicker({ value, onChange }: Props) {
           )}
           {open && !isSearching && suggestions.length === 0 && query.trim().length >= 3 && (
             <div className="absolute z-[2100] mt-1 w-full rounded-lg border border-surface-border bg-surface-card px-3 py-2 text-xs text-slate-500">
-              No matches found
+              Няма намерени адреси
             </div>
           )}
         </div>
@@ -210,7 +211,7 @@ export function LocationPicker({ value, onChange }: Props) {
       )}
 
       <p className="text-[11px] text-slate-600">
-        {value.address ? <span className="line-clamp-1">📌 {value.address}</span> : 'Pick a location to see its address.'}
+        {value.address ? <span className="line-clamp-1">📌 {value.address}</span> : 'Изберете място, за да видите адреса му.'}
         <span className="ml-2 text-slate-700">
           ({value.latitude.toFixed(5)}, {value.longitude.toFixed(5)})
         </span>

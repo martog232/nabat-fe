@@ -376,6 +376,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Report categories — Call Sofia's groups and subcategories, with its codes */
+        get: operations["list_2"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/me": {
         parameters: {
             query?: never;
@@ -673,11 +690,11 @@ export interface components {
              */
             description: string;
             /**
-             * @description Category of the problem
-             * @example POTHOLE
-             * @enum {string}
+             * Format: int32
+             * @description Subcategory code from GET /api/v1/categories — Call Sofia's codes. A group code is refused.
+             * @example 1007
              */
-            type: "POTHOLE" | "MANHOLE" | "WASTE" | "POLLUTION" | "STREET_LIGHT" | "ILLEGAL_PARKING" | "OTHER";
+            categoryCode: number;
             /**
              * Format: double
              * @description WGS-84 latitude of the problem
@@ -708,10 +725,11 @@ export interface components {
             /** @description Full description */
             description?: string;
             /**
-             * @description Alert category
-             * @enum {string}
+             * Format: int32
+             * @description Subcategory code; resolve the name and group with GET /api/v1/categories
+             * @example 1007
              */
-            type?: "POTHOLE" | "MANHOLE" | "WASTE" | "POLLUTION" | "STREET_LIGHT" | "ILLEGAL_PARKING" | "OTHER";
+            categoryCode?: number;
             /**
              * Format: double
              * @description Latitude of the incident location
@@ -869,6 +887,46 @@ export interface components {
              * @example Район Лозенец
              */
             name?: string;
+        };
+        /** @description A group of report categories */
+        CategoryGroupResponse: {
+            /**
+             * Format: int32
+             * @description Group code; usable as the nearby `category` filter
+             * @example 1006
+             */
+            code?: number;
+            /**
+             * @description Name of the group
+             * @example Пътища и шахти
+             */
+            name?: string;
+            /**
+             * @description Call Sofia's colour for the group
+             * @example #1E3A8A
+             */
+            color?: string;
+            /** @description The subcategories a report can be filed under, in display order */
+            categories?: components["schemas"]["CategoryResponse"][];
+        };
+        /** @description A category a report can be filed under */
+        CategoryResponse: {
+            /**
+             * Format: int32
+             * @description Code, as sent in categoryCode
+             * @example 1007
+             */
+            code?: number;
+            /**
+             * @description Name, as Call Sofia has it
+             * @example Улично платно
+             */
+            name?: string;
+            /**
+             * @description What it covers, in everyday words
+             * @example дупки, пропаднала настилка, шахти без капак
+             */
+            hint?: string;
         };
         /** @description Indicates whether the current user has voted on an alert */
         UserVoteResponse: {
@@ -1515,6 +1573,26 @@ export interface operations {
             };
         };
     };
+    list_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CategoryGroupResponse"][];
+                };
+            };
+        };
+    };
     getCurrentUser: {
         parameters: {
             query?: never;
@@ -1634,7 +1712,11 @@ export interface operations {
                 longitude: number;
                 radiusKm?: number;
                 since?: string;
-                type?: "POTHOLE" | "MANHOLE" | "WASTE" | "POLLUTION" | "STREET_LIGHT" | "ILLEGAL_PARKING" | "OTHER";
+                /**
+                 * @description A group code (every subcategory in it) or a subcategory code, from GET /api/v1/categories
+                 * @example 1006
+                 */
+                category?: number;
                 limit?: number;
             };
             header?: never;

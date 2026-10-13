@@ -34,6 +34,12 @@ interface AlertStore {
   queryCenter: [number, number]
   mapZoom: number
   radiusKm: number
+  /**
+   * A category group (or subcategory) code the nearby query is narrowed to; null for all.
+   * Here rather than in the sidebar because it is part of the query the map shares, and
+   * filtering on the server is what makes it a way out of a capped answer.
+   */
+  categoryFilter: number | null
   userLat: number | null
   userLng: number | null
   locationAccuracy: number | null
@@ -48,6 +54,7 @@ interface AlertStore {
   setMapCenter: (center: [number, number]) => void
   setMapZoom: (zoom: number) => void
   setRadiusKm: (r: number) => void
+  setCategoryFilter: (code: number | null) => void
   setUserLocation: (lat: number, lng: number, accuracy: number) => void
   setFollowUser: (follow: boolean) => void
   setWsConnected: (connected: boolean) => void
@@ -66,6 +73,7 @@ export const useAlertStore = create<AlertStore>((set, get) => ({
   queryCenter: roundCentre(INITIAL_CENTER),
   mapZoom: 13,
   radiusKm: 5,
+  categoryFilter: null,
   userLat: null,
   userLng: null,
   locationAccuracy: null,
@@ -94,6 +102,7 @@ export const useAlertStore = create<AlertStore>((set, get) => ({
 
   setMapZoom: (zoom) => set({ mapZoom: zoom }),
   setRadiusKm: (r) => set({ radiusKm: r }),
+  setCategoryFilter: (code) => set({ categoryFilter: code }),
   setUserLocation: (lat, lng, accuracy) =>
     set({ userLat: lat, userLng: lng, locationAccuracy: accuracy }),
   setFollowUser: (follow) => set({ followUser: follow }),

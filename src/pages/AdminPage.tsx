@@ -48,7 +48,7 @@ export function AdminPage() {
       setUsers(result.users)
       setTotal(result.total)
     } catch {
-      setError('Could not load accounts.')
+      setError('Профилите не можаха да се заредят.')
     } finally {
       setLoading(false)
     }
@@ -71,10 +71,10 @@ export function AdminPage() {
     setBusyId(user.id)
     try {
       replace(await adminApi.changeRole(user.id, role, districtCode))
-      const where = districtCode ? ` for ${districts.find((d) => d.code === districtCode)?.name ?? districtCode}` : ''
-      addToast({ type: 'success', message: `${user.displayName} is now ${(ROLE_LABELS[role] ?? role).toLowerCase()}${where}` })
+      const where = districtCode ? ` за ${districts.find((d) => d.code === districtCode)?.name ?? districtCode}` : ''
+      addToast({ type: 'success', message: `${user.displayName} вече е ${roleLabel(role).toLowerCase()}${where}` })
     } catch {
-      addToast({ type: 'error', message: `Could not change ${user.displayName}'s role` })
+      addToast({ type: 'error', message: `Ролята на ${user.displayName} не можа да се смени` })
     } finally {
       setBusyId(null)
     }
@@ -87,11 +87,11 @@ export function AdminPage() {
       addToast({
         type: 'success',
         message: enabled
-          ? `${user.displayName} can sign in again`
-          : `${user.displayName} is disabled and signed out`,
+          ? `${user.displayName} отново може да влиза`
+          : `${user.displayName} е деактивиран и изведен от профила си`,
       })
     } catch {
-      addToast({ type: 'error', message: `Could not update ${user.displayName}` })
+      addToast({ type: 'error', message: `${user.displayName} не можа да се обнови` })
     } finally {
       setBusyId(null)
     }
@@ -105,7 +105,7 @@ export function AdminPage() {
         <header className="mb-8 flex items-center gap-3">
           <Link
             to="/settings"
-            aria-label="Back to settings"
+            aria-label="Обратно към настройките"
             className="flex h-10 w-10 items-center justify-center rounded-full border border-surface-border bg-surface-card text-slate-600 transition-colors hover:bg-surface-hover"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5">
@@ -113,9 +113,9 @@ export function AdminPage() {
             </svg>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900">Accounts</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900">Профили</h1>
             <p className="text-sm text-slate-600">
-              {total} {total === 1 ? 'account' : 'accounts'}, newest first
+              {total} {total === 1 ? 'профил' : 'профила'}, най-новите първо
             </p>
           </div>
         </header>
@@ -127,13 +127,13 @@ export function AdminPage() {
           >
             {error}{' '}
             <button type="button" onClick={() => void load(page)} className="font-semibold underline">
-              Try again
+              Опитайте отново
             </button>
           </div>
         )}
 
         {loading && users.length === 0 ? (
-          <p className="text-sm text-slate-600">Loading…</p>
+          <p className="text-sm text-slate-600">Зареждане…</p>
         ) : (
           <ul className="space-y-3">
             {users.map((user) => {
@@ -150,18 +150,18 @@ export function AdminPage() {
                       {user.displayName}
                       {isSelf && (
                         <span className="rounded-full bg-surface-elevated px-2 py-0.5 text-xs font-normal text-slate-600">
-                          you
+                          вие
                         </span>
                       )}
                       {!user.enabled && (
                         <span className="rounded-full bg-red-500/15 px-2 py-0.5 text-xs font-semibold text-red-600">
-                          disabled
+                          деактивиран
                         </span>
                       )}
                     </p>
                     <p className="truncate text-sm text-slate-600">
                       {user.email}
-                      {!user.emailVerified && ' · unverified'}
+                      {!user.emailVerified && ' · непотвърден имейл'}
                     </p>
                   </div>
 
@@ -173,7 +173,7 @@ export function AdminPage() {
                       path. Rendering them enabled would only produce a 403.
                     */}
                     <label className="sr-only" htmlFor={`role-${user.id}`}>
-                      Role for {user.displayName}
+                      Роля на {user.displayName}
                     </label>
                     <select
                       id={`role-${user.id}`}
@@ -184,7 +184,7 @@ export function AdminPage() {
                     >
                       {ASSIGNABLE_ROLES.map((role) => (
                         <option key={role} value={role}>
-                          {ROLE_LABELS[role] ?? role.charAt(0) + role.slice(1).toLowerCase()}
+                          {roleLabel(role)}
                         </option>
                       ))}
                     </select>
@@ -192,7 +192,7 @@ export function AdminPage() {
                     {(user.role === 'DISTRICT_OFFICIAL' || choosingDistrictFor === user.id) && (
                       <>
                         <label className="sr-only" htmlFor={`district-${user.id}`}>
-                          District for {user.displayName}
+                          Район на {user.displayName}
                         </label>
                         <select
                           id={`district-${user.id}`}
@@ -201,7 +201,7 @@ export function AdminPage() {
                           onChange={(e) => void changeRole(user, 'DISTRICT_OFFICIAL', e.target.value)}
                           className="rounded-lg border border-surface-border bg-surface-elevated px-3 py-2 text-sm text-slate-800 disabled:opacity-50"
                         >
-                          <option value="" disabled>Choose a district…</option>
+                          <option value="" disabled>Изберете район…</option>
                           {districts.map((d) => (
                             <option key={d.code} value={d.code}>{d.name}</option>
                           ))}
@@ -216,7 +216,7 @@ export function AdminPage() {
                       disabled={isSelf || busy}
                       onClick={() => void setEnabled(user, !user.enabled)}
                     >
-                      {user.enabled ? 'Disable' : 'Enable'}
+                      {user.enabled ? 'Деактивирай' : 'Активирай'}
                     </Button>
                   </div>
                 </li>
@@ -226,7 +226,7 @@ export function AdminPage() {
         )}
 
         {total > PAGE_SIZE && (
-          <nav className="mt-8 flex items-center justify-between" aria-label="Pagination">
+          <nav className="mt-8 flex items-center justify-between" aria-label="Страници">
             <Button
               type="button"
               variant="secondary"
@@ -234,10 +234,10 @@ export function AdminPage() {
               disabled={page === 0 || loading}
               onClick={() => setPage((p) => Math.max(0, p - 1))}
             >
-              Previous
+              Предишна
             </Button>
             <span className="text-sm text-slate-600">
-              Page {page + 1} of {lastPage + 1}
+              Страница {page + 1} от {lastPage + 1}
             </span>
             <Button
               type="button"
@@ -246,11 +246,16 @@ export function AdminPage() {
               disabled={page >= lastPage || loading}
               onClick={() => setPage((p) => p + 1)}
             >
-              Next
+              Следваща
             </Button>
           </nav>
         )}
       </div>
     </div>
   )
+}
+
+/** ROLE_LABELS names only the roles worth surfacing; this list also offers the plain one. */
+function roleLabel(role: Role): string {
+  return ROLE_LABELS[role] ?? 'Потребител'
 }

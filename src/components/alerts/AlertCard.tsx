@@ -1,7 +1,8 @@
 import type { Alert } from '../../types'
-import { ALERT_TYPE_ICONS, ALERT_TYPE_LABELS } from '../../types'
+import { groupIcon } from '../../types'
 import { StatusBadge } from '../common/Badge'
 import { useAlertStore } from '../../store/alertStore'
+import { useResolvedCategory } from '../../hooks/useCategories'
 
 interface AlertCardProps {
   alert: Alert
@@ -10,17 +11,18 @@ interface AlertCardProps {
 function timeAgo(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime()
   const mins = Math.floor(diff / 60000)
-  if (mins < 1) return 'Just now'
-  if (mins < 60) return `${mins}m ago`
+  if (mins < 1) return 'Току-що'
+  if (mins < 60) return `преди ${mins} мин`
   const hrs = Math.floor(mins / 60)
-  if (hrs < 24) return `${hrs}h ago`
-  return `${Math.floor(hrs / 24)}d ago`
+  if (hrs < 24) return `преди ${hrs} ч`
+  return `преди ${Math.floor(hrs / 24)} д`
 }
 
 export function AlertCard({ alert }: AlertCardProps) {
   const selectedAlertId = useAlertStore((s) => s.selectedAlertId)
   const selectAlert = useAlertStore((s) => s.selectAlert)
   const isSelected = selectedAlertId === alert.id
+  const resolved = useResolvedCategory(alert.categoryCode)
 
   return (
     <button
@@ -34,7 +36,7 @@ export function AlertCard({ alert }: AlertCardProps) {
       `}
     >
       <div className="flex items-start gap-3">
-        <div className="text-2xl flex-shrink-0 mt-0.5">{ALERT_TYPE_ICONS[alert.type]}</div>
+        <div className="text-2xl flex-shrink-0 mt-0.5" aria-hidden>{groupIcon(resolved?.group.code)}</div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2 mb-0.5">
             <span className="font-semibold text-sm text-slate-900 truncate">{alert.title}</span>
@@ -42,7 +44,7 @@ export function AlertCard({ alert }: AlertCardProps) {
           </div>
           <p className="text-xs text-slate-600 line-clamp-2 mb-1.5">{alert.description}</p>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-500">{ALERT_TYPE_LABELS[alert.type]}</span>
+            {resolved && <span className="text-xs text-slate-500">{resolved.category.name}</span>}
             <StatusBadge status={alert.status} />
           </div>
         </div>

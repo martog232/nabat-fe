@@ -6,20 +6,24 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReportsPage } from './ReportsPage'
 import { alertsApi } from '../api/alerts'
 import { districtsApi } from '../api/districts'
+import { categoriesApi } from '../api/categories'
 import { useAuthStore } from '../store/authStore'
 import type { Alert } from '../types'
+import { TEST_CATEGORIES } from '../test/categories'
 
 vi.mock('../api/alerts', () => ({ alertsApi: { listRanked: vi.fn() } }))
 vi.mock('../api/districts', () => ({ districtsApi: { list: vi.fn() } }))
+vi.mock('../api/categories', () => ({ categoriesApi: { list: vi.fn() } }))
 
 const ranked = vi.mocked(alertsApi.listRanked)
 const districts = vi.mocked(districtsApi.list)
+const categories = vi.mocked(categoriesApi.list)
 
 const report = (over: Partial<Alert>): Alert => ({
   id: 'r1',
   title: 'Pothole on Cherni Vrah',
   description: 'Deep, in the right lane',
-  type: 'POTHOLE',
+  categoryCode: 1007,
   latitude: 42.67,
   longitude: 23.32,
   createdAt: new Date(Date.now() - 3 * 86_400_000).toISOString(),
@@ -49,6 +53,7 @@ function renderPage() {
 beforeEach(() => {
   useAuthStore.setState({ user: null, accessToken: null })
   districts.mockResolvedValue([{ code: 'LOZENETS', name: 'Район Лозенец' }])
+  categories.mockResolvedValue(TEST_CATEGORIES)
   ranked.mockResolvedValue({ alerts: [report({})], ranking: 'HOT', page: 0, size: 25, total: 1 })
 })
 afterEach(() => {
@@ -64,8 +69,8 @@ describe('ReportsPage', () => {
     expect(await screen.findByText('Pothole on Cherni Vrah')).toBeInTheDocument()
     // Where it went, how long it has waited, and how many people back it — support is
     // confirmations plus upvotes minus downvotes, the same figure the HOT order ranks by.
-    expect(screen.getByText('Pothole · Район Лозенец · waiting 3 days · 6 supporting')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Sign in to report' })).toBeInTheDocument()
+    expect(await screen.findByText('Улично платно · Район Лозенец · чака 3 дни · подкрепа: 6')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Вход, за да подадете сигнал' })).toBeInTheDocument()
   })
 
   it('asks for open reports in HOT order by default', async () => {
@@ -84,8 +89,8 @@ describe('ReportsPage', () => {
     renderPage()
     await screen.findByText('Pothole on Cherni Vrah')
 
-    await user.click(screen.getByRole('tab', { name: 'Waiting longest' }))
-    await user.selectOptions(screen.getByLabelText('District'), 'LOZENETS')
+    await user.click(screen.getByRole('tab', { name: 'Чакат най-дълго' }))
+    await user.selectOptions(screen.getByLabelText('Район'), 'LOZENETS')
 
     await waitFor(() => expect(ranked).toHaveBeenLastCalledWith(expect.objectContaining({
       ranking: 'LONGEST_WAITING',
@@ -101,6 +106,6 @@ describe('ReportsPage', () => {
     })
     renderPage()
 
-    expect(await screen.findByText(/closed by the district/)).toBeInTheDocument()
+    expect(await screen.findByText(/затворен от района/)).toBeInTheDocument()
   })
 })

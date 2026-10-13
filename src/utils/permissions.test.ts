@@ -23,7 +23,7 @@ const alert = (reportedBy: string, status: Alert['status'] = 'SUBMITTED'): Alert
   id: 'alert-1',
   title: 'Fire',
   description: 'Smoke on the third floor',
-  type: 'POTHOLE',
+  categoryCode: 1007,
   latitude: 42.7,
   longitude: 23.3,
   createdAt: '2026-08-21T05:00:00Z',

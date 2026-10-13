@@ -2,14 +2,16 @@ import { useAlertStore } from '../../store/alertStore'
 import { useVoteData, useVote, useRemoveVote } from '../../hooks/useVotes'
 import { useNearbyAlerts } from '../../hooks/useAlerts'
 import { useAuthStore } from '../../store/authStore'
-import { ALERT_TYPE_ICONS, ALERT_TYPE_LABELS, CLOSED_BY_LABELS } from '../../types'
+import { CLOSED_BY_LABELS, groupIcon } from '../../types'
 import { StatusBadge } from '../common/Badge'
 import { useDistrictNames } from '../../hooks/useDistricts'
+import { useCategoryIndex } from '../../hooks/useCategories'
+import { resolveCategory } from '../../utils/categories'
 import type { VoteType } from '../../types'
 import { ReportActions } from './ReportActions'
 
 function formatDate(iso: string) {
-  return new Date(iso).toLocaleString('en-US', {
+  return new Date(iso).toLocaleString('bg-BG', {
     month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
   })
 }
@@ -21,6 +23,7 @@ export function AlertDetail() {
   const selectedAlert = alerts.find((a) => a.id === selectedAlertId) ?? null
   const user = useAuthStore((s) => s.user)
   const districtNames = useDistrictNames()
+  const categoryIndex = useCategoryIndex()
 
   const { data: voteData } = useVoteData(selectedAlert?.id ?? '')
   const stats = voteData?.stats
@@ -31,6 +34,7 @@ export function AlertDetail() {
   if (!selectedAlert) return null
 
   const a = selectedAlert
+  const category = resolveCategory(categoryIndex, a.categoryCode)
 
   // The vote type currently being submitted — used to show a per-button spinner
   const pendingVoteType = vote.isPending ? vote.variables : undefined
@@ -65,18 +69,23 @@ export function AlertDetail() {
         <div className="relative flex-shrink-0 p-4 border-b border-surface-border">
           <button
             onClick={() => selectAlert(null)}
+            aria-label="Затвори"
             className="absolute top-2 right-2 w-11 h-11 sm:top-3 sm:right-3 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-surface-elevated transition"
           >
             ✕
           </button>
 
           <div className="flex items-start gap-3 pr-12 sm:pr-8">
-            <div className="text-3xl">{ALERT_TYPE_ICONS[a.type]}</div>
+            <div className="text-3xl" aria-hidden>{groupIcon(category?.group.code)}</div>
             <div>
               <h3 className="font-bold text-slate-900 text-base leading-tight mb-1">{a.title}</h3>
               <div className="flex items-center gap-2">
                 <StatusBadge status={a.status} />
-                <span className="text-xs text-slate-500">{ALERT_TYPE_LABELS[a.type]}</span>
+                {category && (
+                  <span className="text-xs text-slate-500">
+                    {category.group.name} · {category.category.name}
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -97,12 +106,12 @@ export function AlertDetail() {
               and the reporter saying so are not the same claim. */}
           {a.status === 'RESOLVED' && a.resolvedAt && (
             <div className="text-xs text-slate-500">
-              Resolved {a.closedBy ? CLOSED_BY_LABELS[a.closedBy] + ' ' : ''}{formatDate(a.resolvedAt)}
+              Решен {a.closedBy ? CLOSED_BY_LABELS[a.closedBy] + ' ' : ''}на {formatDate(a.resolvedAt)}
             </div>
           )}
           {a.status === 'REJECTED' && (
             <div className="text-xs text-slate-500">
-              Rejected{a.closedBy ? ' ' + CLOSED_BY_LABELS[a.closedBy] : ''}
+              Отхвърлен{a.closedBy ? ' ' + CLOSED_BY_LABELS[a.closedBy] : ''}
             </div>
           )}
 
@@ -124,9 +133,9 @@ export function AlertDetail() {
             <div className="grid grid-cols-3 gap-2">
               {(
                 [
-                  { label: 'Up',      emoji: '👍', val: stats.upvotes,       type: 'UPVOTE'   },
-                  { label: 'Down',    emoji: '👎', val: stats.downvotes,     type: 'DOWNVOTE' },
-                  { label: 'Confirm', emoji: '✅', val: stats.confirmations, type: 'CONFIRM'  },
+                  { label: 'Подкрепям',    emoji: '👍', val: stats.upvotes,       type: 'UPVOTE'   },
+                  { label: 'Оспорвам',     emoji: '👎', val: stats.downvotes,     type: 'DOWNVOTE' },
+                  { label: 'Потвърждавам', emoji: '✅', val: stats.confirmations, type: 'CONFIRM'  },
                 ] as { label: string; emoji: string; val: number; type: VoteType }[]
               ).map(({ label, emoji, val, type }) => {
                 const isThisPending = pendingVoteType === type
@@ -169,7 +178,7 @@ export function AlertDetail() {
 
           {stats && (
             <div className="flex items-center justify-between text-xs text-slate-500 pt-1 border-t border-surface-border">
-              <span>Credibility score</span>
+              <span>Оценка на достоверност</span>
               <span className={`font-bold ${credibilityScore > 0 ? 'text-green-400' : credibilityScore < 0 ? 'text-red-400' : 'text-slate-400'}`}>
                 {credibilityScore > 0 ? '+' : ''}{credibilityScore}
               </span>
@@ -178,7 +187,7 @@ export function AlertDetail() {
 
           {!user && (
             <p className="text-xs text-slate-500 text-center">
-              <a href="/login" className="text-brand-400 hover:underline">Sign in</a> to vote
+              <a href="/login" className="text-brand-400 hover:underline">Влезте</a>, за да гласувате
             </p>
           )}
         </div>

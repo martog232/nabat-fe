@@ -69,7 +69,7 @@ export function canAdvanceTo(user: User | null, alert: Alert, target: 'ACKNOWLED
 
 /** Human-readable label for the roles worth surfacing. USER is the default and needs none. */
 export const ROLE_LABELS: Partial<Record<Role, string>> = {
-  MODERATOR: 'Moderator',
-  ADMIN: 'Admin',
-  DISTRICT_OFFICIAL: 'District official',
+  MODERATOR: 'Модератор',
+  ADMIN: 'Администратор',
+  DISTRICT_OFFICIAL: 'Служител на района',
 }

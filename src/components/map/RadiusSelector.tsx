@@ -17,7 +17,7 @@ export function RadiusSelector() {
 
   return (
     <div className="rounded-xl border border-surface-border bg-surface-elevated p-2">
-      <p className="text-xs font-medium text-slate-500 mb-2 px-1">Show within</p>
+      <p className="text-xs font-medium text-slate-500 mb-2 px-1">Покажи в радиус</p>
       {/* Five options across 320px leaves ~55px each including gaps — enough as an
           equal-width grid, not enough with intrinsic widths, where "50 km" pushed the row
           into an overflow that had nowhere to go. */}
@@ -35,7 +35,7 @@ export function RadiusSelector() {
                   : 'bg-surface-DEFAULT text-slate-600 hover:bg-surface-hover'
               }`}
             >
-              {value} km
+              {value} км
             </button>
           )
         })}

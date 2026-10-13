@@ -42,7 +42,7 @@ export function Navbar() {
             to="/reports"
             className="hidden h-9 items-center rounded-full px-3 text-sm font-medium text-slate-700 transition-colors hover:bg-surface-elevated sm:flex"
           >
-            All reports
+            Всички сигнали
           </Link>
 
           {/* An official's working list is the thing they open the app for, so it gets a
@@ -52,7 +52,7 @@ export function Navbar() {
               to="/district"
               className="flex h-11 items-center rounded-full border border-surface-border bg-surface-card/80 px-4 text-sm font-medium text-slate-700 backdrop-blur transition-colors hover:bg-surface-elevated sm:h-9"
             >
-              My district
+              Моят район
             </Link>
           )}
 
@@ -60,7 +60,7 @@ export function Navbar() {
           <button
             onClick={toggleNotifications}
             className="relative flex items-center justify-center w-11 h-11 sm:w-9 sm:h-9 rounded-full bg-surface-card/80 backdrop-blur border border-surface-border sm:border-transparent sm:bg-transparent text-slate-600 hover:text-slate-900 hover:bg-surface-elevated transition-colors"
-            aria-label="Notifications"
+            aria-label="Известия"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5">
               <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
@@ -77,12 +77,12 @@ export function Navbar() {
           {showNotifications && <NotificationPanel onClose={closeNotifications} />}
 
           {/* The way into everything that is not the map. A link rather than a menu: the
-              settings page already holds the theme, the district link and signing out,
-              and a dropdown repeating them would be a second place to keep in step. */}
+              settings page already holds the district link and signing out, and a
+              dropdown repeating them would be a second place to keep in step. */}
           <Link
             to="/settings"
-            aria-label={`Settings for ${user.displayName}`}
-            title="Settings"
+            aria-label={`Настройки за ${user.displayName}`}
+            title="Настройки"
             className="flex h-11 w-11 items-center justify-center rounded-full border border-surface-border bg-brand-600 text-sm font-semibold text-white shadow-lg shadow-brand-600/30 transition-transform hover:scale-105 sm:h-9 sm:w-9"
           >
             {initialsOf(user.displayName)}

@@ -1,13 +1,15 @@
-import type { AlertStatus, AlertType } from '../../types'
-import { ALERT_TYPE_LABELS, ALERT_TYPE_ICONS, OPEN_STATUSES, STATUS_LABELS } from '../../types'
+import type { AlertStatus } from '../../types'
+import { groupIcon, OPEN_STATUSES, STATUS_LABELS } from '../../types'
+import { useCategories } from '../../hooks/useCategories'
 
 export type StatusFilter = AlertStatus | 'ALL'
 
 interface AlertFiltersProps {
   statusFilter: StatusFilter
-  typeFilter: AlertType | 'ALL'
+  /** A category group code, or null for all. */
+  categoryFilter: number | null
   onStatusChange: (s: StatusFilter) => void
-  onTypeChange: (t: AlertType | 'ALL') => void
+  onCategoryChange: (groupCode: number | null) => void
 }
 
 /**
@@ -31,33 +33,36 @@ const pill = (active: boolean) => `
   }
 `
 
-export function AlertFilters({ statusFilter, typeFilter, onStatusChange, onTypeChange }: AlertFiltersProps) {
+export function AlertFilters({ statusFilter, categoryFilter, onStatusChange, onCategoryChange }: AlertFiltersProps) {
+  const { data: groups = [] } = useCategories()
+
   return (
     <div className="space-y-2">
       {/* Status: five short labels, so wrapping to a second line is better than scrolling. */}
       <div className="flex gap-1.5 flex-wrap">
         {STATUSES.map((s) => (
           <button key={s} onClick={() => onStatusChange(s)} className={pill(statusFilter === s)}>
-            {s === 'ALL' ? 'All' : STATUS_LABELS[s]}
+            {s === 'ALL' ? 'Всички' : STATUS_LABELS[s]}
           </button>
         ))}
       </div>
 
       {/*
-        Type: too many to wrap without eating the list, so this row scrolls sideways. It
-        bleeds to the panel edge with negative margins and pads itself back, so the first and
-        last pill are not clipped mid-glyph — and the scrollbar is hidden because a 4px bar
-        inside a 32px row reads as damage.
+        Category groups: twelve, too many to wrap without eating the list, so this row
+        scrolls sideways. It bleeds to the panel edge with negative margins and pads itself
+        back, so the first and last pill are not clipped mid-glyph — and the scrollbar is
+        hidden because a 4px bar inside a 32px row reads as damage. Groups rather than the
+        forty subcategories: a filter is for narrowing a map, not for filing a report.
       */}
       <div className="-mx-4 px-4 overflow-x-auto no-scrollbar">
         <div className="flex gap-2 w-max">
-          <button onClick={() => onTypeChange('ALL')} className={pill(typeFilter === 'ALL')}>
-            All types
+          <button onClick={() => onCategoryChange(null)} className={pill(categoryFilter === null)}>
+            Всички категории
           </button>
-          {(Object.keys(ALERT_TYPE_LABELS) as AlertType[]).map((t) => (
-            <button key={t} onClick={() => onTypeChange(t)} className={pill(typeFilter === t)}>
-              <span>{ALERT_TYPE_ICONS[t]}</span>
-              <span className="whitespace-nowrap">{ALERT_TYPE_LABELS[t]}</span>
+          {groups.map((g) => (
+            <button key={g.code} onClick={() => onCategoryChange(g.code)} className={pill(categoryFilter === g.code)}>
+              <span aria-hidden>{groupIcon(g.code)}</span>
+              <span className="whitespace-nowrap">{g.name}</span>
             </button>
           ))}
         </div>

@@ -6,17 +6,19 @@ import { useAuthStore } from '../store/authStore'
 import { ReportActions } from '../components/alerts/ReportActions'
 import { StatusBadge } from '../components/common/Badge'
 import type { AlertStatus } from '../types'
-import { ALERT_TYPE_ICONS, ALERT_TYPE_LABELS, OPEN_STATUSES } from '../types'
+import { groupIcon, OPEN_STATUSES } from '../types'
+import { useCategoryIndex } from '../hooks/useCategories'
+import { resolveCategory } from '../utils/categories'
 
 /** The three piles an official works through. "Open" is everything still waiting on them. */
 const TABS: { label: string; statuses: AlertStatus[] }[] = [
-  { label: 'Open', statuses: [...OPEN_STATUSES] },
-  { label: 'Resolved', statuses: ['RESOLVED'] },
-  { label: 'Rejected', statuses: ['REJECTED'] },
+  { label: 'Отворени', statuses: [...OPEN_STATUSES] },
+  { label: 'Решени', statuses: ['RESOLVED'] },
+  { label: 'Отхвърлени', statuses: ['REJECTED'] },
 ]
 
 function formatDate(iso: string) {
-  return new Date(iso).toLocaleString('en-GB', {
+  return new Date(iso).toLocaleString('bg-BG', {
     day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
   })
 }
@@ -31,6 +33,7 @@ function formatDate(iso: string) {
 export function DistrictPage() {
   const user = useAuthStore((s) => s.user)
   const districtNames = useDistrictNames()
+  const categoryIndex = useCategoryIndex()
   const [tab, setTab] = useState(0)
   const { data: reports = [], isLoading, isError } = useDistrictReports(TABS[tab].statuses)
 
@@ -42,7 +45,7 @@ export function DistrictPage() {
         <header className="mb-6 flex items-center gap-3">
           <Link
             to="/map"
-            aria-label="Back to the map"
+            aria-label="Обратно към картата"
             className="flex h-10 w-10 items-center justify-center rounded-full border border-surface-border bg-surface-card text-slate-600 transition-colors hover:bg-surface-hover"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5">
@@ -51,7 +54,7 @@ export function DistrictPage() {
           </Link>
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-slate-900">{districtName}</h1>
-            <p className="text-sm text-slate-600">Reports sent to your district</p>
+            <p className="text-sm text-slate-600">Сигнали, изпратени до вашия район</p>
           </div>
         </header>
 
@@ -74,21 +77,21 @@ export function DistrictPage() {
           ))}
         </div>
 
-        {isLoading && <p className="text-sm text-slate-600">Loading…</p>}
+        {isLoading && <p className="text-sm text-slate-600">Зареждане…</p>}
         {isError && (
           <p role="alert" className="text-sm text-red-600">
-            The reports could not be loaded. Check your connection and try again.
+            Сигналите не можаха да се заредят. Проверете връзката си и опитайте отново.
           </p>
         )}
         {!isLoading && !isError && reports.length === 0 && (
-          <p className="text-sm text-slate-600">Nothing here.</p>
+          <p className="text-sm text-slate-600">Няма сигнали.</p>
         )}
 
         <ul className="space-y-3">
           {reports.map((r) => (
             <li key={r.id} className="rounded-2xl border border-surface-border bg-surface-card p-4 shadow-sm">
               <div className="mb-3 flex items-start gap-3">
-                <div className="text-2xl" aria-hidden>{ALERT_TYPE_ICONS[r.type]}</div>
+                <div className="text-2xl" aria-hidden>{groupIcon(resolveCategory(categoryIndex, r.categoryCode)?.group.code)}</div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
                     <p className="truncate font-semibold text-slate-900">{r.title}</p>
@@ -96,7 +99,7 @@ export function DistrictPage() {
                   </div>
                   <p className="mt-1 text-sm text-slate-700">{r.description}</p>
                   <p className="mt-2 text-xs text-slate-500">
-                    {ALERT_TYPE_LABELS[r.type]} · {formatDate(r.createdAt)} · {Math.max(0, r.confirmationCount + r.upvoteCount - r.downvoteCount)} supporting
+                    {resolveCategory(categoryIndex, r.categoryCode)?.category.name ?? '—'} · {formatDate(r.createdAt)} · подкрепа: {Math.max(0, r.confirmationCount + r.upvoteCount - r.downvoteCount)}
                     {' · '}
                     <a
                       className="underline hover:text-slate-700"
@@ -104,7 +107,7 @@ export function DistrictPage() {
                       target="_blank"
                       rel="noreferrer"
                     >
-                      map
+                      карта
                     </a>
                   </p>
                 </div>

@@ -6,12 +6,13 @@ import { useAuthStore } from '../store/authStore'
 import { StatusBadge } from '../components/common/Badge'
 import type { Alert, AlertStatus, ReportRanking } from '../types'
 import {
-  ALERT_TYPE_ICONS,
-  ALERT_TYPE_LABELS,
   CLOSED_BY_LABELS,
+  groupIcon,
   OPEN_STATUSES,
   RANKING_LABELS,
 } from '../types'
+import { useCategoryIndex } from '../hooks/useCategories'
+import { resolveCategory } from '../utils/categories'
 
 const PAGE_SIZE = 25
 
@@ -19,15 +20,15 @@ const RANKINGS: ReportRanking[] = ['HOT', 'LONGEST_WAITING', 'NEWEST']
 
 /** Why each order exists, said once above the list rather than left for the reader to guess. */
 const RANKING_HINTS: Record<ReportRanking, string> = {
-  HOT: 'Support from other people, weighed against age — so a new problem can climb past an old one.',
-  LONGEST_WAITING: 'Open reports, oldest first: what has been left waiting longest.',
-  NEWEST: 'The most recent reports first.',
+  HOT: 'Подкрепата от други хора, претеглена спрямо възрастта — така нов проблем може да изпревари стар.',
+  LONGEST_WAITING: 'Отворени сигнали, най-старите първи: това, което чака най-дълго.',
+  NEWEST: 'Най-новите сигнали първи.',
 }
 
 const STATE_FILTERS: { label: string; statuses: AlertStatus[] }[] = [
-  { label: 'Open', statuses: [...OPEN_STATUSES] },
-  { label: 'Resolved', statuses: ['RESOLVED'] },
-  { label: 'Rejected', statuses: ['REJECTED'] },
+  { label: 'Отворени', statuses: [...OPEN_STATUSES] },
+  { label: 'Решени', statuses: ['RESOLVED'] },
+  { label: 'Отхвърлени', statuses: ['REJECTED'] },
 ]
 
 function daysSince(iso: string): number {
@@ -36,9 +37,9 @@ function daysSince(iso: string): number {
 
 function age(alert: Alert): string {
   const days = daysSince(alert.createdAt)
-  const span = days === 0 ? 'today' : days === 1 ? '1 day' : `${days} days`
-  if (alert.status === 'RESOLVED' || alert.status === 'REJECTED') return `reported ${days === 0 ? 'today' : `${span} ago`}`
-  return days === 0 ? 'reported today' : `waiting ${span}`
+  const span = days === 1 ? '1 ден' : `${days} дни`
+  if (alert.status === 'RESOLVED' || alert.status === 'REJECTED') return days === 0 ? 'подаден днес' : `подаден преди ${span}`
+  return days === 0 ? 'подаден днес' : `чака ${span}`
 }
 
 /**
@@ -57,6 +58,7 @@ export function ReportsPage() {
 
   const { data: districts = [] } = useDistricts()
   const districtNames = useDistrictNames()
+  const categoryIndex = useCategoryIndex()
   const { data, isLoading, isError, isFetching } = useRankedReports({
     ranking,
     district: district || undefined,
@@ -85,20 +87,20 @@ export function ReportsPage() {
       <div className="mx-auto w-full max-w-3xl px-4 pb-[calc(3rem+env(safe-area-inset-bottom))] pt-[calc(1.5rem+env(safe-area-inset-top))]">
         <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900">Reports in Sofia</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900">Сигнали в София</h1>
             <p className="text-sm text-slate-600">
-              What has been reported, where it was sent, and what has happened since.
+              Какво е подадено, до кого е изпратено и какво се е случило оттогава.
             </p>
           </div>
           <Link
             to={user ? '/map' : '/login'}
             className="rounded-lg border border-surface-border bg-surface-card px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-surface-hover"
           >
-            {user ? 'Back to the map' : 'Sign in to report'}
+            {user ? 'Обратно към картата' : 'Вход, за да подадете сигнал'}
           </Link>
         </header>
 
-        <div className="mb-3 flex flex-wrap gap-2" role="tablist" aria-label="Order">
+        <div className="mb-3 flex flex-wrap gap-2" role="tablist" aria-label="Подредба">
           {RANKINGS.map((r) => (
             <button key={r} type="button" role="tab" aria-selected={ranking === r} onClick={() => choose(setRanking)(r)} className={pill(ranking === r)}>
               {RANKING_LABELS[r]}
@@ -113,35 +115,35 @@ export function ReportsPage() {
               {f.label}
             </button>
           ))}
-          <label className="sr-only" htmlFor="district-filter">District</label>
+          <label className="sr-only" htmlFor="district-filter">Район</label>
           <select
             id="district-filter"
             value={district}
             onChange={(e) => choose(setDistrict)(e.target.value)}
             className="ml-auto rounded-lg border border-surface-border bg-surface-elevated px-3 py-2 text-sm text-slate-800"
           >
-            <option value="">All of Sofia</option>
+            <option value="">Цяла София</option>
             {districts.map((d) => (
               <option key={d.code} value={d.code}>{d.name}</option>
             ))}
           </select>
         </div>
 
-        {isLoading && <p className="text-sm text-slate-600">Loading…</p>}
+        {isLoading && <p className="text-sm text-slate-600">Зареждане…</p>}
         {isError && (
           <p role="alert" className="text-sm text-red-600">
-            The reports could not be loaded. Check your connection and try again.
+            Сигналите не можаха да се заредят. Проверете връзката си и опитайте отново.
           </p>
         )}
         {!isLoading && !isError && reports.length === 0 && (
-          <p className="text-sm text-slate-600">No reports match.</p>
+          <p className="text-sm text-slate-600">Няма сигнали, които да отговарят.</p>
         )}
 
         <ol className={`space-y-3 transition-opacity ${isFetching && !isLoading ? 'opacity-60' : ''}`} start={page * PAGE_SIZE + 1}>
           {reports.map((r) => (
             <li key={r.id} className="rounded-2xl border border-surface-border bg-surface-card p-4 shadow-sm">
               <div className="flex items-start gap-3">
-                <div className="text-2xl" aria-hidden>{ALERT_TYPE_ICONS[r.type]}</div>
+                <div className="text-2xl" aria-hidden>{groupIcon(resolveCategory(categoryIndex, r.categoryCode)?.group.code)}</div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
                     <p className="truncate font-semibold text-slate-900">{r.title}</p>
@@ -149,11 +151,11 @@ export function ReportsPage() {
                   </div>
                   <p className="mt-1 line-clamp-2 text-sm text-slate-700">{r.description}</p>
                   <p className="mt-2 text-xs text-slate-500">
-                    {ALERT_TYPE_LABELS[r.type]}
+                    {resolveCategory(categoryIndex, r.categoryCode)?.category.name ?? '—'}
                     {r.districtCode && ` · ${districtNames.get(r.districtCode) ?? r.districtCode}`}
                     {` · ${age(r)}`}
-                    {` · ${Math.max(0, r.confirmationCount + r.upvoteCount - r.downvoteCount)} supporting`}
-                    {r.closedBy && ` · closed ${CLOSED_BY_LABELS[r.closedBy]}`}
+                    {` · подкрепа: ${Math.max(0, r.confirmationCount + r.upvoteCount - r.downvoteCount)}`}
+                    {r.closedBy && ` · затворен ${CLOSED_BY_LABELS[r.closedBy]}`}
                   </p>
                 </div>
               </div>
@@ -162,15 +164,15 @@ export function ReportsPage() {
         </ol>
 
         {total > PAGE_SIZE && (
-          <nav className="mt-8 flex items-center justify-between" aria-label="Pagination">
+          <nav className="mt-8 flex items-center justify-between" aria-label="Страници">
             <button type="button" className={pill(false)} disabled={page === 0} onClick={() => setPage((p) => Math.max(0, p - 1))}>
-              Previous
+              Предишна
             </button>
             <span className="text-sm text-slate-600">
-              Page {page + 1} of {lastPage + 1} · {total} reports
+              Страница {page + 1} от {lastPage + 1} · {total} сигнала
             </span>
             <button type="button" className={pill(false)} disabled={page >= lastPage} onClick={() => setPage((p) => Math.min(lastPage, p + 1))}>
-              Next
+              Следваща
             </button>
           </nav>
         )}

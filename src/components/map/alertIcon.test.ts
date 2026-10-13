@@ -6,7 +6,7 @@ const baseAlert: Alert = {
   id: 'alert-1',
   title: 'Fire on Main St',
   description: 'A fire broke out near the intersection',
-  type: 'POTHOLE',
+  categoryCode: 1007,
   latitude: 42.7,
   longitude: 23.3,
   createdAt: new Date().toISOString(),

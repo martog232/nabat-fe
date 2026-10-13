@@ -38,13 +38,13 @@ export function LandingPage() {
               to="/login"
               className="rounded-lg px-3 py-2 text-sm font-medium text-white/90 transition-colors hover:bg-white/10"
             >
-              Sign in
+              Вход
             </Link>
             <Link
               to="/register"
               className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-brand-600/20 transition-colors hover:bg-brand-700"
             >
-              Get started
+              Започнете
             </Link>
           </div>
         </header>
@@ -55,18 +55,18 @@ export function LandingPage() {
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-500 opacity-75" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-brand-600" />
             </span>
-            Reports from the people of Sofia
+            Сигнали от хората в София
           </p>
 
           <h1 className="max-w-3xl text-4xl font-bold leading-tight tracking-tight text-white sm:text-6xl">
-            See a problem in the city.
-            <span className="text-brand-500"> Get it to the district</span> that fixes it.
+            Виждате проблем в града?
+            <span className="text-brand-500"> Пратете го до района</span>, който трябва да го оправи.
           </h1>
 
           <p className="mt-6 max-w-2xl text-lg leading-relaxed text-white/75">
-            A pothole, a missing manhole cover, a dump on the corner. Put it on the map and nabat
-            sends it to the district administration responsible — then shows everyone what has
-            happened to it since, whether anyone picked it up or it is still waiting.
+            Дупка на пътя, липсващ капак на шахта, сметище на ъгъла. Отбележете го на картата и
+            nabat го изпраща до отговорната районна администрация — а после показва на всички какво
+            е станало с него: дали някой го е поел, или още чака.
           </p>
 
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
@@ -74,19 +74,19 @@ export function LandingPage() {
               to="/register"
               className="inline-flex items-center justify-center rounded-xl bg-brand-600 px-7 py-3.5 text-base font-semibold text-white shadow-xl shadow-brand-600/25 transition-colors hover:bg-brand-700"
             >
-              Create an account
+              Създайте профил
             </Link>
             <Link
               to="/login"
               className="inline-flex items-center justify-center rounded-xl border border-white/25 bg-white/10 px-7 py-3.5 text-base font-semibold text-white backdrop-blur transition-colors hover:bg-white/20"
             >
-              I already have one
+              Вече имам профил
             </Link>
             <Link
               to="/reports"
               className="inline-flex items-center justify-center rounded-xl px-7 py-3.5 text-base font-semibold text-white/90 underline-offset-4 transition-colors hover:underline"
             >
-              See what has been reported
+              Вижте подадените сигнали
             </Link>
           </div>
         </section>
@@ -95,8 +95,8 @@ export function LandingPage() {
       <main className="mx-auto max-w-6xl px-4 pt-16 sm:px-8 sm:pt-24">
         <section className="grid gap-5 pb-16 sm:grid-cols-3 sm:pb-24">
           <Feature
-            title="A map, not a feed"
-            body="Every report is a place first. Open the map and see what is open around you, filtered by type and by how far each report has got."
+            title="Карта, а не лента"
+            body="Всеки сигнал е преди всичко място. Отворете картата и вижте какво е отворено около вас, филтрирано по категория и по това докъде е стигнал всеки сигнал."
             icon={
               <path
                 d="M9 20l-5.5 2.5V6L9 3.5m0 16.5l6-3m-6 3V3.5m6 13.5l5.5 2.5V4L15 6.5m0 10.5V6.5m0 0L9 3.5"
@@ -106,8 +106,8 @@ export function LandingPage() {
             }
           />
           <Feature
-            title="Confirmed by the people there"
-            body="Anyone can report. Everyone else can confirm or dispute it — and the reports most people confirm rise to the top of the public list."
+            title="Потвърдено от хората наоколо"
+            body="Всеки може да подаде сигнал. Останалите могат да го потвърдят или оспорят — а сигналите, потвърдени от най-много хора, излизат начело в публичния списък."
             icon={
               <>
                 <path d="M9 12l2 2 4-4" strokeLinecap="round" strokeLinejoin="round" />
@@ -120,8 +120,8 @@ export function LandingPage() {
             }
           />
           <Feature
-            title="Out in the open"
-            body="Every report, every district and every answer is on a public list anyone can read, signed in or not — including what has been left waiting longest."
+            title="Всичко е публично"
+            body="Всеки сигнал, всеки район и всеки отговор са в публичен списък, който всеки може да чете, с или без профил — включително кое чака най-дълго."
             icon={
               <>
                 <circle cx="12" cy="12" r="3" />
@@ -133,54 +133,54 @@ export function LandingPage() {
 
         <section className="pb-16 sm:pb-24">
           <h2 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-            How it works
+            Как работи
           </h2>
 
           <ol className="mt-8 grid gap-8 sm:grid-cols-3">
             <Step
               number={1}
-              title="Report what you see"
-              body="Drop it on the map, pick what kind of problem it is, add a photo if you have one."
+              title="Подайте сигнал за това, което виждате"
+              body="Отбележете го на картата, изберете какъв е проблемът и добавете снимка, ако имате."
             />
             <Step
               number={2}
-              title="It goes to the district"
-              body="Nabat works out which of Sofia's 24 districts it is in and emails the report there, with the place, the details and who sent it."
+              title="Сигналът отива в района"
+              body="Nabat определя в кой от 24-те района на София е и изпраща сигнала там по имейл — с мястото, подробностите и кой го е подал."
             />
             <Step
               number={3}
-              title="Everyone can see what happens"
-              body="The district acknowledges it, starts work, marks it fixed — or does not, and the public list shows that too."
+              title="Всеки вижда какво става"
+              body="Районът го приема, започва работа, отбелязва го като решен — или не, и публичният списък показва и това."
             />
           </ol>
         </section>
 
         <section className="mb-16 rounded-3xl border border-surface-border bg-surface-card px-6 py-12 text-center shadow-sm sm:mb-24 sm:px-12">
           <h2 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-            Start with the street you live on.
+            Започнете от улицата, на която живеете.
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-slate-600">
-            An account takes an email and a password. You choose your radius afterwards, and you can
-            change it whenever you like.
+            За профил са нужни само имейл и парола. Радиуса на картата избирате след това и можете
+            да го променяте, когато пожелаете.
           </p>
           <Link
             to="/register"
             className="mt-8 inline-flex items-center justify-center rounded-xl bg-brand-600 px-7 py-3.5 text-base font-semibold text-white shadow-xl shadow-brand-600/25 transition-colors hover:bg-brand-700"
           >
-            Create an account
+            Създайте профил
           </Link>
         </section>
       </main>
 
       <footer className="border-t border-surface-border">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-4 py-8 pb-[calc(2rem+env(safe-area-inset-bottom))] text-sm text-slate-500 sm:flex-row sm:px-8">
-          <span>Nabat — reports about Sofia, and what became of them</span>
+          <span>Nabat — сигнали за София и какво е станало с тях</span>
           <span className="flex items-center gap-4">
             <Link to="/login" className="transition-colors hover:text-slate-800">
-              Sign in
+              Вход
             </Link>
             <Link to="/register" className="transition-colors hover:text-slate-800">
-              Create an account
+              Създайте профил
             </Link>
           </span>
         </div>

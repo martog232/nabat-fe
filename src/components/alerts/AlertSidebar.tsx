@@ -6,7 +6,8 @@ import { useAuthStore } from '../../store/authStore'
 import { useAlertStore } from '../../store/alertStore'
 import { AlertCard } from './AlertCard'
 import { AlertFilters, type StatusFilter } from './AlertFilters'
-import type { AlertType } from '../../types'
+import { useCategoryIndex } from '../../hooks/useCategories'
+import { matchesCategory } from '../../utils/categories'
 import { RadiusSelector } from '../map/RadiusSelector'
 import { ROLE_LABELS } from '../../utils/permissions'
 
@@ -25,7 +26,9 @@ import { ROLE_LABELS } from '../../utils/permissions'
 export function AlertSidebar() {
   const { data: alerts = [], isLoading, isFetching } = useNearbyAlerts()
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('ALL')
-  const [typeFilter, setTypeFilter] = useState<AlertType | 'ALL'>('ALL')
+  const categoryFilter = useAlertStore((s) => s.categoryFilter)
+  const setCategoryFilter = useAlertStore((s) => s.setCategoryFilter)
+  const categoryIndex = useCategoryIndex()
   const isDesktop = useIsDesktop()
   const [isOpen, setIsOpen] = useState(isDesktop)
   const selectedAlertId = useAlertStore((s) => s.selectedAlertId)
@@ -49,9 +52,11 @@ export function AlertSidebar() {
     if (!isDesktop && selectedAlertId) setIsOpen(false)
   }, [isDesktop, selectedAlertId])
 
+  // The server already narrows to the category. Checked here as well because the previous
+  // list stays on screen while the narrowed one loads, and should not show the wrong reports.
   const filtered = alerts.filter((a) => {
     if (statusFilter !== 'ALL' && a.status !== statusFilter) return false
-    if (typeFilter !== 'ALL' && a.type !== typeFilter) return false
+    if (!matchesCategory(categoryIndex, a.categoryCode, categoryFilter)) return false
     return true
   })
 
@@ -62,7 +67,7 @@ export function AlertSidebar() {
       <button
         onClick={() => setIsOpen((v) => !v)}
         aria-expanded={isOpen}
-        aria-label={isOpen ? 'Collapse alert list' : 'Expand alert list'}
+        aria-label={isOpen ? 'Скрий списъка със сигнали' : 'Покажи списъка със сигнали'}
         className={`
           hidden md:flex absolute top-16 z-[1000] items-center gap-2 px-3 py-2
           bg-surface-card/90 backdrop-blur border border-surface-border rounded-r-xl
@@ -112,7 +117,7 @@ export function AlertSidebar() {
           <span className="flex items-center gap-2">
             <span className={`w-2 h-2 rounded-full ${isFetching ? 'bg-amber-500 animate-pulse' : 'bg-brand-500'}`} />
             <span className="font-bold text-slate-900">
-              {filtered.length} {filtered.length === 1 ? 'alert' : 'alerts'} nearby
+              {filtered.length} {filtered.length === 1 ? 'сигнал' : 'сигнала'} наблизо
             </span>
           </span>
           <span className="text-slate-500 text-lg leading-none">
@@ -125,7 +130,7 @@ export function AlertSidebar() {
         <div className="px-4 pb-3 md:pt-16 border-b border-surface-border">
           <div className="hidden md:flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <h2 className="font-bold text-slate-900">Live Alerts</h2>
+              <h2 className="font-bold text-slate-900">Сигнали наблизо</h2>
               {isFetching && (
                 <svg className="animate-spin h-3.5 w-3.5 text-brand-500" viewBox="0 0 24 24" fill="none">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -140,9 +145,9 @@ export function AlertSidebar() {
 
           <AlertFilters
             statusFilter={statusFilter}
-            typeFilter={typeFilter}
+            categoryFilter={categoryFilter}
             onStatusChange={setStatusFilter}
-            onTypeChange={setTypeFilter}
+            onCategoryChange={setCategoryFilter}
           />
 
           <div className="mt-3">
@@ -159,7 +164,7 @@ export function AlertSidebar() {
             <p className="mt-2 flex items-start gap-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 px-2.5 py-1.5 text-xs text-amber-600">
               <span aria-hidden="true">⚠</span>
               <span>
-                Showing the first {nearbyLimit}. Narrow the radius or filter to see the rest.
+                Показани са първите {nearbyLimit}. Намалете радиуса или филтрирайте, за да видите останалите.
               </span>
             </p>
           )}
@@ -177,8 +182,8 @@ export function AlertSidebar() {
           ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-slate-600">
               <span className="text-4xl mb-3">🔍</span>
-              <p className="text-sm font-medium">No alerts in this area</p>
-              <p className="text-xs mt-1">Move the map to explore other areas</p>
+              <p className="text-sm font-medium">Няма сигнали в този район</p>
+              <p className="text-xs mt-1">Преместете картата, за да разгледате други места</p>
             </div>
           ) : (
             filtered.map((alert) => <AlertCard key={alert.id} alert={alert} />)
@@ -188,9 +193,8 @@ export function AlertSidebar() {
         {/* Footer: identity, sign out. The bottom padding clears the home-indicator
             area on a phone; env() resolves to 0 everywhere else. */}
         <div className="border-t border-surface-border px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] md:pb-3 flex items-center gap-3">
-
           <div className="flex-1 min-w-0">
-            <p className="text-xs text-slate-500 truncate leading-none mb-0.5">Signed in as</p>
+            <p className="text-xs text-slate-500 truncate leading-none mb-0.5">Влезли сте като</p>
             <div className="flex items-center gap-1.5 min-w-0">
               <p className="text-sm font-semibold text-slate-800 truncate leading-none">
                 {user?.displayName ?? user?.email ?? '—'}
@@ -209,8 +213,8 @@ export function AlertSidebar() {
           <button
             type="button"
             onClick={() => { logout(); navigate('/login') }}
-            title="Sign out"
-            aria-label="Sign out"
+            title="Изход"
+            aria-label="Изход"
             className="flex-shrink-0 w-11 h-11 md:w-8 md:h-8 rounded-full flex items-center justify-center bg-surface-elevated hover:bg-red-500/20 text-slate-500 hover:text-red-500 transition-colors text-base"
           >
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">

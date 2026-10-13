@@ -35,12 +35,12 @@ export class ErrorBoundary extends Component<Props, State> {
             </div>
 
             <h2 className="text-lg font-bold text-slate-900">
-              Something went wrong
+              Нещо се обърка
             </h2>
 
             <p className="text-sm text-slate-600 leading-relaxed">
-              The application encountered an unexpected error.
-              Please try reloading the page.
+              В приложението възникна неочаквана грешка.
+              Моля, опитайте да презаредите страницата.
             </p>
 
             {/*
@@ -58,7 +58,7 @@ export class ErrorBoundary extends Component<Props, State> {
               onClick={() => window.location.reload()}
               className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg font-medium text-sm bg-brand-600 hover:bg-brand-700 text-white shadow-lg shadow-brand-600/20 transition-all"
             >
-              Reload page
+              Презареди страницата
             </button>
           </div>
         </div>

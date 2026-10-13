@@ -13,10 +13,10 @@ import { authApi } from '../api/auth'
  * are written for the client.
  */
 const CODE_MESSAGES: Record<string, string> = {
-  BAD_CREDENTIALS: 'Incorrect email or password',
-  EMAIL_ALREADY_REGISTERED: 'An account with that email already exists',
-  SERVICE_UNAVAILABLE: 'The service is temporarily unavailable. Please try again shortly.',
-  INTERNAL_ERROR: 'Something went wrong. Please try again.',
+  BAD_CREDENTIALS: 'Грешен имейл или парола',
+  EMAIL_ALREADY_REGISTERED: 'Вече има профил с този имейл',
+  SERVICE_UNAVAILABLE: 'Услугата временно не е достъпна. Опитайте отново след малко.',
+  INTERNAL_ERROR: 'Нещо се обърка. Опитайте отново.',
 }
 
 function getApiErrorMessage(err: unknown, fallback: string) {
@@ -105,7 +105,7 @@ const createAuthState: StateCreator<
       localStorage.setItem('refreshToken', data.refreshToken)
       set({ user: data.user, accessToken: data.accessToken, refreshToken: data.refreshToken, isLoading: false })
     } catch (err: unknown) {
-      const msg = getApiErrorMessage(err, 'Login failed')
+      const msg = getApiErrorMessage(err, 'Входът не успя')
       set({ isLoading: false, error: msg })
       throw err
     }
@@ -119,7 +119,7 @@ const createAuthState: StateCreator<
       localStorage.setItem('refreshToken', data.refreshToken)
       set({ user: data.user, accessToken: data.accessToken, refreshToken: data.refreshToken, isLoading: false })
     } catch (err: unknown) {
-      const msg = getApiErrorMessage(err, 'Registration failed')
+      const msg = getApiErrorMessage(err, 'Регистрацията не успя')
       set({ isLoading: false, error: msg })
       throw err
     }
