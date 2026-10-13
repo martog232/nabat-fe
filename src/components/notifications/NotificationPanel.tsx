@@ -55,8 +55,8 @@ function NotificationItem({ notification }: { notification: Notification }) {
           <span
             className={`text-sm font-medium truncate ${
               notification.read
-                ? 'text-slate-600 dark:text-slate-400'
-                : 'text-slate-900 dark:text-slate-100'
+                ? 'text-slate-600'
+                : 'text-slate-900'
             }`}
           >
             {notification.title}
@@ -66,7 +66,7 @@ function NotificationItem({ notification }: { notification: Notification }) {
           </span>
         </div>
         {notification.message && (
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2">
+          <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">
             {notification.message}
           </p>
         )}
@@ -100,7 +100,7 @@ export function NotificationPanel({ onClose }: NotificationPanelProps) {
     >
       {/* Header */}
       <div className="flex flex-shrink-0 items-center justify-between px-4 py-3 border-b border-surface-border">
-        <h3 className="font-semibold text-sm text-slate-900 dark:text-slate-100">
+        <h3 className="font-semibold text-sm text-slate-900">
           Notifications
           {unreadCount > 0 && (
             <span className="ml-2 text-xs text-brand-400 font-normal">
@@ -127,10 +127,10 @@ export function NotificationPanel({ onClose }: NotificationPanelProps) {
         ) : !notifications || notifications.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-10 px-4 text-center">
             <span className="text-3xl mb-2">🔔</span>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
+            <p className="text-sm text-slate-500">
               No notifications yet
             </p>
-            <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+            <p className="text-xs text-slate-400 mt-1">
               Vote on alerts to receive updates.
             </p>
           </div>

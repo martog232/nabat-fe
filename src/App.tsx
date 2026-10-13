@@ -1,6 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { useEffect } from 'react'
 import { LoginPage } from './pages/LoginPage'
 import { RegisterPage } from './pages/RegisterPage'
 import { MapPage } from './pages/MapPage'
@@ -15,7 +14,6 @@ import { AdminRoute } from './components/auth/AdminRoute'
 import { DistrictRoute } from './components/auth/DistrictRoute'
 import { ErrorBoundary } from './components/common/ErrorBoundary'
 import { ToastContainer } from './components/common/ToastContainer'
-import { useThemeStore } from './store/themeStore'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -24,11 +22,6 @@ const queryClient = new QueryClient({
 })
 
 export default function App() {
-  const initializeTheme = useThemeStore((s) => s.initializeTheme)
-
-  useEffect(() => {
-    initializeTheme()
-  }, [initializeTheme])
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>

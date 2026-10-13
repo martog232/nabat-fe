@@ -77,7 +77,7 @@ export function ReportsPage() {
     `rounded-full px-4 py-2 text-sm font-medium transition-colors ${
       active
         ? 'bg-brand-600 text-white'
-        : 'bg-surface-elevated text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white'
+        : 'bg-surface-elevated text-slate-600 hover:text-slate-900'
     }`
 
   return (
@@ -85,14 +85,14 @@ export function ReportsPage() {
       <div className="mx-auto w-full max-w-3xl px-4 pb-[calc(3rem+env(safe-area-inset-bottom))] pt-[calc(1.5rem+env(safe-area-inset-top))]">
         <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Reports in Sofia</h1>
-            <p className="text-sm text-slate-600 dark:text-slate-400">
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900">Reports in Sofia</h1>
+            <p className="text-sm text-slate-600">
               What has been reported, where it was sent, and what has happened since.
             </p>
           </div>
           <Link
             to={user ? '/map' : '/login'}
-            className="rounded-lg border border-surface-border bg-surface-card px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-surface-hover dark:text-slate-200"
+            className="rounded-lg border border-surface-border bg-surface-card px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-surface-hover"
           >
             {user ? 'Back to the map' : 'Sign in to report'}
           </Link>
@@ -118,7 +118,7 @@ export function ReportsPage() {
             id="district-filter"
             value={district}
             onChange={(e) => choose(setDistrict)(e.target.value)}
-            className="ml-auto rounded-lg border border-surface-border bg-surface-elevated px-3 py-2 text-sm text-slate-800 dark:text-slate-100"
+            className="ml-auto rounded-lg border border-surface-border bg-surface-elevated px-3 py-2 text-sm text-slate-800"
           >
             <option value="">All of Sofia</option>
             {districts.map((d) => (
@@ -127,14 +127,14 @@ export function ReportsPage() {
           </select>
         </div>
 
-        {isLoading && <p className="text-sm text-slate-600 dark:text-slate-400">Loading…</p>}
+        {isLoading && <p className="text-sm text-slate-600">Loading…</p>}
         {isError && (
-          <p role="alert" className="text-sm text-red-600 dark:text-red-400">
+          <p role="alert" className="text-sm text-red-600">
             The reports could not be loaded. Check your connection and try again.
           </p>
         )}
         {!isLoading && !isError && reports.length === 0 && (
-          <p className="text-sm text-slate-600 dark:text-slate-400">No reports match.</p>
+          <p className="text-sm text-slate-600">No reports match.</p>
         )}
 
         <ol className={`space-y-3 transition-opacity ${isFetching && !isLoading ? 'opacity-60' : ''}`} start={page * PAGE_SIZE + 1}>
@@ -144,10 +144,10 @@ export function ReportsPage() {
                 <div className="text-2xl" aria-hidden>{ALERT_TYPE_ICONS[r.type]}</div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
-                    <p className="truncate font-semibold text-slate-900 dark:text-white">{r.title}</p>
+                    <p className="truncate font-semibold text-slate-900">{r.title}</p>
                     <StatusBadge status={r.status} />
                   </div>
-                  <p className="mt-1 line-clamp-2 text-sm text-slate-700 dark:text-slate-300">{r.description}</p>
+                  <p className="mt-1 line-clamp-2 text-sm text-slate-700">{r.description}</p>
                   <p className="mt-2 text-xs text-slate-500">
                     {ALERT_TYPE_LABELS[r.type]}
                     {r.districtCode && ` · ${districtNames.get(r.districtCode) ?? r.districtCode}`}
@@ -166,7 +166,7 @@ export function ReportsPage() {
             <button type="button" className={pill(false)} disabled={page === 0} onClick={() => setPage((p) => Math.max(0, p - 1))}>
               Previous
             </button>
-            <span className="text-sm text-slate-600 dark:text-slate-400">
+            <span className="text-sm text-slate-600">
               Page {page + 1} of {lastPage + 1} · {total} reports
             </span>
             <button type="button" className={pill(false)} disabled={page >= lastPage} onClick={() => setPage((p) => Math.min(lastPage, p + 1))}>

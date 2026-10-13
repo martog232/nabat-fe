@@ -65,7 +65,7 @@ export function AlertDetail() {
         <div className="relative flex-shrink-0 p-4 border-b border-surface-border">
           <button
             onClick={() => selectAlert(null)}
-            className="absolute top-2 right-2 w-11 h-11 sm:top-3 sm:right-3 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-surface-elevated transition"
+            className="absolute top-2 right-2 w-11 h-11 sm:top-3 sm:right-3 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-surface-elevated transition"
           >
             ✕
           </button>
@@ -73,7 +73,7 @@ export function AlertDetail() {
           <div className="flex items-start gap-3 pr-12 sm:pr-8">
             <div className="text-3xl">{ALERT_TYPE_ICONS[a.type]}</div>
             <div>
-              <h3 className="font-bold text-slate-900 dark:text-slate-200 text-base leading-tight mb-1">{a.title}</h3>
+              <h3 className="font-bold text-slate-900 text-base leading-tight mb-1">{a.title}</h3>
               <div className="flex items-center gap-2">
                 <StatusBadge status={a.status} />
                 <span className="text-xs text-slate-500">{ALERT_TYPE_LABELS[a.type]}</span>
@@ -84,7 +84,7 @@ export function AlertDetail() {
 
         {/* Body — the only scrolling region; overscroll-contain stops a flick here from dragging the map underneath. */}
         <div className="flex-1 overflow-y-auto overscroll-contain p-4 space-y-3">
-          <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">{a.description}</p>
+          <p className="text-sm text-slate-700 leading-relaxed">{a.description}</p>
 
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
             <span>📅 {formatDate(a.createdAt)}</span>
@@ -155,10 +155,10 @@ export function AlertDetail() {
                         : 'disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100'}
                     `}
                   >
-                    <span className="text-xs font-bold text-slate-900 dark:text-white">
+                    <span className="text-xs font-bold text-slate-900">
                       {val}
                     </span>
-                    <span className="text-xs text-slate-600 dark:text-slate-400">
+                    <span className="text-xs text-slate-600">
                       {emoji} {label}
                     </span>
                   </button>

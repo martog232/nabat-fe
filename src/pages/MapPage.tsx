@@ -61,7 +61,7 @@ export function MapPage() {
         else competes for space and it is still in view.
       */}
       <div className="absolute z-[1000] top-14 left-1/2 -translate-x-1/2 sm:top-auto sm:bottom-6">
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-card/80 backdrop-blur border border-surface-border text-xs text-slate-600 dark:text-slate-400">
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-card/80 backdrop-blur border border-surface-border text-xs text-slate-600">
           <span className={`w-2 h-2 rounded-full ${wsConnected ? 'bg-green-500 animate-pulse-fast' : 'bg-amber-500'}`} />
           {wsConnected ? 'Live updates' : 'Polling fallback'}
         </div>

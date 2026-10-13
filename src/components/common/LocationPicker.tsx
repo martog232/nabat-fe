@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { MapContainer, Marker, TileLayer, useMap, useMapEvents } from 'react-leaflet'
 import { divIcon, type LatLngExpression } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import { useThemeStore } from '../../store/themeStore'
 
 interface NominatimResult {
   place_id: number
@@ -77,7 +76,6 @@ function ClickCapture({ onPick }: { onPick: (lat: number, lng: number) => void }
 
 // ─── Component ──────────────────────────────────────────────────────────────
 export function LocationPicker({ value, onChange }: Props) {
-  const theme = useThemeStore((s) => s.theme)
   const [mode, setMode] = useState<'address' | 'map'>('address')
   const [query, setQuery] = useState(value.address ?? '')
   const [suggestions, setSuggestions] = useState<NominatimResult[]>([])
@@ -131,26 +129,22 @@ export function LocationPicker({ value, onChange }: Props) {
   }
 
   const center = useMemo<LatLngExpression>(() => [value.latitude, value.longitude], [value.latitude, value.longitude])
-  const tileUrl = theme === 'dark'
-    ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
-    : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
-
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <label className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wide">Location</label>
+        <label className="text-xs font-medium text-slate-600 uppercase tracking-wide">Location</label>
         <div className="inline-flex rounded-lg border border-surface-border bg-surface-elevated p-0.5 text-xs">
           <button
             type="button"
             onClick={() => setMode('address')}
-            className={`px-3 py-1 rounded-md transition-colors cursor-pointer ${mode === 'address' ? 'bg-brand-500/20 text-brand-300' : 'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'}`}
+            className={`px-3 py-1 rounded-md transition-colors cursor-pointer ${mode === 'address' ? 'bg-brand-500/20 text-brand-300' : 'text-slate-600 hover:text-slate-800'}`}
           >
             🔎 Address
           </button>
           <button
             type="button"
             onClick={() => setMode('map')}
-            className={`px-3 py-1 rounded-md transition-colors cursor-pointer ${mode === 'map' ? 'bg-brand-500/20 text-brand-300' : 'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'}`}
+            className={`px-3 py-1 rounded-md transition-colors cursor-pointer ${mode === 'map' ? 'bg-brand-500/20 text-brand-300' : 'text-slate-600 hover:text-slate-800'}`}
           >
             📍 Map
           </button>
@@ -165,7 +159,7 @@ export function LocationPicker({ value, onChange }: Props) {
             placeholder="Street and number, city…"
             onChange={(e) => setQuery(e.target.value)}
             onFocus={() => suggestions.length > 0 && setOpen(true)}
-            className="w-full px-3 py-2.5 rounded-lg text-sm bg-surface-elevated border border-surface-border text-slate-900 dark:text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+            className="w-full px-3 py-2.5 rounded-lg text-sm bg-surface-elevated border border-surface-border text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
           />
           {isSearching && (
             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-500">…</span>
@@ -177,7 +171,7 @@ export function LocationPicker({ value, onChange }: Props) {
                   <button
                     type="button"
                     onClick={() => pickSuggestion(s)}
-                    className="w-full text-left px-3 py-2 text-xs text-slate-700 dark:text-slate-300 hover:bg-surface-elevated transition-colors cursor-pointer"
+                    className="w-full text-left px-3 py-2 text-xs text-slate-700 hover:bg-surface-elevated transition-colors cursor-pointer"
                   >
                     {s.display_name}
                   </button>
@@ -195,8 +189,8 @@ export function LocationPicker({ value, onChange }: Props) {
         <div className="h-56 w-full overflow-hidden rounded-lg border border-surface-border">
           <MapContainer center={center} zoom={15} className="w-full h-full" zoomControl>
             <TileLayer
-              url={tileUrl}
-              attribution="© OpenStreetMap contributors © CARTO"
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution="© OpenStreetMap contributors"
             />
             <FlyTo center={center} />
             <ClickCapture onPick={handleMapPick} />
@@ -215,9 +209,9 @@ export function LocationPicker({ value, onChange }: Props) {
         </div>
       )}
 
-      <p className="text-[11px] text-slate-600 dark:text-slate-500">
+      <p className="text-[11px] text-slate-600">
         {value.address ? <span className="line-clamp-1">📌 {value.address}</span> : 'Pick a location to see its address.'}
-        <span className="ml-2 text-slate-700 dark:text-slate-600">
+        <span className="ml-2 text-slate-700">
           ({value.latitude.toFixed(5)}, {value.longitude.toFixed(5)})
         </span>
       </p>

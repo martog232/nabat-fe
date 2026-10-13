@@ -43,15 +43,15 @@ export function DistrictPage() {
           <Link
             to="/map"
             aria-label="Back to the map"
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-surface-border bg-surface-card text-slate-600 transition-colors hover:bg-surface-hover dark:text-slate-300"
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-surface-border bg-surface-card text-slate-600 transition-colors hover:bg-surface-hover"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5">
               <path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{districtName}</h1>
-            <p className="text-sm text-slate-600 dark:text-slate-400">Reports sent to your district</p>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900">{districtName}</h1>
+            <p className="text-sm text-slate-600">Reports sent to your district</p>
           </div>
         </header>
 
@@ -66,7 +66,7 @@ export function DistrictPage() {
               className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
                 tab === i
                   ? 'bg-brand-600 text-white'
-                  : 'bg-surface-elevated text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white'
+                  : 'bg-surface-elevated text-slate-600 hover:text-slate-900'
               }`}
             >
               {t.label}
@@ -74,14 +74,14 @@ export function DistrictPage() {
           ))}
         </div>
 
-        {isLoading && <p className="text-sm text-slate-600 dark:text-slate-400">Loading…</p>}
+        {isLoading && <p className="text-sm text-slate-600">Loading…</p>}
         {isError && (
-          <p role="alert" className="text-sm text-red-600 dark:text-red-400">
+          <p role="alert" className="text-sm text-red-600">
             The reports could not be loaded. Check your connection and try again.
           </p>
         )}
         {!isLoading && !isError && reports.length === 0 && (
-          <p className="text-sm text-slate-600 dark:text-slate-400">Nothing here.</p>
+          <p className="text-sm text-slate-600">Nothing here.</p>
         )}
 
         <ul className="space-y-3">
@@ -91,15 +91,15 @@ export function DistrictPage() {
                 <div className="text-2xl" aria-hidden>{ALERT_TYPE_ICONS[r.type]}</div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
-                    <p className="truncate font-semibold text-slate-900 dark:text-white">{r.title}</p>
+                    <p className="truncate font-semibold text-slate-900">{r.title}</p>
                     <StatusBadge status={r.status} />
                   </div>
-                  <p className="mt-1 text-sm text-slate-700 dark:text-slate-300">{r.description}</p>
+                  <p className="mt-1 text-sm text-slate-700">{r.description}</p>
                   <p className="mt-2 text-xs text-slate-500">
                     {ALERT_TYPE_LABELS[r.type]} · {formatDate(r.createdAt)} · {Math.max(0, r.confirmationCount + r.upvoteCount - r.downvoteCount)} supporting
                     {' · '}
                     <a
-                      className="underline hover:text-slate-700 dark:hover:text-slate-300"
+                      className="underline hover:text-slate-700"
                       href={`https://www.openstreetmap.org/?mlat=${r.latitude}&mlon=${r.longitude}#map=19/${r.latitude}/${r.longitude}`}
                       target="_blank"
                       rel="noreferrer"

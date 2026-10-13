@@ -106,15 +106,15 @@ export function AdminPage() {
           <Link
             to="/settings"
             aria-label="Back to settings"
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-surface-border bg-surface-card text-slate-600 transition-colors hover:bg-surface-hover dark:text-slate-300"
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-surface-border bg-surface-card text-slate-600 transition-colors hover:bg-surface-hover"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5">
               <path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Accounts</h1>
-            <p className="text-sm text-slate-600 dark:text-slate-400">
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900">Accounts</h1>
+            <p className="text-sm text-slate-600">
               {total} {total === 1 ? 'account' : 'accounts'}, newest first
             </p>
           </div>
@@ -123,7 +123,7 @@ export function AdminPage() {
         {error && (
           <div
             role="alert"
-            className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-700 dark:text-red-300"
+            className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-700"
           >
             {error}{' '}
             <button type="button" onClick={() => void load(page)} className="font-semibold underline">
@@ -133,7 +133,7 @@ export function AdminPage() {
         )}
 
         {loading && users.length === 0 ? (
-          <p className="text-sm text-slate-600 dark:text-slate-400">Loading…</p>
+          <p className="text-sm text-slate-600">Loading…</p>
         ) : (
           <ul className="space-y-3">
             {users.map((user) => {
@@ -146,20 +146,20 @@ export function AdminPage() {
                   className="rounded-2xl border border-surface-border bg-surface-card p-4 shadow-sm sm:flex sm:items-center sm:gap-4"
                 >
                   <div className="min-w-0 flex-1">
-                    <p className="flex items-center gap-2 truncate font-medium text-slate-900 dark:text-white">
+                    <p className="flex items-center gap-2 truncate font-medium text-slate-900">
                       {user.displayName}
                       {isSelf && (
-                        <span className="rounded-full bg-surface-elevated px-2 py-0.5 text-xs font-normal text-slate-600 dark:text-slate-300">
+                        <span className="rounded-full bg-surface-elevated px-2 py-0.5 text-xs font-normal text-slate-600">
                           you
                         </span>
                       )}
                       {!user.enabled && (
-                        <span className="rounded-full bg-red-500/15 px-2 py-0.5 text-xs font-semibold text-red-600 dark:text-red-400">
+                        <span className="rounded-full bg-red-500/15 px-2 py-0.5 text-xs font-semibold text-red-600">
                           disabled
                         </span>
                       )}
                     </p>
-                    <p className="truncate text-sm text-slate-600 dark:text-slate-400">
+                    <p className="truncate text-sm text-slate-600">
                       {user.email}
                       {!user.emailVerified && ' · unverified'}
                     </p>
@@ -180,7 +180,7 @@ export function AdminPage() {
                       value={choosingDistrictFor === user.id ? 'DISTRICT_OFFICIAL' : user.role}
                       disabled={isSelf || busy}
                       onChange={(e) => void changeRole(user, e.target.value as Role)}
-                      className="rounded-lg border border-surface-border bg-surface-elevated px-3 py-2 text-sm text-slate-800 disabled:opacity-50 dark:text-slate-100"
+                      className="rounded-lg border border-surface-border bg-surface-elevated px-3 py-2 text-sm text-slate-800 disabled:opacity-50"
                     >
                       {ASSIGNABLE_ROLES.map((role) => (
                         <option key={role} value={role}>
@@ -199,7 +199,7 @@ export function AdminPage() {
                           value={choosingDistrictFor === user.id ? '' : user.districtCode ?? ''}
                           disabled={isSelf || busy}
                           onChange={(e) => void changeRole(user, 'DISTRICT_OFFICIAL', e.target.value)}
-                          className="rounded-lg border border-surface-border bg-surface-elevated px-3 py-2 text-sm text-slate-800 disabled:opacity-50 dark:text-slate-100"
+                          className="rounded-lg border border-surface-border bg-surface-elevated px-3 py-2 text-sm text-slate-800 disabled:opacity-50"
                         >
                           <option value="" disabled>Choose a district…</option>
                           {districts.map((d) => (
@@ -236,7 +236,7 @@ export function AdminPage() {
             >
               Previous
             </Button>
-            <span className="text-sm text-slate-600 dark:text-slate-400">
+            <span className="text-sm text-slate-600">
               Page {page + 1} of {lastPage + 1}
             </span>
             <Button

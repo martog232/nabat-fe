@@ -17,7 +17,7 @@ export function RadiusSelector() {
 
   return (
     <div className="rounded-xl border border-surface-border bg-surface-elevated p-2">
-      <p className="text-xs font-medium text-slate-500 dark:text-slate-300 mb-2 px-1">Show within</p>
+      <p className="text-xs font-medium text-slate-500 mb-2 px-1">Show within</p>
       {/* Five options across 320px leaves ~55px each including gaps — enough as an
           equal-width grid, not enough with intrinsic widths, where "50 km" pushed the row
           into an overflow that had nowhere to go. */}
@@ -32,7 +32,7 @@ export function RadiusSelector() {
               className={`min-h-[2.25rem] sm:min-h-[1.875rem] px-1 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${
                 isActive
                   ? 'bg-brand-500 text-white'
-                  : 'bg-surface-DEFAULT text-slate-600 dark:text-slate-300 hover:bg-surface-hover'
+                  : 'bg-surface-DEFAULT text-slate-600 hover:bg-surface-hover'
               }`}
             >
               {value} km

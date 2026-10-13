@@ -27,7 +27,7 @@ const pill = (active: boolean) => `
   rounded-full text-xs font-medium transition-all cursor-pointer
   ${active
     ? 'bg-brand-600 text-white'
-    : 'bg-surface-elevated text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+    : 'bg-surface-elevated text-slate-600 hover:text-slate-800'
   }
 `
 

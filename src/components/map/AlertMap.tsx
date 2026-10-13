@@ -3,7 +3,6 @@ import { divIcon } from 'leaflet'
 import { Circle, MapContainer, Marker, TileLayer, useMap, useMapEvents } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import { useAlertStore } from '../../store/alertStore'
-import { useThemeStore } from '../../store/themeStore'
 import { useNearbyAlerts } from '../../hooks/useAlerts'
 import { AlertMarker } from './AlertMarker'
 
@@ -45,7 +44,7 @@ function ZoomButtons() {
       <button
         type="button"
         onClick={() => map.zoomIn()}
-        className="h-11 w-11 sm:h-10 sm:w-10 rounded-full border border-surface-border bg-surface-card/95 backdrop-blur-sm text-xl font-bold text-slate-700 dark:text-slate-100 hover:bg-surface-hover transition-colors shadow-lg leading-none"
+        className="h-11 w-11 sm:h-10 sm:w-10 rounded-full border border-surface-border bg-surface-card/95 backdrop-blur-sm text-xl font-bold text-slate-700 hover:bg-surface-hover transition-colors shadow-lg leading-none"
         title="Zoom in"
         aria-label="Zoom in"
       >
@@ -54,7 +53,7 @@ function ZoomButtons() {
       <button
         type="button"
         onClick={() => map.zoomOut()}
-        className="h-11 w-11 sm:h-10 sm:w-10 rounded-full border border-surface-border bg-surface-card/95 backdrop-blur-sm text-xl font-bold text-slate-700 dark:text-slate-100 hover:bg-surface-hover transition-colors shadow-lg leading-none"
+        className="h-11 w-11 sm:h-10 sm:w-10 rounded-full border border-surface-border bg-surface-card/95 backdrop-blur-sm text-xl font-bold text-slate-700 hover:bg-surface-hover transition-colors shadow-lg leading-none"
         title="Zoom out"
         aria-label="Zoom out"
       >
@@ -67,10 +66,6 @@ function ZoomButtons() {
 export function AlertMap() {
   const { data: alerts = [] } = useNearbyAlerts()
   const { mapCenter, mapZoom, userLat, userLng, radiusKm, followUser, setFollowUser } = useAlertStore()
-  const theme = useThemeStore((s) => s.theme)
-  const tileUrl = theme === 'dark'
-    ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
-    : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
   const userIcon = useMemo(
     () =>
       divIcon({
@@ -102,8 +97,8 @@ export function AlertMap() {
         zoomControl={false}
       >
         <TileLayer
-          url={tileUrl}
-          attribution="© OpenStreetMap contributors © CARTO"
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution="© OpenStreetMap contributors"
         />
         <MapEventHandler />
         <FollowModeController />
@@ -131,7 +126,7 @@ export function AlertMap() {
       <button
         type="button"
         onClick={() => setFollowUser(!followUser)}
-        className="absolute z-[1000] right-3 sm:right-4 bottom-[calc(var(--sheet-peek)+1rem)] sm:bottom-4 h-11 w-11 sm:h-10 sm:w-10 rounded-full border border-surface-border bg-surface-card/95 backdrop-blur-sm text-lg text-slate-700 dark:text-slate-100 hover:bg-surface-hover transition-colors shadow-lg"
+        className="absolute z-[1000] right-3 sm:right-4 bottom-[calc(var(--sheet-peek)+1rem)] sm:bottom-4 h-11 w-11 sm:h-10 sm:w-10 rounded-full border border-surface-border bg-surface-card/95 backdrop-blur-sm text-lg text-slate-700 hover:bg-surface-hover transition-colors shadow-lg"
         title={followUser ? 'Disable follow mode' : 'Enable follow mode'}
         aria-label={followUser ? 'Disable follow mode' : 'Enable follow mode'}
       >

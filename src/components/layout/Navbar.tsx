@@ -32,7 +32,7 @@ export function Navbar() {
             <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
           </svg>
         </div>
-        <span className="font-bold text-slate-900 dark:text-white text-lg tracking-tight">Nabat</span>
+        <span className="font-bold text-slate-900 text-lg tracking-tight">Nabat</span>
       </Link>
 
       {/* Right section */}
@@ -40,7 +40,7 @@ export function Navbar() {
         <div className="relative flex items-center gap-2">
           <Link
             to="/reports"
-            className="hidden h-9 items-center rounded-full px-3 text-sm font-medium text-slate-700 transition-colors hover:bg-surface-elevated sm:flex dark:text-slate-200"
+            className="hidden h-9 items-center rounded-full px-3 text-sm font-medium text-slate-700 transition-colors hover:bg-surface-elevated sm:flex"
           >
             All reports
           </Link>
@@ -50,7 +50,7 @@ export function Navbar() {
           {canActForADistrict(user.role) && (
             <Link
               to="/district"
-              className="flex h-11 items-center rounded-full border border-surface-border bg-surface-card/80 px-4 text-sm font-medium text-slate-700 backdrop-blur transition-colors hover:bg-surface-elevated sm:h-9 dark:text-slate-200"
+              className="flex h-11 items-center rounded-full border border-surface-border bg-surface-card/80 px-4 text-sm font-medium text-slate-700 backdrop-blur transition-colors hover:bg-surface-elevated sm:h-9"
             >
               My district
             </Link>
@@ -59,7 +59,7 @@ export function Navbar() {
           {/* Notification bell */}
           <button
             onClick={toggleNotifications}
-            className="relative flex items-center justify-center w-11 h-11 sm:w-9 sm:h-9 rounded-full bg-surface-card/80 backdrop-blur border border-surface-border sm:border-transparent sm:bg-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-surface-elevated transition-colors"
+            className="relative flex items-center justify-center w-11 h-11 sm:w-9 sm:h-9 rounded-full bg-surface-card/80 backdrop-blur border border-surface-border sm:border-transparent sm:bg-transparent text-slate-600 hover:text-slate-900 hover:bg-surface-elevated transition-colors"
             aria-label="Notifications"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5">

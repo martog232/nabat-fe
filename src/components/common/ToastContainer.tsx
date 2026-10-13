@@ -11,19 +11,19 @@ const COLOR: Record<string, { bar: string; bg: string; text: string; icon: strin
   error: {
     bar:  'bg-red-500',
     bg:   'bg-surface-card border-red-500/30',
-    text: 'text-slate-900 dark:text-slate-100',
+    text: 'text-slate-900',
     icon: 'text-red-400 bg-red-500/15',
   },
   success: {
     bar:  'bg-green-500',
     bg:   'bg-surface-card border-green-500/30',
-    text: 'text-slate-900 dark:text-slate-100',
+    text: 'text-slate-900',
     icon: 'text-green-400 bg-green-500/15',
   },
   info: {
     bar:  'bg-brand-500',
     bg:   'bg-surface-card border-brand-500/30',
-    text: 'text-slate-900 dark:text-slate-100',
+    text: 'text-slate-900',
     icon: 'text-brand-400 bg-brand-500/15',
   },
 }
@@ -85,7 +85,7 @@ function ToastItem({ toast }: { toast: Toast }) {
       {/* Close */}
       <button
         onClick={(e) => { e.stopPropagation(); dismiss() }}
-        className="absolute top-2 right-2 w-5 h-5 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors text-xs"
+        className="absolute top-2 right-2 w-5 h-5 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-700 transition-colors text-xs"
       >
         ✕
       </button>

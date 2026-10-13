@@ -160,14 +160,14 @@ export function CreateAlertModal({ onClose, prefillLat, prefillLng }: Props) {
         >
           {/* Header */}
           <div className="flex flex-shrink-0 items-center justify-between px-5 py-4 border-b border-surface-border">
-            <h2 id="modal-title" className="text-base font-bold text-slate-900 dark:text-white">
+            <h2 id="modal-title" className="text-base font-bold text-slate-900">
               Report a problem
             </h2>
             <button
                 type="button"
                 onClick={onClose}
                 aria-label="Close modal"
-                className="-mr-2 w-11 h-11 sm:w-8 sm:h-8 flex items-center justify-center rounded-full text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-surface-elevated transition-colors text-lg"
+                className="-mr-2 w-11 h-11 sm:w-8 sm:h-8 flex items-center justify-center rounded-full text-slate-500 hover:text-slate-900 hover:bg-surface-elevated transition-colors text-lg"
             >
               ✕
             </button>
@@ -184,7 +184,7 @@ export function CreateAlertModal({ onClose, prefillLat, prefillLng }: Props) {
             />
 
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wide">
+              <label className="text-xs font-medium text-slate-600 uppercase tracking-wide">
                 Description
               </label>
               <textarea
@@ -194,7 +194,7 @@ export function CreateAlertModal({ onClose, prefillLat, prefillLng }: Props) {
                   onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
                   className={`
                 w-full px-3 py-2.5 rounded-lg text-sm resize-none
-                bg-surface-elevated border text-slate-900 dark:text-slate-200 placeholder-slate-500
+                bg-surface-elevated border text-slate-900 placeholder-slate-500
                 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent
                 ${errors.description ? 'border-red-500/60' : 'border-surface-border'}
               `}
@@ -204,7 +204,7 @@ export function CreateAlertModal({ onClose, prefillLat, prefillLng }: Props) {
 
             {/* Alert type grid */}
             <div>
-              <label className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wide block mb-2">
+              <label className="text-xs font-medium text-slate-600 uppercase tracking-wide block mb-2">
                 Incident Type
               </label>
               <div className="grid grid-cols-3 xs:grid-cols-4 sm:grid-cols-5 gap-2">
@@ -215,7 +215,7 @@ export function CreateAlertModal({ onClose, prefillLat, prefillLng }: Props) {
                         onClick={() => setForm((f) => ({ ...f, type: t }))}
                         className={`
                     flex flex-col items-center justify-center min-h-[3.25rem] py-2 px-1 rounded-xl border text-xs transition-all cursor-pointer
-                    ${form.type === t ? 'border-brand-500/60 bg-brand-500/15 text-brand-300' : 'border-surface-border bg-surface-elevated text-slate-600 dark:text-slate-400 hover:border-surface-elevated hover:text-slate-800 dark:hover:text-slate-200'}
+                    ${form.type === t ? 'border-brand-500/60 bg-brand-500/15 text-brand-300' : 'border-surface-border bg-surface-elevated text-slate-600 hover:border-surface-elevated hover:text-slate-800'}
                   `}
                     >
                       <span className="text-lg" aria-hidden="true">{ALERT_TYPE_ICONS[t]}</span>
@@ -235,7 +235,7 @@ export function CreateAlertModal({ onClose, prefillLat, prefillLng }: Props) {
 
             {/* Photo upload */}
             <div>
-              <label className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wide block mb-2">
+              <label className="text-xs font-medium text-slate-600 uppercase tracking-wide block mb-2">
                 Photo (optional)
               </label>
               <div className="flex items-center gap-3">
@@ -243,7 +243,7 @@ export function CreateAlertModal({ onClose, prefillLat, prefillLng }: Props) {
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={photoUploading}
-                    className="px-4 min-h-[2.75rem] rounded-lg border border-surface-border bg-surface-elevated text-sm text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-colors cursor-pointer disabled:opacity-50"
+                    className="px-4 min-h-[2.75rem] rounded-lg border border-surface-border bg-surface-elevated text-sm text-slate-600 hover:text-slate-800 transition-colors cursor-pointer disabled:opacity-50"
                 >
                   {photoFile ? 'Change photo' : 'Choose photo'}
                 </button>

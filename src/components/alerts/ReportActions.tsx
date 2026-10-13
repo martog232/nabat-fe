@@ -40,8 +40,8 @@ export function ReportActions({ alert }: Props) {
 
   const toneClass = {
     primary: 'border-brand-500/40 bg-brand-500/10 text-brand-400 hover:border-brand-500/70 hover:bg-brand-500/15',
-    plain: 'border-surface-border bg-surface-elevated text-slate-700 dark:text-slate-200 hover:bg-surface-hover',
-    danger: 'border-rose-500/30 bg-rose-500/5 text-rose-500 dark:text-rose-400 hover:border-rose-500/60',
+    plain: 'border-surface-border bg-surface-elevated text-slate-700 hover:bg-surface-hover',
+    danger: 'border-rose-500/30 bg-rose-500/5 text-rose-500 hover:border-rose-500/60',
   }
 
   return (

@@ -37,10 +37,10 @@ export function AlertCard({ alert }: AlertCardProps) {
         <div className="text-2xl flex-shrink-0 mt-0.5">{ALERT_TYPE_ICONS[alert.type]}</div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2 mb-0.5">
-            <span className="font-semibold text-sm text-slate-900 dark:text-slate-200 truncate">{alert.title}</span>
+            <span className="font-semibold text-sm text-slate-900 truncate">{alert.title}</span>
             <span className="text-xs text-slate-500 whitespace-nowrap">{timeAgo(alert.createdAt)}</span>
           </div>
-          <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-2 mb-1.5">{alert.description}</p>
+          <p className="text-xs text-slate-600 line-clamp-2 mb-1.5">{alert.description}</p>
           <div className="flex items-center gap-2">
             <span className="text-xs text-slate-500">{ALERT_TYPE_LABELS[alert.type]}</span>
             <StatusBadge status={alert.status} />

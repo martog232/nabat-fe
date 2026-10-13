@@ -12,19 +12,6 @@
   --surface-border: 203 213 225;
   --text-primary: 15 23 42;
   --text-muted: 71 85 105;
-  --leaflet-filter: none;
-}
-
-:root.dark,
-:root[data-theme='dark'] {
-  --surface-bg: 15 17 23;
-  --surface-card: 22 27 39;
-  --surface-elevated: 30 37 53;
-  --surface-hover: 42 51 71;
-  --surface-border: 42 51 71;
-  --text-primary: 226 232 240;
-  --text-muted: 148 163 184;
-  --leaflet-filter: brightness(0.75) saturate(0.8);
 }
 
 /* Leaflet overrides */
@@ -32,7 +19,6 @@
   background: rgb(var(--surface-bg));
   font-family: 'Inter', sans-serif;
 }
-.leaflet-tile-pane { filter: var(--leaflet-filter); }
 .leaflet-control-attribution { display: none; }
 .leaflet-control-zoom { display: none !important; }
 .leaflet-popup-content-wrapper {
@@ -43,15 +29,6 @@
   box-shadow: 0 20px 40px rgba(0,0,0,0.5);
 }
 .leaflet-popup-tip { background: rgb(var(--surface-card)); }
-
-/* Fix @tailwindcss/forms overriding dark-mode input backgrounds */
-.dark input:not([type='checkbox']):not([type='radio']):not([type='range']),
-.dark textarea,
-.dark select {
-  background-color: rgb(var(--surface-elevated)) !important;
-  color: rgb(var(--text-primary)) !important;
-  border-color: rgb(var(--surface-border)) !important;
-}
 
 /* Custom scrollbar */
 ::-webkit-scrollbar { width: 4px; }

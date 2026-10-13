@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ThemeToggle } from '../components/common/ThemeToggle'
 import { useIsDesktop, useMediaQuery } from '../hooks/useMediaQuery'
 
 /**
@@ -35,7 +34,6 @@ export function LandingPage() {
           </div>
 
           <div className="flex items-center gap-1 sm:gap-2">
-            <ThemeToggle className="text-white/80 hover:text-white" />
             <Link
               to="/login"
               className="rounded-lg px-3 py-2 text-sm font-medium text-white/90 transition-colors hover:bg-white/10"
@@ -134,7 +132,7 @@ export function LandingPage() {
         </section>
 
         <section className="pb-16 sm:pb-24">
-          <h2 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl dark:text-white">
+          <h2 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
             How it works
           </h2>
 
@@ -158,10 +156,10 @@ export function LandingPage() {
         </section>
 
         <section className="mb-16 rounded-3xl border border-surface-border bg-surface-card px-6 py-12 text-center shadow-sm sm:mb-24 sm:px-12">
-          <h2 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl dark:text-white">
+          <h2 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
             Start with the street you live on.
           </h2>
-          <p className="mx-auto mt-3 max-w-xl text-slate-600 dark:text-slate-400">
+          <p className="mx-auto mt-3 max-w-xl text-slate-600">
             An account takes an email and a password. You choose your radius afterwards, and you can
             change it whenever you like.
           </p>
@@ -175,13 +173,13 @@ export function LandingPage() {
       </main>
 
       <footer className="border-t border-surface-border">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-4 py-8 pb-[calc(2rem+env(safe-area-inset-bottom))] text-sm text-slate-500 sm:flex-row sm:px-8 dark:text-slate-400">
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-4 py-8 pb-[calc(2rem+env(safe-area-inset-bottom))] text-sm text-slate-500 sm:flex-row sm:px-8">
           <span>Nabat — reports about Sofia, and what became of them</span>
           <span className="flex items-center gap-4">
-            <Link to="/login" className="transition-colors hover:text-slate-800 dark:hover:text-slate-200">
+            <Link to="/login" className="transition-colors hover:text-slate-800">
               Sign in
             </Link>
-            <Link to="/register" className="transition-colors hover:text-slate-800 dark:hover:text-slate-200">
+            <Link to="/register" className="transition-colors hover:text-slate-800">
               Create an account
             </Link>
           </span>
@@ -200,13 +198,13 @@ interface FeatureProps {
 function Feature({ title, body, icon }: FeatureProps) {
   return (
     <div className="rounded-2xl border border-surface-border bg-surface-card p-6 shadow-sm">
-      <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-brand-600/10 text-brand-600 dark:text-brand-400">
+      <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-brand-600/10 text-brand-600">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-6 w-6" aria-hidden>
           {icon}
         </svg>
       </div>
-      <h3 className="text-base font-semibold text-slate-900 dark:text-white">{title}</h3>
-      <p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-400">{body}</p>
+      <h3 className="text-base font-semibold text-slate-900">{title}</h3>
+      <p className="mt-2 text-sm leading-relaxed text-slate-600">{body}</p>
     </div>
   )
 }
@@ -214,11 +212,11 @@ function Feature({ title, body, icon }: FeatureProps) {
 function Step({ number, title, body }: { number: number; title: string; body: string }) {
   return (
     <li className="relative">
-      <span className="flex h-9 w-9 items-center justify-center rounded-full border border-surface-border bg-surface-elevated text-sm font-semibold text-brand-600 dark:text-brand-400">
+      <span className="flex h-9 w-9 items-center justify-center rounded-full border border-surface-border bg-surface-elevated text-sm font-semibold text-brand-600">
         {number}
       </span>
-      <h3 className="mt-4 text-base font-semibold text-slate-900 dark:text-white">{title}</h3>
-      <p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-400">{body}</p>
+      <h3 className="mt-4 text-base font-semibold text-slate-900">{title}</h3>
+      <p className="mt-2 text-sm leading-relaxed text-slate-600">{body}</p>
     </li>
   )
 }

@@ -50,11 +50,10 @@ src/
     LoginPage.tsx     # /login
     RegisterPage.tsx  # /register
     MapPage.tsx       # /map      (ProtectedRoute)
-    SettingsPage.tsx  # /settings (ProtectedRoute) — radius, theme, sign out
+    SettingsPage.tsx  # /settings (ProtectedRoute) — account, district, sign out
   store/
     alertStore.ts   # Zustand — UI-only: selectedAlertId, mapCenter, mapZoom, radiusKm, user location, wsConnected
     authStore.ts    # Zustand — current user, tokens, login/logout actions
-    themeStore.ts   # Zustand — dark/light mode
     toastStore.ts   # Zustand — toast notifications queue
   types/
     index.ts        # All shared TypeScript types (mirrors backend DTOs exactly)

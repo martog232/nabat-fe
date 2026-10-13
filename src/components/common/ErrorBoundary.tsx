@@ -34,11 +34,11 @@ export class ErrorBoundary extends Component<Props, State> {
               <span className="text-3xl">⚡</span>
             </div>
 
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+            <h2 className="text-lg font-bold text-slate-900">
               Something went wrong
             </h2>
 
-            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+            <p className="text-sm text-slate-600 leading-relaxed">
               The application encountered an unexpected error.
               Please try reloading the page.
             </p>
