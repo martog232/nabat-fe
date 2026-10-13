@@ -4,6 +4,25 @@
  */
 
 export interface paths {
+    "/api/v1/alerts/{id}/fix-check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** What people say about whether a resolved report is really fixed, and what you said */
+        get: operations["view"];
+        /** Say whether a resolved report is really fixed */
+        put: operations["check"];
+        post?: never;
+        /** Take back your answer */
+        delete: operations["withdraw"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/ws/tickets": {
         parameters: {
             query?: never;
@@ -528,6 +547,54 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** @description An answer to: is it really fixed? */
+        FixCheckRequest: {
+            /**
+             * @description FIXED, PARTLY or NOT_FIXED
+             * @example NOT_FIXED
+             * @enum {string}
+             */
+            verdict: "FIXED" | "PARTLY" | "NOT_FIXED";
+        };
+        /** @description The answers on a report, with the caller's own */
+        FixCheckResponse: {
+            /** @description The tally and what it adds up to */
+            summary?: components["schemas"]["FixCheckSummary"];
+            /**
+             * @description The caller's own answer; null if they have not given one
+             * @enum {string}
+             */
+            mine?: "FIXED" | "PARTLY" | "NOT_FIXED";
+        };
+        /** @description What people say about whether a resolved report is really fixed */
+        FixCheckSummary: {
+            /**
+             * Format: int32
+             * @description Answers saying it is fixed
+             */
+            fixed?: number;
+            /**
+             * Format: int32
+             * @description Answers saying it is partly fixed
+             */
+            partly?: number;
+            /**
+             * Format: int32
+             * @description Answers saying it is not fixed
+             */
+            notFixed?: number;
+            /**
+             * @description The reporter's own answer; null if they have not given one
+             * @enum {string}
+             */
+            reporterVerdict?: "FIXED" | "PARTLY" | "NOT_FIXED";
+            /**
+             * @description What the answers add up to. DISPUTED if the reporter says not fixed, or more say not than say fixed
+             * @example CONFIRMED
+             * @enum {string}
+             */
+            outcome?: "UNCHECKED" | "CONFIRMED" | "DISPUTED" | "MIXED";
+        };
         WebSocketTicketResponse: {
             ticket?: string;
             /** Format: date-time */
@@ -795,6 +862,8 @@ export interface components {
              * @enum {string}
              */
             closedBy?: "DISTRICT" | "REPORTER" | "MODERATOR";
+            /** @description Whether people say a resolved report is really fixed. All zero and UNCHECKED on reports nobody has checked */
+            fixCheck?: components["schemas"]["FixCheckSummary"];
         };
         /** @description Request body for casting a vote on an alert */
         VoteRequest: {
@@ -1004,6 +1073,76 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    view: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FixCheckResponse"];
+                };
+            };
+        };
+    };
+    check: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FixCheckRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FixCheckResponse"];
+                };
+            };
+        };
+    };
+    withdraw: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FixCheckResponse"];
+                };
+            };
+        };
+    };
     issueTicket: {
         parameters: {
             query?: never;

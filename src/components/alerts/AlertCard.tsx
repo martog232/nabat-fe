@@ -1,6 +1,7 @@
 import type { Alert } from '../../types'
 import { groupIcon } from '../../types'
 import { StatusBadge } from '../common/Badge'
+import { FixOutcomeBadge } from './FixOutcomeBadge'
 import { useAlertStore } from '../../store/alertStore'
 import { useResolvedCategory } from '../../hooks/useCategories'
 
@@ -46,6 +47,7 @@ export function AlertCard({ alert }: AlertCardProps) {
           <div className="flex items-center gap-2">
             {resolved && <span className="text-xs text-slate-500">{resolved.category.name}</span>}
             <StatusBadge status={alert.status} />
+            <FixOutcomeBadge alert={alert} />
           </div>
         </div>
       </div>

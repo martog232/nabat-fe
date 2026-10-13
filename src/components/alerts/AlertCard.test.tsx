@@ -6,6 +6,7 @@ import type { ReactElement } from 'react'
 import { AlertCard } from './AlertCard'
 import { useAlertStore } from '../../store/alertStore'
 import type { Alert } from '../../types'
+import { UNCHECKED_FIX } from '../../types'
 import { queryClientWithCategories } from '../../test/categories'
 
 const render = (ui: ReactElement) =>
@@ -30,6 +31,7 @@ const baseAlert: Alert = {
   resolvedAt: null,
   districtCode: 'LOZENETS',
   closedBy: null,
+  fixCheck: UNCHECKED_FIX,
 }
 
 beforeEach(() => {

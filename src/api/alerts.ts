@@ -31,6 +31,10 @@ export const alertsApi = {
       .get<NearbyAlertsResponse>('/alerts/nearby', { params: { latitude: lat, longitude: lng, radiusKm, since } })
       .then((r) => r.data.alerts),
 
+  /** One report, in any status. The map's list holds only open ones. */
+  getById: (id: string) =>
+    apiClient.get<Alert>(`/alerts/${id}`).then((r) => r.data),
+
   create: (data: CreateAlertRequest) =>
     apiClient.post<Alert>('/alerts', data).then((r) => r.data),
 

@@ -86,6 +86,41 @@ export interface Alert {
   districtCode: string | null
   /** Who closed it; null while open. "The district says fixed" is not "the reporter says so". */
   closedBy: ClosedBy | null
+  /** Whether people say a resolved report is really fixed. Always present; UNCHECKED until someone answers. */
+  fixCheck: FixCheckSummary
+}
+
+/** One person's answer to "is it really fixed?". */
+export type FixVerdict = 'FIXED' | 'PARTLY' | 'NOT_FIXED'
+
+/**
+ * What the answers add up to — computed by the server, never here. DISPUTED when the reporter
+ * says not fixed, or more say not than say fixed; CONFIRMED when every answer is "fixed".
+ */
+export type FixOutcome = 'UNCHECKED' | 'CONFIRMED' | 'DISPUTED' | 'MIXED'
+
+export interface FixCheckSummary {
+  fixed: number
+  partly: number
+  notFixed: number
+  /** The reporter's own answer, which weighs most; null if they have not given one. */
+  reporterVerdict: FixVerdict | null
+  outcome: FixOutcome
+}
+
+export interface FixCheckResponse {
+  summary: FixCheckSummary
+  /** The caller's own answer; null if they have not given one. */
+  mine: FixVerdict | null
+}
+
+/** A report nobody has checked — what a report carries until someone answers. */
+export const UNCHECKED_FIX: FixCheckSummary = {
+  fixed: 0,
+  partly: 0,
+  notFixed: 0,
+  reporterVerdict: null,
+  outcome: 'UNCHECKED',
 }
 
 /** A subcategory a report can be filed under, with examples a citizen would recognise. */
@@ -374,6 +409,27 @@ export const CLOSED_BY_LABELS: Record<ClosedBy, string> = {
   DISTRICT: 'от района',
   REPORTER: 'от подателя',
   MODERATOR: 'от модератор',
+}
+
+export const FIX_VERDICT_LABELS: Record<FixVerdict, string> = {
+  FIXED: 'Оправено е',
+  PARTLY: 'Частично',
+  NOT_FIXED: 'Не е оправено',
+}
+
+export const FIX_OUTCOME_LABELS: Record<FixOutcome, string> = {
+  UNCHECKED: 'Непроверен',
+  CONFIRMED: 'Потвърдено оправен',
+  DISPUTED: 'Оспорен — не е оправен',
+  MIXED: 'Разнопосочни мнения',
+}
+
+/** Disputed warns, confirmed reassures, mixed stays neutral. */
+export const FIX_OUTCOME_COLORS: Record<FixOutcome, string> = {
+  UNCHECKED: 'text-slate-500 bg-slate-400/10 border-slate-400/30',
+  CONFIRMED: 'text-green-700 bg-green-500/10 border-green-500/30',
+  DISPUTED: 'text-amber-700 bg-amber-500/10 border-amber-500/40',
+  MIXED: 'text-slate-600 bg-slate-400/10 border-slate-400/30',
 }
 
 export const RANKING_LABELS: Record<ReportRanking, string> = {

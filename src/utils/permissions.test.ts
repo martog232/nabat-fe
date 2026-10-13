@@ -8,6 +8,7 @@ import {
   canResolveAlert,
 } from './permissions'
 import type { Alert, User } from '../types'
+import { UNCHECKED_FIX } from '../types'
 
 const user = (id: string, role: User['role']): User => ({
   id,
@@ -36,6 +37,7 @@ const alert = (reportedBy: string, status: Alert['status'] = 'SUBMITTED'): Alert
   resolvedAt: status === 'RESOLVED' ? '2026-08-21T06:00:00Z' : null,
   districtCode: 'LOZENETS',
   closedBy: null,
+  fixCheck: UNCHECKED_FIX,
 })
 
 describe('capabilities', () => {

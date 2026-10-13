@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useVote } from './useVotes'
 import { votesApi } from '../api/votes'
 import type { Alert, VoteReceipt } from '../types'
+import { UNCHECKED_FIX } from '../types'
 
 /**
  * A vote answers with the authoritative tallies, so the caches are written from the
@@ -35,6 +36,7 @@ const alert: Alert = {
   resolvedAt: null,
   districtCode: 'LOZENETS',
   closedBy: null,
+  fixCheck: UNCHECKED_FIX,
 }
 
 const receipt: VoteReceipt = {

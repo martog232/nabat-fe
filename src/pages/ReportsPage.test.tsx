@@ -9,6 +9,7 @@ import { districtsApi } from '../api/districts'
 import { categoriesApi } from '../api/categories'
 import { useAuthStore } from '../store/authStore'
 import type { Alert } from '../types'
+import { UNCHECKED_FIX } from '../types'
 import { TEST_CATEGORIES } from '../test/categories'
 
 vi.mock('../api/alerts', () => ({ alertsApi: { listRanked: vi.fn() } }))
@@ -36,6 +37,7 @@ const report = (over: Partial<Alert>): Alert => ({
   resolvedAt: null,
   districtCode: 'LOZENETS',
   closedBy: null,
+  fixCheck: UNCHECKED_FIX,
   ...over,
 })
 

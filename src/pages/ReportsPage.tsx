@@ -4,6 +4,8 @@ import { useRankedReports } from '../hooks/useAlerts'
 import { useDistricts, useDistrictNames } from '../hooks/useDistricts'
 import { useAuthStore } from '../store/authStore'
 import { StatusBadge } from '../components/common/Badge'
+import { FixOutcomeBadge } from '../components/alerts/FixOutcomeBadge'
+import { FixCheckPanel } from '../components/alerts/FixCheckPanel'
 import type { Alert, AlertStatus, ReportRanking } from '../types'
 import {
   CLOSED_BY_LABELS,
@@ -55,6 +57,7 @@ export function ReportsPage() {
   const [district, setDistrict] = useState('')
   const [stateFilter, setStateFilter] = useState(0)
   const [page, setPage] = useState(0)
+  const [checking, setChecking] = useState<string | null>(null)
 
   const { data: districts = [] } = useDistricts()
   const districtNames = useDistrictNames()
@@ -147,7 +150,10 @@ export function ReportsPage() {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
                     <p className="truncate font-semibold text-slate-900">{r.title}</p>
-                    <StatusBadge status={r.status} />
+                    <div className="flex flex-shrink-0 items-center gap-1">
+                      <FixOutcomeBadge alert={r} />
+                      <StatusBadge status={r.status} />
+                    </div>
                   </div>
                   <p className="mt-1 line-clamp-2 text-sm text-slate-700">{r.description}</p>
                   <p className="mt-2 text-xs text-slate-500">
@@ -157,6 +163,23 @@ export function ReportsPage() {
                     {` · подкрепа: ${Math.max(0, r.confirmationCount + r.upvoteCount - r.downvoteCount)}`}
                     {r.closedBy && ` · затворен ${CLOSED_BY_LABELS[r.closedBy]}`}
                   </p>
+                  {/* A resolved report is where the district's word gets checked. Opened per
+                      row, so a page of 25 does not ask the server 25 times. */}
+                  {r.status === 'RESOLVED' && (
+                    <div className="mt-3">
+                      {checking === r.id ? (
+                        <FixCheckPanel alert={r} />
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setChecking(r.id)}
+                          className="text-xs font-medium text-brand-600 hover:underline"
+                        >
+                          Наистина ли е оправено?
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             </li>

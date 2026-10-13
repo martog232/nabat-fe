@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { ReportActions } from './ReportActions'
 import { useAuthStore } from '../../store/authStore'
 import type { Alert, User } from '../../types'
+import { UNCHECKED_FIX } from '../../types'
 
 const actionMutate = vi.fn()
 const resolveMutate = vi.fn()
@@ -30,6 +31,7 @@ const report: Alert = {
   resolvedAt: null,
   districtCode: 'LOZENETS',
   closedBy: null,
+  fixCheck: UNCHECKED_FIX,
 }
 
 const account = (id: string, role: User['role'], districtCode: string | null = null): User => ({

@@ -1,6 +1,6 @@
 import { useAlertStore } from '../../store/alertStore'
 import { useVoteData, useVote, useRemoveVote } from '../../hooks/useVotes'
-import { useNearbyAlerts } from '../../hooks/useAlerts'
+import { useAlert, useNearbyAlerts } from '../../hooks/useAlerts'
 import { useAuthStore } from '../../store/authStore'
 import { CLOSED_BY_LABELS, groupIcon } from '../../types'
 import { StatusBadge } from '../common/Badge'
@@ -9,6 +9,7 @@ import { useCategoryIndex } from '../../hooks/useCategories'
 import { resolveCategory } from '../../utils/categories'
 import type { VoteType } from '../../types'
 import { ReportActions } from './ReportActions'
+import { FixCheckPanel } from './FixCheckPanel'
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleString('bg-BG', {
@@ -20,7 +21,11 @@ export function AlertDetail() {
   const selectedAlertId = useAlertStore((s) => s.selectedAlertId)
   const selectAlert = useAlertStore((s) => s.selectAlert)
   const { data: alerts = [] } = useNearbyAlerts()
-  const selectedAlert = alerts.find((a) => a.id === selectedAlertId) ?? null
+  const inList = alerts.find((a) => a.id === selectedAlertId) ?? null
+  // The map's list holds open reports only. A resolved one — opened from the notification
+  // asking whether it is really fixed — is fetched on its own.
+  const { data: fetched } = useAlert(selectedAlertId, !!selectedAlertId && !inList)
+  const selectedAlert = inList ?? (fetched?.id === selectedAlertId ? fetched : null)
   const user = useAuthStore((s) => s.user)
   const districtNames = useDistrictNames()
   const categoryIndex = useCategoryIndex()
@@ -114,6 +119,9 @@ export function AlertDetail() {
               Отхвърлен{a.closedBy ? ' ' + CLOSED_BY_LABELS[a.closedBy] : ''}
             </div>
           )}
+
+          {/* "Is it really fixed?" — only on a resolved report. */}
+          <FixCheckPanel alert={a} />
 
           {/* What this user may do to move the report along — the district's steps, and
               "fixed" for whoever may say so. Renders nothing for everyone else. */}

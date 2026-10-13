@@ -7,6 +7,7 @@ import { useAlertStore } from '../../store/alertStore'
 import { useAuthStore } from '../../store/authStore'
 import { votesApi } from '../../api/votes'
 import type { Alert, User, VoteReceipt } from '../../types'
+import { UNCHECKED_FIX } from '../../types'
 
 /**
  * What these pin down is timing, not markup: a vote is applied to the cache on the click
@@ -33,6 +34,7 @@ const alert: Alert = {
   resolvedAt: null,
   districtCode: 'LOZENETS',
   closedBy: null,
+  fixCheck: UNCHECKED_FIX,
 }
 
 const user: User = {
@@ -47,6 +49,8 @@ const user: User = {
 
 vi.mock('../../hooks/useAlerts', () => ({
   useNearbyAlerts: () => ({ data: [alert] }),
+  // The report is on the map in these tests, so nothing is fetched on its own.
+  useAlert: () => ({ data: undefined }),
   useResolveAlert: () => ({ mutate: vi.fn(), isPending: false }),
   useReportAction: () => ({ mutate: vi.fn(), isPending: false }),
 }))

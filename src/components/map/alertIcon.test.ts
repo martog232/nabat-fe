@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { createAlertIcon } from './alertIcon'
 import type { Alert } from '../../types'
+import { UNCHECKED_FIX } from '../../types'
 
 const baseAlert: Alert = {
   id: 'alert-1',
@@ -19,6 +20,7 @@ const baseAlert: Alert = {
   resolvedAt: null,
   districtCode: 'LOZENETS',
   closedBy: null,
+  fixCheck: UNCHECKED_FIX,
 }
 
 function htmlOf(isSelected: boolean) {

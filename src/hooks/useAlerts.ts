@@ -46,6 +46,18 @@ export function useNearbyAlerts() {
   })
 }
 
+/**
+ * One report by id, for when it is not on the map — a resolved report opened from its
+ * notification, say. The map's list holds open reports only, so without this the detail card
+ * of a resolved report would have nothing to show. Asked only when `enabled`.
+ */
+export function useAlert(id: string | null, enabled: boolean) {
+  return useQuery({
+    queryKey: ['alerts', 'one', id],
+    queryFn: () => alertsApi.getById(id as string),
+    enabled: enabled && !!id,
+  })
+}
 export function useCreateAlert() {
   const qc = useQueryClient()
   return useMutation({

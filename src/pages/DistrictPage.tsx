@@ -5,6 +5,7 @@ import { useDistrictNames } from '../hooks/useDistricts'
 import { useAuthStore } from '../store/authStore'
 import { ReportActions } from '../components/alerts/ReportActions'
 import { StatusBadge } from '../components/common/Badge'
+import { FixOutcomeBadge } from '../components/alerts/FixOutcomeBadge'
 import type { AlertStatus } from '../types'
 import { groupIcon, OPEN_STATUSES } from '../types'
 import { useCategoryIndex } from '../hooks/useCategories'
@@ -95,7 +96,10 @@ export function DistrictPage() {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
                     <p className="truncate font-semibold text-slate-900">{r.title}</p>
-                    <StatusBadge status={r.status} />
+                    <div className="flex flex-shrink-0 items-center gap-1">
+                      <FixOutcomeBadge alert={r} />
+                      <StatusBadge status={r.status} />
+                    </div>
                   </div>
                   <p className="mt-1 text-sm text-slate-700">{r.description}</p>
                   <p className="mt-2 text-xs text-slate-500">

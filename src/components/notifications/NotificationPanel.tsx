@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useAlertStore } from '../../store/alertStore'
 import { useNotifications, useMarkAsRead, useMarkAllAsRead } from '../../hooks/useNotifications'
 import type { Notification, NotificationType } from '../../types'
@@ -29,6 +30,8 @@ function timeAgo(iso: string): string {
 function NotificationItem({ notification }: { notification: Notification }) {
   const selectAlert = useAlertStore((s) => s.selectAlert)
   const markAsRead = useMarkAsRead()
+  const navigate = useNavigate()
+  const { pathname } = useLocation()
 
   const handleClick = () => {
     if (!notification.read) {
@@ -36,6 +39,11 @@ function NotificationItem({ notification }: { notification: Notification }) {
     }
     if (notification.relatedAlertId) {
       selectAlert(notification.relatedAlertId)
+      // The report's detail is mounted on the map page only. From anywhere else, selecting
+      // it changed nothing visible — and "is it really fixed?" is asked from this click.
+      if (pathname !== '/map') {
+        navigate('/map')
+      }
     }
   }
 
