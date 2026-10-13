@@ -476,6 +476,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/alerts/similar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Open reports near a point in the same category group, in nabat and in Call Sofia */
+        get: operations["similar"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/alerts/ranked": {
         parameters: {
             query?: never;
@@ -1006,6 +1023,68 @@ export interface components {
              * @enum {string}
              */
             voteType?: "UPVOTE" | "DOWNVOTE" | "CONFIRM";
+        };
+        /** @description A report open in Call Sofia near the point */
+        SimilarCallSofiaReport: {
+            /**
+             * Format: int64
+             * @description Call Sofia's id
+             * @example 788076
+             */
+            id?: number;
+            /**
+             * @description The municipality's registry number
+             * @example СОА26-КЦ01-103731/13.09.2026
+             */
+            registryNumber?: string;
+            /** @description Title as filed */
+            title?: string;
+            /**
+             * Format: int32
+             * @description Category code — the same codes as nabat's
+             * @example 1007
+             */
+            categoryCode?: number;
+            /**
+             * Format: date-time
+             * @description When it was filed
+             */
+            submittedAt?: string;
+            /**
+             * Format: int32
+             * @description Metres from the point asked about
+             * @example 60
+             */
+            meters?: number;
+            /**
+             * @description Its page on call.sofia.bg
+             * @example https://call.sofia.bg/signals/788076
+             */
+            url?: string;
+        };
+        /** @description An open nabat report near the point */
+        SimilarReport: {
+            /** @description The report */
+            report?: components["schemas"]["AlertResponse"];
+            /**
+             * Format: int32
+             * @description Metres from the point asked about
+             * @example 35
+             */
+            meters?: number;
+        };
+        /** @description What might be the same problem, already reported */
+        SimilarReportsResponse: {
+            /**
+             * Format: int32
+             * @description How far around the point was searched
+             * @example 100
+             */
+            radiusMeters?: number;
+            /** @description Open nabat reports, nearest first */
+            reports?: components["schemas"]["SimilarReport"][];
+            /** @description Reports open in Call Sofia, nearest first; empty when Call Sofia's map is not being read */
+            callSofia?: components["schemas"]["SimilarCallSofiaReport"][];
         };
         /** @description One page of the public list of reports */
         RankedReportsResponse: {
@@ -1814,6 +1893,30 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["UserVoteResponse"];
+                };
+            };
+        };
+    };
+    similar: {
+        parameters: {
+            query: {
+                latitude: number;
+                longitude: number;
+                category: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SimilarReportsResponse"];
                 };
             };
         };

@@ -1,4 +1,12 @@
-import type { Alert, AlertStatus, CreateAlertRequest, NearbyAlertsResponse, RankedReportsResponse, ReportRanking } from '../types'
+import type {
+  Alert,
+  AlertStatus,
+  CreateAlertRequest,
+  NearbyAlertsResponse,
+  RankedReportsResponse,
+  ReportRanking,
+  SimilarReportsResponse,
+} from '../types'
 import { apiClient } from './client'
 
 export const alertsApi = {
@@ -30,6 +38,17 @@ export const alertsApi = {
     apiClient
       .get<NearbyAlertsResponse>('/alerts/nearby', { params: { latitude: lat, longitude: lng, radiusKm, since } })
       .then((r) => r.data.alerts),
+
+  /**
+   * Open reports within 100 m in the same category group as `categoryCode` (a subcategory),
+   * in nabat and in Call Sofia — asked by the report form before filing.
+   */
+  similar: (lat: number, lng: number, categoryCode: number) =>
+    apiClient
+      .get<SimilarReportsResponse>('/alerts/similar', {
+        params: { latitude: lat, longitude: lng, category: categoryCode },
+      })
+      .then((r) => r.data),
 
   /** One report, in any status. The map's list holds only open ones. */
   getById: (id: string) =>

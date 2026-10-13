@@ -8,6 +8,7 @@ import { Button } from '../common/Button'
 import { Input } from '../common/Input'
 import { LocationPicker } from '../common/LocationPicker'
 import { CategoryPicker } from './CategoryPicker'
+import { SimilarReportsPanel } from './SimilarReportsPanel'
 
 interface Props {
   onClose: () => void
@@ -41,6 +42,7 @@ export function CreateAlertModal({ onClose, prefillLat, prefillLng }: Props) {
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
   const [photoUploading, setPhotoUploading] = useState(false)
   const [photoError, setPhotoError] = useState<string | null>(null)
+  const [similarDismissed, setSimilarDismissed] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const overlayRef = useRef<HTMLDivElement>(null)
   /** URL of an already-uploaded photo, so a retry does not upload it twice. */
@@ -210,6 +212,8 @@ export function CreateAlertModal({ onClose, prefillLat, prefillLng }: Props) {
                 onChange={(code) => {
                   setForm((f) => ({ ...f, categoryCode: code }))
                   setErrors((e) => ({ ...e, categoryCode: undefined }))
+                  // "Mine is different" was said about the matches for the old category.
+                  setSimilarDismissed(false)
                 }}
                 error={errors.categoryCode}
             />
@@ -264,6 +268,16 @@ export function CreateAlertModal({ onClose, prefillLat, prefillLng }: Props) {
                   </div>
               )}
             </div>
+
+            {!similarDismissed && (
+              <SimilarReportsPanel
+                  latitude={form.latitude}
+                  longitude={form.longitude}
+                  categoryCode={form.categoryCode}
+                  onResolved={onClose}
+                  onDismiss={() => setSimilarDismissed(true)}
+              />
+            )}
 
             {mutation.isError && (
                 <p role="alert" className="text-sm text-red-400 bg-red-400/10 border border-red-400/30 rounded-lg px-3 py-2">

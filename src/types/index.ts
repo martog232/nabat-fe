@@ -171,6 +171,36 @@ export interface NearbyAlertsResponse {
   truncated: boolean
 }
 
+/** An open nabat report near the point asked about. */
+export interface SimilarReport {
+  report: Alert
+  /** Metres from the point, rounded. */
+  meters: number
+}
+
+/** A report open in Call Sofia near the point. Its category codes are the same as ours. */
+export interface SimilarCallSofiaReport {
+  id: number
+  registryNumber: string | null
+  title: string
+  categoryCode: number
+  submittedAt: string
+  meters: number
+  /** Its page on call.sofia.bg. */
+  url: string
+}
+
+/**
+ * "Is this already reported?" — open reports near a point in the same category group, in
+ * nabat and in Call Sofia, nearest first. Advice only: nothing refuses a report over it.
+ */
+export interface SimilarReportsResponse {
+  radiusMeters: number
+  reports: SimilarReport[]
+  /** Empty when the server is not reading Call Sofia's map. */
+  callSofia: SimilarCallSofiaReport[]
+}
+
 export interface VoteStats {
   upvotes: number
   downvotes: number
