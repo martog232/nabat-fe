@@ -11,6 +11,12 @@ import type { DistrictComparison, DistrictOutcomes } from '../types'
 
 vi.mock('../api/districtComparison', () => ({ districtComparisonApi: { get: vi.fn() } }))
 vi.mock('../api/districts', () => ({ districtsApi: { list: vi.fn() } }))
+// jsdom has no layout, so ApexCharts cannot draw there; what is checked is what the page asks it to draw.
+vi.mock('react-apexcharts', () => ({
+  default: (props: { type: string; series: unknown }) => (
+    <div data-testid="chart" data-type={props.type} data-series={JSON.stringify(props.series)} />
+  ),
+}))
 
 const comparison = vi.mocked(districtComparisonApi.get)
 const districts = vi.mocked(districtsApi.list)
@@ -121,5 +127,17 @@ describe('DistrictComparisonPage', () => {
 
     expect(await screen.findByText(/още не е внесен/)).toBeInTheDocument()
     expect(screen.queryByRole('table')).not.toBeInTheDocument()
+  })
+})
+
+describe('DistrictComparisonPage — charts', () => {
+  it('draws the deadline, the answer times and the endings', async () => {
+    renderPage()
+
+    const charts = await screen.findAllByTestId('chart')
+    expect(charts.map((c) => c.dataset.type)).toEqual(['bar', 'rangeBar', 'bar'])
+    expect(screen.getByRole('heading', { name: 'Отговорени до 30 дни' })).toBeInTheDocument()
+    // Лозенец 75% before Младост 25%; Банкя has no reports and no bar.
+    expect(JSON.parse(charts[0].dataset.series!)).toEqual([{ name: 'Отговорени до 30 дни', data: [75, 25] }])
   })
 })

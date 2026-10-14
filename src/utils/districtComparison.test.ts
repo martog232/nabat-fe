@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { buildRows, extremes, periodOptions } from './districtComparison'
+import { answerTimeChart, buildRows, extremes, outcomeChart, periodOptions, within30Chart } from './districtComparison'
 
 describe('district comparison', () => {
   it('leaves per-resident figures empty without a population', () => {
@@ -26,5 +26,32 @@ describe('district comparison', () => {
     expect(labels[1]).toMatch(/^2026 \(до /)
     expect(labels.at(-1)).toMatch(/^2021 \(от /)
     expect(labels).toContain('2024')
+  })
+})
+
+describe('district comparison charts', () => {
+  const districts = [
+    { code: 'A', name: 'Район Алфа', population: 1000 },
+    { code: 'B', name: 'Район Бета', population: 1000 },
+    { code: 'C', name: 'Район Гама', population: 1000 },
+  ]
+  const outcomes = [
+    { districtCode: 'A', signals: 10, answered: 8, medianDaysToAnswer: 4, p90DaysToAnswer: 30, dueIn30Days: 10, answeredIn30Days: 6, closed: 2, answeredOnly: 5, rejected: 1, stillOpen: 2 },
+    { districtCode: 'B', signals: 10, answered: 10, medianDaysToAnswer: 5, p90DaysToAnswer: 12, dueIn30Days: 0, answeredIn30Days: 0, closed: 4, answeredOnly: 5, rejected: 1, stillOpen: 0 },
+  ]
+  const rows = buildRows(districts, outcomes)
+
+  it('leaves out a district the deadline cannot judge, rather than drawing it as zero', () => {
+    expect(within30Chart(rows)).toEqual([{ name: 'Алфа', pct: 60 }])
+  })
+
+  it('orders answer times by the slow tail, not the median', () => {
+    expect(answerTimeChart(rows).map((p) => p.name)).toEqual(['Бета', 'Алфа'])
+  })
+
+  it('stacks counts per district with reports, fewest unanswered first', () => {
+    const chart = outcomeChart(districts, outcomes)
+    expect(chart.names).toEqual(['Бета', 'Алфа'])
+    expect(chart.series.find((s) => s.name === 'Без отговор')!.data).toEqual([0, 2])
   })
 })

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { lazy, Suspense, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuthStore } from '../store/authStore'
 import { useDistricts } from '../hooks/useDistricts'
@@ -7,11 +7,15 @@ import {
   buildRows,
   extremes,
   periodOptions,
+  shortName,
   sortRows,
   type ColumnKey,
   type ComparisonRow,
 } from '../utils/districtComparison'
 import type { ComparisonPeriod } from '../types'
+
+// Lazily, so ApexCharts is a chunk of its own that only this page downloads.
+const DistrictCharts = lazy(() => import('../components/districts/DistrictCharts'))
 
 interface Column {
   key: ColumnKey
@@ -176,6 +180,14 @@ export function DistrictComparisonPage() {
         )}
 
         {data && !noArchive && data.districts.length > 0 && (
+          <div className={`transition-opacity ${isFetching ? 'opacity-60' : ''}`}>
+            <Suspense fallback={<p className="mb-6 text-sm text-slate-600">Зареждане на графиките…</p>}>
+              <DistrictCharts rows={rows} districts={districts} outcomes={data.districts} />
+            </Suspense>
+          </div>
+        )}
+
+        {data && !noArchive && data.districts.length > 0 && (
           <div className={`overflow-x-auto rounded-2xl border border-surface-border bg-surface-card shadow-sm transition-opacity ${isFetching ? 'opacity-60' : ''}`}>
             <table className="min-w-full text-sm">
               <thead>
@@ -221,7 +233,7 @@ function Row({ row, marks }: { row: ComparisonRow; marks: Record<ColumnKey, Retu
   return (
     <tr className="border-b border-surface-border last:border-b-0">
       <th scope="row" className="sticky left-0 whitespace-nowrap bg-surface-card px-3 py-2 text-left font-medium text-slate-900">
-        {row.name.replace(/^Район /, '')}
+        {shortName(row.name)}
       </th>
       {COLUMNS.map((c) => {
         const value = row[c.key]
