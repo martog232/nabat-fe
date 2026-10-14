@@ -141,8 +141,15 @@ export interface CategoryGroup {
   categories: Category[]
 }
 
-/** One of Sofia's 24 districts, as `GET /api/v1/districts` lists them. */
-export type District = Required<components['schemas']['DistrictResponse']>
+/**
+ * One of Sofia's 24 districts, as `GET /api/v1/districts` lists them.
+ *
+ * `population` (an estimate, for per-resident ratios) stays optional: a district without one
+ * must still render, and only the comparison page reads it.
+ */
+export type District = Omit<Required<components['schemas']['DistrictResponse']>, 'population'> & {
+  population?: number
+}
 
 export type ReportRanking = NonNullable<components['schemas']['RankedReportsResponse']['ranking']>
 
@@ -466,4 +473,43 @@ export const RANKING_LABELS: Record<ReportRanking, string> = {
   HOT: 'Най-подкрепяни сега',
   LONGEST_WAITING: 'Чакат най-дълго',
   NEWEST: 'Най-нови',
+}
+
+// ─── District comparison (Call Sofia archive) ────────────────────────────────
+
+/**
+ * How one district handled the Call Sofia reports filed in it over a period, as
+ * `GET /api/v1/call-sofia/district-comparison` returns it. "Answered" is the first final
+ * word to the citizen — a reply, a closure or a rejection — not a fix.
+ */
+export interface DistrictOutcomes {
+  districtCode: string
+  signals: number
+  answered: number
+  /** Over answered reports only; null if none were. */
+  medianDaysToAnswer: number | null
+  p90DaysToAnswer: number | null
+  /** Reports filed at least 30 days before the archive ends — the only ones the deadline can judge. */
+  dueIn30Days: number
+  answeredIn30Days: number
+  closed: number
+  answeredOnly: number
+  rejected: number
+  stillOpen: number
+}
+
+export interface DistrictComparison {
+  /** Null when no archive has been imported. */
+  archiveFrom: string | null
+  archiveTo: string | null
+  from: string | null
+  /** Exclusive. */
+  to: string | null
+  districts: DistrictOutcomes[]
+}
+
+/** A period to compare over; both absent means the archive's last twelve months. */
+export interface ComparisonPeriod {
+  from?: string
+  to?: string
 }

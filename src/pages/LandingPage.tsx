@@ -88,6 +88,12 @@ export function LandingPage() {
             >
               Вижте подадените сигнали
             </Link>
+            <Link
+              to="/districts"
+              className="inline-flex items-center justify-center rounded-xl px-7 py-3.5 text-base font-semibold text-white/90 underline-offset-4 transition-colors hover:underline"
+            >
+              Как отговарят районите
+            </Link>
           </div>
         </section>
       </div>

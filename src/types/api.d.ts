@@ -412,6 +412,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/call-sofia/district-comparison": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Sofia's districts compared on how they answered Call Sofia reports, from the archive */
+        get: operations["compare"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/me": {
         parameters: {
             query?: never;
@@ -973,6 +990,12 @@ export interface components {
              * @example Район Лозенец
              */
             name?: string;
+            /**
+             * Format: int32
+             * @description Estimated residents, from Yurukov's Call Sofia archive (2022) — for per-resident ratios, not a census
+             * @example 53110
+             */
+            population?: number;
         };
         /** @description A group of report categories */
         CategoryGroupResponse: {
@@ -1013,6 +1036,95 @@ export interface components {
              * @example дупки, пропаднала настилка, шахти без капак
              */
             hint?: string;
+        };
+        /** @description Districts compared over a period of Call Sofia's archive */
+        DistrictComparisonResponse: {
+            /**
+             * Format: date
+             * @description First filing date in the archive; null if no archive is imported
+             * @example 2021-12-14
+             */
+            archiveFrom?: string;
+            /**
+             * Format: date
+             * @description Last filing date in the archive — everything is as of this day
+             * @example 2026-08-01
+             */
+            archiveTo?: string;
+            /**
+             * Format: date
+             * @description Start of the period, inclusive
+             * @example 2025-08-02
+             */
+            from?: string;
+            /**
+             * Format: date
+             * @description End of the period, exclusive
+             * @example 2026-08-02
+             */
+            to?: string;
+            /** @description One entry per district with reports in the period */
+            districts?: components["schemas"]["DistrictOutcomesResponse"][];
+        };
+        /** @description How one district handled its reports. "Answered" is the first final word to the citizen — a reply, a closure or a rejection — not a fix. */
+        DistrictOutcomesResponse: {
+            /**
+             * @description District code, as in GET /api/v1/districts
+             * @example LOZENETS
+             */
+            districtCode?: string;
+            /**
+             * Format: int32
+             * @description Reports filed in the period
+             */
+            signals?: number;
+            /**
+             * Format: int32
+             * @description Of those, answered at all
+             */
+            answered?: number;
+            /**
+             * Format: double
+             * @description Median days to the first answer, over answered reports; null if none
+             * @example 12.4
+             */
+            medianDaysToAnswer?: number;
+            /**
+             * Format: double
+             * @description Nine in ten answered reports were answered within this many days
+             * @example 41
+             */
+            p90DaysToAnswer?: number;
+            /**
+             * Format: int32
+             * @description Reports filed at least 30 days before the archive ends — the ones the 30-day deadline can be judged on
+             */
+            dueIn30Days?: number;
+            /**
+             * Format: int32
+             * @description Of those, answered within 30 days
+             */
+            answeredIn30Days?: number;
+            /**
+             * Format: int32
+             * @description Ended as „Приключен“
+             */
+            closed?: number;
+            /**
+             * Format: int32
+             * @description Ended as „Получил уведомление“ — a reply, and nothing after it
+             */
+            answeredOnly?: number;
+            /**
+             * Format: int32
+             * @description Ended as „Отхвърлен“
+             */
+            rejected?: number;
+            /**
+             * Format: int32
+             * @description No final answer when the archive was taken
+             */
+            stillOpen?: number;
         };
         /** @description Indicates whether the current user has voted on an alert */
         UserVoteResponse: {
@@ -1807,6 +1919,29 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["CategoryGroupResponse"][];
+                };
+            };
+        };
+    };
+    compare: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["DistrictComparisonResponse"];
                 };
             };
         };

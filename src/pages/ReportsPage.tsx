@@ -92,7 +92,10 @@ export function ReportsPage() {
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-slate-900">Сигнали в София</h1>
             <p className="text-sm text-slate-600">
-              Какво е подадено, до кого е изпратено и какво се е случило оттогава.
+              Какво е подадено, до кого е изпратено и какво се е случило оттогава.{' '}
+              <Link to="/districts" className="font-medium text-brand-600 hover:underline">
+                Как отговарят районите →
+              </Link>
             </p>
           </div>
           <Link

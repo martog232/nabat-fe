@@ -8,6 +8,7 @@ import { LandingPage } from './pages/LandingPage'
 import { AdminPage } from './pages/AdminPage'
 import { DistrictPage } from './pages/DistrictPage'
 import { ReportsPage } from './pages/ReportsPage'
+import { DistrictComparisonPage } from './pages/DistrictComparisonPage'
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
 import { PublicOnlyRoute } from './components/auth/PublicOnlyRoute'
 import { AdminRoute } from './components/auth/AdminRoute'
@@ -65,6 +66,8 @@ export default function App() {
               session. Signed in or not, anyone can see what has been reported and what the
               districts have done about it. */}
           <Route path="/reports" element={<ReportsPage />} />
+          {/* Public too: published data, about the district administrations. */}
+          <Route path="/districts" element={<DistrictComparisonPage />} />
           <Route
             path="/district"
             element={
