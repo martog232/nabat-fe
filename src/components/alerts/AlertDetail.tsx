@@ -10,6 +10,7 @@ import { resolveCategory } from '../../utils/categories'
 import type { VoteType } from '../../types'
 import { ReportActions } from './ReportActions'
 import { FixCheckPanel } from './FixCheckPanel'
+import { CommentThread } from './CommentThread'
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleString('bg-BG', {
@@ -198,6 +199,9 @@ export function AlertDetail() {
               <a href="/login" className="text-brand-400 hover:underline">Влезте</a>, за да гласувате
             </p>
           )}
+
+          {/* Last, under everything that changes the report: talking about it does not. */}
+          <CommentThread alert={a} />
         </div>
       </div>
     </div>

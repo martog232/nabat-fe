@@ -302,6 +302,7 @@ export type ErrorCode =
   | 'CONCURRENT_UPDATE'
   | 'OUTSIDE_SERVICE_AREA'
   | 'VOTE_ALREADY_CAST'
+  | 'COMMENTS_LOCKED'
   | 'EMAIL_ALREADY_REGISTERED'
   | 'UNSUPPORTED_FILE_TYPE'
   | 'FILE_TOO_LARGE'
@@ -333,6 +334,7 @@ export type NotificationType =
   | 'ALERT_CONFIRMED'
   | 'ALERT_MILESTONE'
   | 'ALERT_RESOLVED'
+  | 'COMMENT_ADDED'
 
 export interface Notification {
   id: string
@@ -513,3 +515,27 @@ export interface ComparisonPeriod {
   from?: string
   to?: string
 }
+
+// ─── Comments ────────────────────────────────────────────────────────────────
+
+export type CommentRemoval = NonNullable<components['schemas']['CommentResponse']['removedBy']>
+
+/**
+ * One comment in a report's thread, as `GET /api/v1/alerts/{id}/comments` returns it.
+ * `byDistrict` and `byReporter` are the author's standing when they wrote, not now.
+ */
+export interface Comment {
+  id: string
+  authorName: string
+  byDistrict: boolean
+  byReporter: boolean
+  /** Written by the signed-in user. */
+  mine: boolean
+  /** Null once taken down; the comment keeps its place so replies still read as replies. */
+  body: string | null
+  createdAt: string
+  removedBy: CommentRemoval | null
+}
+
+/** The server's limit; a longer comment is refused, not cut short. */
+export const COMMENT_MAX_LENGTH = 2000

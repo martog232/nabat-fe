@@ -199,6 +199,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/alerts/{id}/comments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A report's comments, oldest first */
+        get: operations["thread"];
+        put?: never;
+        /** Comment on an open report */
+        post: operations["add"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/alerts/{alertId}/votes": {
         parameters: {
             query?: never;
@@ -577,6 +595,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/alerts/{id}/comments/{commentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Take a comment down */
+        delete: operations["remove"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -651,7 +686,7 @@ export interface components {
              * @example VOTE
              * @enum {string}
              */
-            type?: "ALERT_UPVOTED" | "ALERT_DOWNVOTED" | "ALERT_CONFIRMED" | "ALERT_MILESTONE" | "ALERT_RESOLVED";
+            type?: "ALERT_UPVOTED" | "ALERT_DOWNVOTED" | "ALERT_CONFIRMED" | "ALERT_MILESTONE" | "ALERT_RESOLVED" | "COMMENT_ADDED";
             /**
              * @description Short notification title
              * @example New vote on your alert
@@ -898,6 +933,36 @@ export interface components {
             closedBy?: "DISTRICT" | "REPORTER" | "MODERATOR";
             /** @description Whether people say a resolved report is really fixed. All zero and UNCHECKED on reports nobody has checked */
             fixCheck?: components["schemas"]["FixCheckSummary"];
+        };
+        /** @description A comment to add */
+        CommentRequest: {
+            /**
+             * @description The text, 1 to 2000 characters
+             * @example Още е там, и е по-дълбока след дъжда.
+             */
+            body: string;
+        };
+        /** @description One comment in a report's thread */
+        CommentResponse: {
+            /** Format: uuid */
+            id?: string;
+            /** @description The author's display name when they wrote it */
+            authorName?: string;
+            /** @description Written by an official of the report's own district */
+            byDistrict?: boolean;
+            /** @description Written by the person who reported it */
+            byReporter?: boolean;
+            /** @description Written by the caller */
+            mine?: boolean;
+            /** @description The text; null once taken down */
+            body?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            /**
+             * @description Who took it down — AUTHOR or MODERATOR; null while it stands
+             * @enum {string}
+             */
+            removedBy?: "AUTHOR" | "MODERATOR";
         };
         /** @description Request body for casting a vote on an alert */
         VoteRequest: {
@@ -1611,6 +1676,54 @@ export interface operations {
             };
         };
     };
+    thread: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommentResponse"][];
+                };
+            };
+        };
+    };
+    add: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CommentRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommentResponse"];
+                };
+            };
+        };
+    };
     vote: {
         parameters: {
             query?: never;
@@ -2154,6 +2267,29 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["UserPageResponse"];
+                };
+            };
+        };
+    };
+    remove: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                commentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommentResponse"];
                 };
             };
         };

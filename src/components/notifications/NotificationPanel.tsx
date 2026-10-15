@@ -14,6 +14,7 @@ const NOTIFICATION_ICONS: Record<NotificationType, string> = {
   ALERT_CONFIRMED: '✅',
   ALERT_MILESTONE: '🏆',
   ALERT_RESOLVED: '🔒',
+  COMMENT_ADDED: '💬',
 }
 
 function timeAgo(iso: string): string {
