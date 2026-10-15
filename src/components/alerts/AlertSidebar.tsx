@@ -10,6 +10,7 @@ import { useCategoryIndex } from '../../hooks/useCategories'
 import { matchesCategory } from '../../utils/categories'
 import { RadiusSelector } from '../map/RadiusSelector'
 import { ROLE_LABELS } from '../../utils/permissions'
+import { SearchX, TriangleAlert } from 'lucide-react'
 
 /**
  * The alert list, in two shapes.
@@ -162,7 +163,7 @@ export function AlertSidebar() {
           */}
           {nearbyTruncated && (
             <p className="mt-2 flex items-start gap-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 px-2.5 py-1.5 text-xs text-amber-600">
-              <span aria-hidden="true">⚠</span>
+              <TriangleAlert className="mt-px h-3.5 w-3.5 flex-shrink-0" aria-hidden />
               <span>
                 Показани са първите {nearbyLimit}. Намалете радиуса или филтрирайте, за да видите останалите.
               </span>
@@ -181,7 +182,7 @@ export function AlertSidebar() {
             </div>
           ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-slate-600">
-              <span className="text-4xl mb-3">🔍</span>
+              <SearchX className="mb-3 h-10 w-10 text-slate-400" aria-hidden />
               <p className="text-sm font-medium">Няма сигнали в този район</p>
               <p className="text-xs mt-1">Преместете картата, за да разгледате други места</p>
             </div>

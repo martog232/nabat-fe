@@ -6,10 +6,10 @@ import { useAuthStore } from '../store/authStore'
 import { StatusBadge } from '../components/common/Badge'
 import { FixOutcomeBadge } from '../components/alerts/FixOutcomeBadge'
 import { FixCheckPanel } from '../components/alerts/FixCheckPanel'
+import { GroupIcon } from '../components/common/GroupIcon'
 import type { Alert, AlertStatus, ReportRanking } from '../types'
 import {
   CLOSED_BY_LABELS,
-  groupIcon,
   OPEN_STATUSES,
   RANKING_LABELS,
 } from '../types'
@@ -149,7 +149,7 @@ export function ReportsPage() {
           {reports.map((r) => (
             <li key={r.id} className="rounded-2xl border border-surface-border bg-surface-card p-4 shadow-sm">
               <div className="flex items-start gap-3">
-                <div className="text-2xl" aria-hidden>{groupIcon(resolveCategory(categoryIndex, r.categoryCode)?.group.code)}</div>
+                <GroupIcon code={resolveCategory(categoryIndex, r.categoryCode)?.group.code} className="h-6 w-6 flex-shrink-0 text-slate-500" />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
                     <p className="truncate font-semibold text-slate-900">{r.title}</p>

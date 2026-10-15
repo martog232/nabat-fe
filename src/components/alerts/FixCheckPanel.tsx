@@ -3,11 +3,12 @@ import { useAnswerFixCheck, useFixCheck } from '../../hooks/useFixCheck'
 import { actsForDistrictOf } from '../../utils/permissions'
 import type { Alert, FixCheckSummary, FixVerdict } from '../../types'
 import { FIX_OUTCOME_COLORS, FIX_OUTCOME_LABELS, FIX_VERDICT_LABELS, UNCHECKED_FIX } from '../../types'
+import { CircleCheck, CircleDot, CircleX, type LucideIcon } from 'lucide-react'
 
-const VERDICTS: { verdict: FixVerdict; emoji: string }[] = [
-  { verdict: 'FIXED', emoji: '✅' },
-  { verdict: 'PARTLY', emoji: '🟡' },
-  { verdict: 'NOT_FIXED', emoji: '❌' },
+const VERDICTS: { verdict: FixVerdict; icon: LucideIcon }[] = [
+  { verdict: 'FIXED', icon: CircleCheck },
+  { verdict: 'PARTLY', icon: CircleDot },
+  { verdict: 'NOT_FIXED', icon: CircleX },
 ]
 
 function tallyLine(s: FixCheckSummary): string {
@@ -58,7 +59,7 @@ export function FixCheckPanel({ alert }: { alert: Alert }) {
 
       {canAnswer && (
         <div className="grid grid-cols-3 gap-2" role="group" aria-label="Вашият отговор">
-          {VERDICTS.map(({ verdict, emoji }) => {
+          {VERDICTS.map(({ verdict, icon: Icon }) => {
             const active = mine === verdict
             return (
               <button
@@ -73,7 +74,7 @@ export function FixCheckPanel({ alert }: { alert: Alert }) {
                     : 'border-surface-border bg-surface-card text-slate-700 hover:border-brand-500/30'
                 }`}
               >
-                <span aria-hidden>{emoji}</span>
+                <Icon className="mb-0.5 h-4 w-4" aria-hidden />
                 {FIX_VERDICT_LABELS[verdict]}
               </button>
             )

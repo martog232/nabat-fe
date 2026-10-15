@@ -10,6 +10,7 @@ import { useAuthStore } from '../store/authStore'
 import { useAlertStore } from '../store/alertStore'
 import { Button } from '../components/common/Button'
 import { useGeolocation } from '../hooks/useGeolocation'
+import { Megaphone } from 'lucide-react'
 
 export function MapPage() {
   const user = useAuthStore((s) => s.user)
@@ -49,7 +50,7 @@ export function MapPage() {
             className="h-14 w-14 sm:h-auto sm:w-auto sm:px-5 sm:py-3 sm:text-sm justify-center shadow-2xl shadow-brand-600/40 rounded-full sm:rounded-2xl"
             size="icon"
           >
-            <span className="text-xl sm:text-lg">🚨</span>
+            <Megaphone className="h-6 w-6 sm:h-5 sm:w-5" aria-hidden />
             <span className="hidden sm:inline">Подай сигнал</span>
           </Button>
         </div>

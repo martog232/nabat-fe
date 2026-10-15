@@ -51,4 +51,14 @@ describe('createAlertIcon', () => {
     expect(htmlOf(false)).toContain('#94a3b822')
     expect(htmlOf(true)).toContain('#94a3b866')
   })
+
+  it('draws the group icon as SVG in the status colour, and a pin until the group is known', () => {
+    const bus = createAlertIcon(baseAlert, false, 1021).options.html as string
+    expect(bus).toContain('<svg')
+    expect(bus).toContain('d="M4 6 2 7"') // lucide's bus-front
+    expect(bus).toContain('stroke="#94a3b8"')
+
+    const unknown = createAlertIcon(baseAlert, false).options.html as string
+    expect(unknown).toContain('d="M20 10c0 4.993') // lucide's map-pin
+  })
 })

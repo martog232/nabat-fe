@@ -102,7 +102,7 @@ describe('AlertDetail voting', () => {
     mockedVotesApi.vote.mockReturnValue(new Promise<VoteReceipt>(() => {}))
     renderDetail()
 
-    const upvote = await screen.findByRole('button', { name: /👍 Подкрепям/ })
+    const upvote = await screen.findByRole('button', { name: /Подкрепям/ })
     expect(upvote).toHaveTextContent('5')
 
     await userEvent.click(upvote)
@@ -120,7 +120,7 @@ describe('AlertDetail voting', () => {
     mockedVotesApi.vote.mockReturnValue(new Promise<VoteReceipt>(() => {}))
     renderDetail()
 
-    const upvote = await screen.findByRole('button', { name: /👍 Подкрепям/ })
+    const upvote = await screen.findByRole('button', { name: /Подкрепям/ })
     await userEvent.click(upvote)
 
     expect(upvote.className).toContain('border-brand-500')
@@ -130,7 +130,7 @@ describe('AlertDetail voting', () => {
     mockedVotesApi.vote.mockRejectedValue(new Error('network down'))
     renderDetail()
 
-    const upvote = await screen.findByRole('button', { name: /👍 Подкрепям/ })
+    const upvote = await screen.findByRole('button', { name: /Подкрепям/ })
     await userEvent.click(upvote)
 
     await waitFor(() => expect(upvote).toHaveTextContent('5'))

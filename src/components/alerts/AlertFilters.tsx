@@ -1,5 +1,6 @@
 import type { AlertStatus } from '../../types'
-import { groupIcon, OPEN_STATUSES, STATUS_LABELS } from '../../types'
+import { OPEN_STATUSES, STATUS_LABELS } from '../../types'
+import { GroupIcon } from '../common/GroupIcon'
 import { useCategories } from '../../hooks/useCategories'
 
 export type StatusFilter = AlertStatus | 'ALL'
@@ -61,7 +62,7 @@ export function AlertFilters({ statusFilter, categoryFilter, onStatusChange, onC
           </button>
           {groups.map((g) => (
             <button key={g.code} onClick={() => onCategoryChange(g.code)} className={pill(categoryFilter === g.code)}>
-              <span aria-hidden>{groupIcon(g.code)}</span>
+              <GroupIcon code={g.code} className="h-4 w-4 flex-shrink-0" />
               <span className="whitespace-nowrap">{g.name}</span>
             </button>
           ))}

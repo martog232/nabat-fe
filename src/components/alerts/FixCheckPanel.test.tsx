@@ -64,7 +64,7 @@ describe('FixCheckPanel', () => {
     signIn(account('u1', 'USER'))
     render(<FixCheckPanel alert={resolved} />)
     expect(screen.getByText('Наистина ли е оправено?')).toBeInTheDocument()
-    expect(answers().map((b) => b.textContent)).toEqual(['✅Оправено е', '🟡Частично', '❌Не е оправено'])
+    expect(answers().map((b) => b.textContent)).toEqual(['Оправено е', 'Частично', 'Не е оправено'])
   })
 
   it('marks the answer already given', () => {

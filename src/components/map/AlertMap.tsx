@@ -5,6 +5,7 @@ import 'leaflet/dist/leaflet.css'
 import { useAlertStore } from '../../store/alertStore'
 import { useNearbyAlerts } from '../../hooks/useAlerts'
 import { AlertMarker } from './AlertMarker'
+import { Locate, LocateFixed } from 'lucide-react'
 
 function MapEventHandler() {
   const { setMapCenter, setMapZoom, setFollowUser } = useAlertStore()
@@ -130,7 +131,7 @@ export function AlertMap() {
         title={followUser ? 'Спри следването на местоположението' : 'Следвай местоположението ми'}
         aria-label={followUser ? 'Спри следването на местоположението' : 'Следвай местоположението ми'}
       >
-        {followUser ? '🎯' : '🗺️'}
+        {followUser ? <LocateFixed className="mx-auto h-5 w-5 text-brand-600" aria-hidden /> : <Locate className="mx-auto h-5 w-5" aria-hidden />}
       </button>
     </div>
   )

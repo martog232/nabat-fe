@@ -16,6 +16,8 @@ React 18 + TypeScript + Vite SPA. Real-time safety-alert map client for the Naba
 | HTTP client | Axios (`src/api/client.ts`) |
 | Map | Leaflet (via `react-leaflet`) |
 | Styling | Tailwind CSS |
+| Icons | Lucide — `lucide-react` for components, `lucide` for icon data where React cannot render (map markers) |
+| Charts | ApexCharts (`react-apexcharts`), loaded only by `/districts` |
 
 ---
 
@@ -125,7 +127,7 @@ The hook is the single owner of the WebSocket lifecycle and the sole data source
 - `useUnreadCount()` — polls every 30s for badge count (fallback beyond WS push).
 - `useMarkAsRead()` / `useMarkAllAsRead()` — optimistic updates with rollback.
 - Navbar bell icon displays unread count badge.
-- `NotificationPanel` dropdown shows type icons (👍/👎/✅/🏆/🔒), timestamps, click-to-select-alert.
+- `NotificationPanel` dropdown shows a Lucide icon per type, timestamps, click-to-select-alert.
 
 ### Photo upload (two-step)
 - `CreateAlertModal.tsx` — "Choose photo" button + image preview + size/type validation.
@@ -177,6 +179,7 @@ and this app.
 - **Hooks own side-effects** (WS, timers). Components read from stores and call API functions; they do not manage sockets directly.
 - **Types first.** When the backend contract changes, update `types/index.ts` first, then fix compile errors downstream.
 - **Error handling**: API errors from `GlobalExceptionHandler` arrive as `ErrorResponse` or `ValidationErrorResponse`. Surface them via `toastStore.addToast(...)`, not `console.error` or `alert`.
+- **Icons are Lucide, never emoji.** Emoji are drawn by the operating system — the same screen looked different on Windows, Android and iOS, could not take a colour, and screen readers read them out by their Unicode names. Import from `lucide-react` and size and colour with Tailwind (`h-4 w-4 text-slate-500`). An icon beside text is `aria-hidden`; an icon that is the whole button needs the button's `aria-label`. Category groups have one table, `utils/groupIcons.ts`, kept as `lucide` icon *data* so that `GroupIcon` (via lucide-react's `Icon`) and the map markers — HTML strings built inside a `useMemo`, where no component can be rendered — draw the same thing.
 - `buildWebSocketUrl(path, params)` in `api/client.ts` constructs the full WS URL from `VITE_API_BASE_URL`. Use it everywhere — never hardcode WebSocket URLs.
 
 ### Responsive layout

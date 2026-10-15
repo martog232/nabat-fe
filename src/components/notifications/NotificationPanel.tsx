@@ -3,18 +3,19 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { useAlertStore } from '../../store/alertStore'
 import { useNotifications, useMarkAsRead, useMarkAllAsRead } from '../../hooks/useNotifications'
 import type { Notification, NotificationType } from '../../types'
+import { BadgeCheck, Bell, Lock, MessageCircle, ThumbsDown, ThumbsUp, Trophy, type LucideIcon } from 'lucide-react'
 
 interface NotificationPanelProps {
   onClose: () => void
 }
 
-const NOTIFICATION_ICONS: Record<NotificationType, string> = {
-  ALERT_UPVOTED: '👍',
-  ALERT_DOWNVOTED: '👎',
-  ALERT_CONFIRMED: '✅',
-  ALERT_MILESTONE: '🏆',
-  ALERT_RESOLVED: '🔒',
-  COMMENT_ADDED: '💬',
+const NOTIFICATION_ICONS: Record<NotificationType, LucideIcon> = {
+  ALERT_UPVOTED: ThumbsUp,
+  ALERT_DOWNVOTED: ThumbsDown,
+  ALERT_CONFIRMED: BadgeCheck,
+  ALERT_MILESTONE: Trophy,
+  ALERT_RESOLVED: Lock,
+  COMMENT_ADDED: MessageCircle,
 }
 
 function timeAgo(iso: string): string {
@@ -48,6 +49,8 @@ function NotificationItem({ notification }: { notification: Notification }) {
     }
   }
 
+  const TypeIcon = NOTIFICATION_ICONS[notification.type] ?? Bell
+
   return (
     <button
       onClick={handleClick}
@@ -57,8 +60,8 @@ function NotificationItem({ notification }: { notification: Notification }) {
         hover:bg-surface-elevated/50
       `}
     >
-      <div className="text-lg flex-shrink-0 mt-0.5">
-        {NOTIFICATION_ICONS[notification.type]}
+      <div className="flex-shrink-0 mt-0.5 text-slate-500">
+        <TypeIcon className="h-5 w-5" aria-hidden />
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between gap-2">
@@ -136,7 +139,7 @@ export function NotificationPanel({ onClose }: NotificationPanelProps) {
           </div>
         ) : !notifications || notifications.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-10 px-4 text-center">
-            <span className="text-3xl mb-2">🔔</span>
+            <Bell className="mb-2 h-8 w-8 text-slate-400" aria-hidden />
             <p className="text-sm text-slate-500">
               Все още нямате известия
             </p>

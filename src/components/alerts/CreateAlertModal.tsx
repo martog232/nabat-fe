@@ -9,6 +9,7 @@ import { Input } from '../common/Input'
 import { LocationPicker } from '../common/LocationPicker'
 import { CategoryPicker } from './CategoryPicker'
 import { SimilarReportsPanel } from './SimilarReportsPanel'
+import { X } from 'lucide-react'
 
 interface Props {
   onClose: () => void
@@ -174,7 +175,7 @@ export function CreateAlertModal({ onClose, prefillLat, prefillLng }: Props) {
                 aria-label="Затвори"
                 className="-mr-2 w-11 h-11 sm:w-8 sm:h-8 flex items-center justify-center rounded-full text-slate-500 hover:text-slate-900 hover:bg-surface-elevated transition-colors text-lg"
             >
-              ✕
+              <X className="h-5 w-5" aria-hidden />
             </button>
           </div>
 

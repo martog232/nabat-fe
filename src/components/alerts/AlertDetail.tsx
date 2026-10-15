@@ -2,7 +2,8 @@ import { useAlertStore } from '../../store/alertStore'
 import { useVoteData, useVote, useRemoveVote } from '../../hooks/useVotes'
 import { useAlert, useNearbyAlerts } from '../../hooks/useAlerts'
 import { useAuthStore } from '../../store/authStore'
-import { CLOSED_BY_LABELS, groupIcon } from '../../types'
+import { CLOSED_BY_LABELS } from '../../types'
+import { GroupIcon } from '../common/GroupIcon'
 import { StatusBadge } from '../common/Badge'
 import { useDistrictNames } from '../../hooks/useDistricts'
 import { useCategoryIndex } from '../../hooks/useCategories'
@@ -11,6 +12,7 @@ import type { VoteType } from '../../types'
 import { ReportActions } from './ReportActions'
 import { FixCheckPanel } from './FixCheckPanel'
 import { CommentThread } from './CommentThread'
+import { BadgeCheck, CalendarDays, Landmark, ThumbsDown, ThumbsUp, X, type LucideIcon } from 'lucide-react'
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleString('bg-BG', {
@@ -78,11 +80,11 @@ export function AlertDetail() {
             aria-label="Затвори"
             className="absolute top-2 right-2 w-11 h-11 sm:top-3 sm:right-3 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-surface-elevated transition"
           >
-            ✕
+            <X className="h-4 w-4" aria-hidden />
           </button>
 
           <div className="flex items-start gap-3 pr-12 sm:pr-8">
-            <div className="text-3xl" aria-hidden>{groupIcon(category?.group.code)}</div>
+            <GroupIcon code={category?.group.code} className="h-8 w-8 flex-shrink-0 text-slate-600" />
             <div>
               <h3 className="font-bold text-slate-900 text-base leading-tight mb-1">{a.title}</h3>
               <div className="flex items-center gap-2">
@@ -102,9 +104,9 @@ export function AlertDetail() {
           <p className="text-sm text-slate-700 leading-relaxed">{a.description}</p>
 
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
-            <span>📅 {formatDate(a.createdAt)}</span>
+            <span className="inline-flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5" aria-hidden /> {formatDate(a.createdAt)}</span>
             {a.districtCode && (
-              <span>🏛️ {districtNames.get(a.districtCode) ?? a.districtCode}</span>
+              <span className="inline-flex items-center gap-1"><Landmark className="h-3.5 w-3.5" aria-hidden /> {districtNames.get(a.districtCode) ?? a.districtCode}</span>
             )}
           </div>
 
@@ -142,11 +144,11 @@ export function AlertDetail() {
             <div className="grid grid-cols-3 gap-2">
               {(
                 [
-                  { label: 'Подкрепям',    emoji: '👍', val: stats.upvotes,       type: 'UPVOTE'   },
-                  { label: 'Оспорвам',     emoji: '👎', val: stats.downvotes,     type: 'DOWNVOTE' },
-                  { label: 'Потвърждавам', emoji: '✅', val: stats.confirmations, type: 'CONFIRM'  },
-                ] as { label: string; emoji: string; val: number; type: VoteType }[]
-              ).map(({ label, emoji, val, type }) => {
+                  { label: 'Подкрепям',    icon: ThumbsUp, val: stats.upvotes,       type: 'UPVOTE'   },
+                  { label: 'Оспорвам',     icon: ThumbsDown, val: stats.downvotes,     type: 'DOWNVOTE' },
+                  { label: 'Потвърждавам', icon: BadgeCheck, val: stats.confirmations, type: 'CONFIRM'  },
+                ] as { label: string; icon: LucideIcon; val: number; type: VoteType }[]
+              ).map(({ label, icon: Icon, val, type }) => {
                 const isThisPending = pendingVoteType === type
                 const isRemoving    = removeVote.isPending && myVote?.voteType === type
                 // Read from the optimistic cache, so this does not wait for the server
@@ -176,8 +178,8 @@ export function AlertDetail() {
                     <span className="text-xs font-bold text-slate-900">
                       {val}
                     </span>
-                    <span className="text-xs text-slate-600">
-                      {emoji} {label}
+                    <span className="inline-flex items-center gap-1 text-xs text-slate-600">
+                      <Icon className="h-3.5 w-3.5" aria-hidden /> {label}
                     </span>
                   </button>
                 )

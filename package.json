@@ -20,6 +20,8 @@
     "apexcharts": "^8.2.0",
     "axios": "^1.7.7",
     "leaflet": "^1.9.4",
+    "lucide": "^1.57.0",
+    "lucide-react": "^1.57.0",
     "react": "^18.3.1",
     "react-apexcharts": "^2.1.1",
     "react-dom": "^18.3.1",

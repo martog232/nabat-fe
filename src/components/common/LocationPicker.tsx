@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { MapContainer, Marker, TileLayer, useMap, useMapEvents } from 'react-leaflet'
 import { divIcon, type LatLngExpression } from 'leaflet'
+import { MapPin, Search } from 'lucide-react'
 import 'leaflet/dist/leaflet.css'
 
 interface NominatimResult {
@@ -140,14 +141,14 @@ export function LocationPicker({ value, onChange }: Props) {
             onClick={() => setMode('address')}
             className={`px-3 py-1 rounded-md transition-colors cursor-pointer ${mode === 'address' ? 'bg-brand-500/20 text-brand-300' : 'text-slate-600 hover:text-slate-800'}`}
           >
-            🔎 Адрес
+            <Search className="mr-1 inline h-3.5 w-3.5 align-[-2px]" aria-hidden />Адрес
           </button>
           <button
             type="button"
             onClick={() => setMode('map')}
             className={`px-3 py-1 rounded-md transition-colors cursor-pointer ${mode === 'map' ? 'bg-brand-500/20 text-brand-300' : 'text-slate-600 hover:text-slate-800'}`}
           >
-            📍 Карта
+            <MapPin className="mr-1 inline h-3.5 w-3.5 align-[-2px]" aria-hidden />Карта
           </button>
         </div>
       </div>
@@ -211,7 +212,7 @@ export function LocationPicker({ value, onChange }: Props) {
       )}
 
       <p className="text-[11px] text-slate-600">
-        {value.address ? <span className="line-clamp-1">📌 {value.address}</span> : 'Изберете място, за да видите адреса му.'}
+        {value.address ? <span className="line-clamp-1"><MapPin className="mr-1 inline h-3 w-3 align-[-1px]" aria-hidden />{value.address}</span> : 'Изберете място, за да видите адреса му.'}
         <span className="ml-2 text-slate-700">
           ({value.latitude.toFixed(5)}, {value.longitude.toFixed(5)})
         </span>

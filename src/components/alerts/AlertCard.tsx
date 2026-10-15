@@ -1,5 +1,5 @@
 import type { Alert } from '../../types'
-import { groupIcon } from '../../types'
+import { GroupIcon } from '../common/GroupIcon'
 import { StatusBadge } from '../common/Badge'
 import { FixOutcomeBadge } from './FixOutcomeBadge'
 import { useAlertStore } from '../../store/alertStore'
@@ -37,7 +37,7 @@ export function AlertCard({ alert }: AlertCardProps) {
       `}
     >
       <div className="flex items-start gap-3">
-        <div className="text-2xl flex-shrink-0 mt-0.5" aria-hidden>{groupIcon(resolved?.group.code)}</div>
+        <GroupIcon code={resolved?.group.code} className="h-6 w-6 flex-shrink-0 mt-0.5 text-slate-500" />
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2 mb-0.5">
             <span className="font-semibold text-sm text-slate-900 truncate">{alert.title}</span>

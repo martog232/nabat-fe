@@ -7,7 +7,8 @@ import { ReportActions } from '../components/alerts/ReportActions'
 import { StatusBadge } from '../components/common/Badge'
 import { FixOutcomeBadge } from '../components/alerts/FixOutcomeBadge'
 import type { AlertStatus } from '../types'
-import { groupIcon, OPEN_STATUSES } from '../types'
+import { OPEN_STATUSES } from '../types'
+import { GroupIcon } from '../components/common/GroupIcon'
 import { useCategoryIndex } from '../hooks/useCategories'
 import { resolveCategory } from '../utils/categories'
 
@@ -92,7 +93,7 @@ export function DistrictPage() {
           {reports.map((r) => (
             <li key={r.id} className="rounded-2xl border border-surface-border bg-surface-card p-4 shadow-sm">
               <div className="mb-3 flex items-start gap-3">
-                <div className="text-2xl" aria-hidden>{groupIcon(resolveCategory(categoryIndex, r.categoryCode)?.group.code)}</div>
+                <GroupIcon code={resolveCategory(categoryIndex, r.categoryCode)?.group.code} className="h-6 w-6 flex-shrink-0 text-slate-500" />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
                     <p className="truncate font-semibold text-slate-900">{r.title}</p>

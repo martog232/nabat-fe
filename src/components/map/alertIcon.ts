@@ -1,6 +1,7 @@
 import { divIcon } from 'leaflet'
 import type { Alert } from '../../types'
-import { groupIcon, STATUS_MARKER_COLORS } from '../../types'
+import { STATUS_MARKER_COLORS } from '../../types'
+import { groupIconSvg } from '../../utils/groupIcons'
 
 /**
  * @param groupCode the category group of the alert, for its icon; undefined while the
@@ -8,7 +9,9 @@ import { groupIcon, STATUS_MARKER_COLORS } from '../../types'
  */
 export function createAlertIcon(alert: Alert, isSelected: boolean, groupCode?: number) {
   const color = STATUS_MARKER_COLORS[alert.status]
-  const emoji = groupIcon(groupCode)
+  // Built as a string here, inside a useMemo in AlertMarker: there is no rendering a React
+  // component during another render, which is why the icons are data and not components.
+  const icon = groupIconSvg(groupCode, { size: 18, color, strokeWidth: 2.25 })
   // The selected pin gets a disc behind it rather than a bigger pin: growing the marker
   // would move its tip off the coordinate it is reporting. The disc is centred on the
   // round part of the teardrop (20,20 within the 40x40 box) and overflows it, which a
@@ -51,7 +54,7 @@ export function createAlertIcon(alert: Alert, isSelected: boolean, groupCode?: n
           box-shadow: 0 4px 12px ${color}44;
           animation: pulse-ring 2s ease-in-out infinite;
         ">
-          <div style="transform:rotate(45deg); font-size:16px; line-height:1;">${emoji}</div>
+          <div style="transform:rotate(45deg); display:flex; line-height:0;">${icon}</div>
         </div>
       </div>
       <style>

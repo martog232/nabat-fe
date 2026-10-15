@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { groupIcon, type CategoryGroup } from '../../types'
+import { type CategoryGroup } from '../../types'
+import { GroupIcon } from '../common/GroupIcon'
 import { useCategories } from '../../hooks/useCategories'
 
 interface Props {
@@ -66,7 +67,7 @@ export function CategoryPicker({ value, onChange, error }: Props) {
           style={{ borderLeft: `4px solid ${openGroup.color}` }}
         >
           <p className="px-3 py-2 text-sm font-semibold text-slate-900 bg-surface-elevated">
-            <span aria-hidden>{groupIcon(openGroup.code)} </span>
+            <GroupIcon code={openGroup.code} className="mr-1.5 inline h-4 w-4 align-[-2px]" style={{ color: openGroup.color }} />
             {openGroup.name}
           </p>
           <ul role="radiogroup" aria-label={openGroup.name} className="divide-y divide-surface-border">
@@ -120,7 +121,7 @@ function GroupTile({ group, selected, onClick }: { group: CategoryGroup; selecte
       `}
       style={{ borderLeft: `4px solid ${group.color}` }}
     >
-      <span className="text-lg" aria-hidden>{groupIcon(group.code)}</span>
+      <GroupIcon code={group.code} className="h-5 w-5 flex-shrink-0" style={{ color: group.color }} />
       <span className="leading-tight">{group.name}</span>
     </button>
   )

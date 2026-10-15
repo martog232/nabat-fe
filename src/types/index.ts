@@ -374,32 +374,6 @@ export type WsFrame = WsNewAlertFrame | WsAlertUpdatedFrame | WsNotificationFram
 // ─── UI helpers (unchanged) ──────────────────────────────────────────────────
 
 /**
- * An icon per category group, by Call Sofia's group code. Presentation, so it lives here
- * rather than in the catalogue; a group added on the server shows the fallback until it
- * gets one.
- */
-export const GROUP_ICONS: Record<number, string> = {
-  1000: '🗑️', // Чистота
-  1006: '🕳️', // Пътища и шахти
-  1012: '🌳', // Паркове, градини и площадки
-  1018: '🚗', // Автомобили
-  1021: '🚌', // Градски транспорт
-  1027: '💡', // Осветление и пътна сигнализация
-  1032: '🐾', // Животни
-  1035: '🏪', // Търговска дейност
-  1038: '🏗️', // Сгради и строежи
-  1042: '🔊', // Нарушаване на обществения ред и шум
-  1046: '🌉', // Подлези и мостове
-  1049: '📍', // Други
-}
-
-export const FALLBACK_GROUP_ICON = '📍'
-
-export function groupIcon(groupCode: number | null | undefined): string {
-  return (groupCode != null && GROUP_ICONS[groupCode]) || FALLBACK_GROUP_ICON
-}
-
-/**
  * The states a report is still waiting in. Mirrors `AlertStatus.isOpen()` on the backend,
  * which is why it names the open states and derives the rest: RESOLVED and REJECTED are the
  * only two that are final, and everything else is on the map.
