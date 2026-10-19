@@ -114,7 +114,7 @@ describe('FixCheckPanel', () => {
     signIn(account('o1', 'OFFICIAL', 'LOZENETS'))
     render(<FixCheckPanel alert={resolved} />)
     expect(answers()).toHaveLength(0)
-    expect(screen.getByText('Районът не може да проверява собствената си работа.')).toBeInTheDocument()
+    expect(screen.getByText('Отговорната институция не може да проверява собствената си работа.')).toBeInTheDocument()
     expect(fixCheckEnabled).toHaveBeenLastCalledWith(false)
   })
 

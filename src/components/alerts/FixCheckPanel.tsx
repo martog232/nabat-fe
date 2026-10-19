@@ -26,8 +26,8 @@ function tallyLine(s: FixCheckSummary): string {
  */
 export function FixCheckPanel({ alert }: { alert: Alert }) {
   const user = useAuthStore((s) => s.user)
-  const ownDistrict = actsForAuthorityOf(user, alert)
-  const canAnswer = !!user && !ownDistrict
+  const ownAuthority = actsForAuthorityOf(user, alert)
+  const canAnswer = !!user && !ownAuthority
   const isResolved = alert.status === 'RESOLVED'
 
   const { data } = useFixCheck(alert.id, isResolved && canAnswer)
@@ -92,8 +92,8 @@ export function FixCheckPanel({ alert }: { alert: Alert }) {
       {canAnswer && isReporter && (
         <p className="text-xs text-slate-500">Вие подадохте сигнала — вашият отговор тежи най-много.</p>
       )}
-      {ownDistrict && (
-        <p className="text-xs text-slate-500">Районът не може да проверява собствената си работа.</p>
+      {ownAuthority && (
+        <p className="text-xs text-slate-500">Отговорната институция не може да проверява собствената си работа.</p>
       )}
       {!user && (
         <p className="text-xs text-slate-500">
