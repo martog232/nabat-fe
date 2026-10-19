@@ -43,7 +43,7 @@ export function LoginPage() {
             <Input
               label="Имейл"
               type="email"
-              placeholder="you@example.com"
+              placeholder="lozenets@rayon.nabat.test"
               value={email}
               onChange={(e) => { setEmail(e.target.value); clearError() }}
               required
@@ -51,7 +51,7 @@ export function LoginPage() {
             <Input
               label="Парола"
               type="password"
-              placeholder="••••••••"
+              placeholder="rayon12345"
               value={password}
               onChange={(e) => { setPassword(e.target.value); clearError() }}
               required
@@ -79,6 +79,9 @@ export function LoginPage() {
         {/* Demo hint */}
         <p className="text-center text-xs text-slate-700 mt-4">
           Демо: test@example.com / admin@example.com
+        </p>
+        <p className="text-center text-xs text-slate-700 mt-1">
+          Район: &lt;район&gt;@rayon.nabat.test / rayon12345
         </p>
       </div>
     </div>
