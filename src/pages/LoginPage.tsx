@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate, type Location } from 'react-router-dom'
 import { useAuthStore } from '../store/authStore'
 import { Button } from '../components/common/Button'
 import { Input } from '../components/common/Input'
@@ -7,6 +7,9 @@ import { Input } from '../components/common/Input'
 export function LoginPage() {
   const { login, isLoading, error, clearError } = useAuthStore()
   const navigate = useNavigate()
+  // Where ProtectedRoute was sending them, e.g. a report opened from a district's mail.
+  const from = (useLocation().state as { from?: Location } | null)?.from
+  const destination = from ? from.pathname + from.search : '/map'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
@@ -14,7 +17,7 @@ export function LoginPage() {
     e.preventDefault()
     try {
       await login(email, password)
-      navigate('/map')
+      navigate(destination, { replace: true })
     } catch {
       // error is in store
     }

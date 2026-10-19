@@ -3,7 +3,8 @@ import { divIcon } from 'leaflet'
 import { Circle, MapContainer, Marker, TileLayer, useMap, useMapEvents } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import { useAlertStore } from '../../store/alertStore'
-import { useNearbyAlerts } from '../../hooks/useAlerts'
+import { useAlert, useNearbyAlerts } from '../../hooks/useAlerts'
+import { useSearchParams } from 'react-router-dom'
 import { AlertMarker } from './AlertMarker'
 import { Locate, LocateFixed } from 'lucide-react'
 
@@ -34,6 +35,41 @@ function FollowModeController() {
     if (!followUser || userLat === null || userLng === null) return
     map.setView([userLat, userLng])
   }, [followUser, map, userLat, userLng])
+
+  return null
+}
+
+/**
+ * Opens the report named in `?alert=`, as the "Отговори" button in a district's mail links to
+ * it: selected, so its detail shows, and the map moved onto it, so the official sees where it
+ * is. Following the user's own position is switched off first, or the next location fix
+ * would drag the map straight back to wherever the official is sitting.
+ *
+ * The parameter is dropped once the report has been shown, so closing the detail and reloading
+ * does not open it again. A report that cannot be fetched leaves the parameter as it is.
+ */
+function LinkedReportFocus() {
+  const map = useMap()
+  const [params, setParams] = useSearchParams()
+  const linkedId = params.get('alert')
+  const selectAlert = useAlertStore((s) => s.selectAlert)
+  const setFollowUser = useAlertStore((s) => s.setFollowUser)
+  const { data: report } = useAlert(linkedId, !!linkedId)
+
+  useEffect(() => {
+    if (!linkedId) return
+    setFollowUser(false)
+    selectAlert(linkedId)
+  }, [linkedId, selectAlert, setFollowUser])
+
+  useEffect(() => {
+    if (!report || report.id !== linkedId) return
+    map.setView([report.latitude, report.longitude], 17)
+    setParams((p) => {
+      p.delete('alert')
+      return p
+    }, { replace: true })
+  }, [report, linkedId, map, setParams])
 
   return null
 }
@@ -103,6 +139,7 @@ export function AlertMap() {
         />
         <MapEventHandler />
         <FollowModeController />
+        <LinkedReportFocus />
         <ZoomButtons />
         {userLat !== null && userLng !== null && (
           <>
