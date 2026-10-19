@@ -14,6 +14,7 @@ import { ReportActions } from './ReportActions'
 import { FixCheckPanel } from './FixCheckPanel'
 import { CommentThread } from './CommentThread'
 import { ForwardHistory } from './ForwardHistory'
+import { RejectionPanel } from './RejectionPanel'
 import { BadgeCheck, Building2, CalendarDays, Landmark, ThumbsDown, ThumbsUp, X, type LucideIcon } from 'lucide-react'
 
 function formatDate(iso: string) {
@@ -130,6 +131,9 @@ export function AlertDetail() {
               Отхвърлен{a.closedBy ? ' ' + CLOSED_BY_LABELS[a.closedBy] : ''}
             </div>
           )}
+
+          {/* Why, and the reporter's way to contest it. */}
+          <RejectionPanel alert={a} />
 
           {/* "Is it really fixed?" — only on a resolved report. */}
           <FixCheckPanel alert={a} />

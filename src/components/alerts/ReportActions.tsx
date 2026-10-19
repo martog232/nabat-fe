@@ -4,6 +4,8 @@ import { useAuthStore } from '../../store/authStore'
 import { useReportAction, useResolveAlert, type ReportAction } from '../../hooks/useAlerts'
 import { canAdvanceTo, canForward, canRejectAlert, canResolveAlert } from '../../utils/permissions'
 import { ForwardForm } from './ForwardForm'
+import { ReasonForm } from './ReasonForm'
+import { useRejectReport } from '../../hooks/useRejections'
 
 interface Props {
   alert: Alert
@@ -22,9 +24,10 @@ export function ReportActions({ alert }: Props) {
   const user = useAuthStore((s) => s.user)
   const action = useReportAction(alert.id)
   const resolve = useResolveAlert(alert.id)
-  const [forwarding, setForwarding] = useState(false)
+  const reject = useRejectReport(alert.id)
+  const [open, setOpen] = useState<'forward' | 'reject' | null>(null)
 
-  const buttons: { key: ReportAction | 'resolve'; label: string; show: boolean; tone: 'primary' | 'plain' | 'danger' }[] = [
+  const buttons: { key: ReportAction | 'resolve' | 'reject'; label: string; show: boolean; tone: 'primary' | 'plain' | 'danger' }[] = [
     { key: 'acknowledge', label: 'Приеми', show: canAdvanceTo(user, alert, 'ACKNOWLEDGED'), tone: 'plain' },
     { key: 'startWork', label: 'Започни работа', show: canAdvanceTo(user, alert, 'IN_PROGRESS'), tone: 'plain' },
     { key: 'resolve', label: 'Маркирай като решен', show: canResolveAlert(user, alert), tone: 'primary' },
@@ -34,12 +37,14 @@ export function ReportActions({ alert }: Props) {
   const mayForward = canForward(user, alert)
   if (visible.length === 0 && !mayForward) return null
 
-  const busy = action.isPending || resolve.isPending
+  const busy = action.isPending || resolve.isPending || reject.isPending
   const pendingKey = resolve.isPending ? 'resolve' : action.isPending ? action.variables : undefined
 
-  const run = (key: ReportAction | 'resolve') => {
+  const run = (key: ReportAction | 'resolve' | 'reject') => {
     if (busy) return
-    if (key === 'resolve') resolve.mutate()
+    // A rejection is final and locks the thread, so it asks why first.
+    if (key === 'reject') setOpen('reject')
+    else if (key === 'resolve') resolve.mutate()
     else action.mutate(key)
   }
 
@@ -64,10 +69,10 @@ export function ReportActions({ alert }: Props) {
           </button>
         ))}
         {/* Not a rejection: the report is real, it was only sent to the wrong address. */}
-        {mayForward && !forwarding && (
+        {mayForward && open === null && (
           <button
             type="button"
-            onClick={() => setForwarding(true)}
+            onClick={() => setOpen('forward')}
             disabled={busy}
             className={`col-span-2 rounded-xl border py-3 sm:py-2 text-sm font-semibold transition disabled:opacity-60 ${toneClass.plain}`}
           >
@@ -75,7 +80,18 @@ export function ReportActions({ alert }: Props) {
           </button>
         )}
       </div>
-      {forwarding && <ForwardForm alert={alert} onDone={() => setForwarding(false)} />}
+      {open === 'forward' && <ForwardForm alert={alert} onDone={() => setOpen(null)} />}
+      {open === 'reject' && (
+        <ReasonForm
+          label="Защо се отхвърля"
+          placeholder="Напр. дублира сигнал от вчера на същото място"
+          submitLabel="Отхвърли"
+          tone="danger"
+          pending={reject.isPending}
+          onSubmit={(reason) => reject.mutate(reason, { onSuccess: () => setOpen(null) })}
+          onCancel={() => setOpen(null)}
+        />
+      )}
     </div>
   )
 }

@@ -199,6 +199,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/alerts/{id}/rejections/dispute": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** The reporter contests the rejection of their report, once, saying why */
+        post: operations["dispute"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/alerts/{id}/rejections/decision": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** A moderator upholds a disputed rejection or reopens the report */
+        post: operations["decide"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/alerts/{id}/forward": {
         parameters: {
             query?: never;
@@ -296,7 +330,7 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** Close a report without a fix: a duplicate, not a real problem, not anyone's to fix */
+        /** Close a report without a fix — a duplicate, not a real problem — saying why */
         patch: operations["reject"];
         trace?: never;
     };
@@ -513,6 +547,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/alerts/{id}/rejections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The report's rejections, oldest first, with their disputes and decisions */
+        get: operations["rejections"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/alerts/{id}/forwards": {
         parameters: {
             query?: never;
@@ -605,6 +656,23 @@ export interface paths {
         };
         /** Active alerts within a radius, optionally filtered and newer than `since` */
         get: operations["getNearbyAlerts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/alerts/disputed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Reports whose rejection the reporter disputes, waiting for a moderator, oldest dispute first */
+        get: operations["disputed"];
         put?: never;
         post?: never;
         delete?: never;
@@ -989,6 +1057,47 @@ export interface components {
              * @example LOZENETS
              */
             authorityCode?: string;
+        };
+        /** @description Why */
+        ReasonRequest: {
+            /**
+             * @description 1 to 1000 characters
+             * @example Дублира сигнал от вчера на същото място.
+             */
+            reason: string;
+        };
+        /** @description A rejection of a report, and what came of it */
+        RejectionResponse: {
+            /** @description Why it was rejected */
+            reason?: string;
+            /** @description Rejected by a moderator rather than by the report's authority */
+            byModerator?: boolean;
+            /**
+             * @description The authority the report was with
+             * @example LOZENETS
+             */
+            authorityCode?: string;
+            /** Format: date-time */
+            rejectedAt?: string;
+            /** @description The reporter's dispute; null if they did not dispute it */
+            disputeReason?: string;
+            /** Format: date-time */
+            disputedAt?: string;
+            /**
+             * @description A moderator's decision on the dispute; null until there is one
+             * @enum {string}
+             */
+            decision?: "UPHELD" | "REOPENED";
+            /** Format: date-time */
+            decidedAt?: string;
+        };
+        /** @description A moderator's answer to a disputed rejection */
+        DecisionRequest: {
+            /**
+             * @description UPHELD — the rejection stands; REOPENED — the report goes back to its authority
+             * @enum {string}
+             */
+            decision: "UPHELD" | "REOPENED";
         };
         /** @description Where to forward a report, and why */
         ForwardRequest: {
@@ -1787,6 +1896,58 @@ export interface operations {
             };
         };
     };
+    dispute: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReasonRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RejectionResponse"];
+                };
+            };
+        };
+    };
+    decide: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DecisionRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AlertResponse"];
+                };
+            };
+        };
+    };
     forward: {
         parameters: {
             query?: never;
@@ -1962,7 +2123,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReasonRequest"];
+            };
+        };
         responses: {
             /** @description OK */
             200: {
@@ -2258,6 +2423,28 @@ export interface operations {
             };
         };
     };
+    rejections: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RejectionResponse"][];
+                };
+            };
+        };
+    };
     forwards: {
         parameters: {
             query?: never;
@@ -2401,6 +2588,26 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["NearbyAlertsResponse"];
+                };
+            };
+        };
+    };
+    disputed: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AlertResponse"][];
                 };
             };
         };

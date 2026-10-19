@@ -119,12 +119,11 @@ export function useResolveAlert(alertId: string) {
 }
 
 /** What a district can say about one of its reports, besides "fixed". */
-export type ReportAction = 'acknowledge' | 'startWork' | 'reject'
+export type ReportAction = 'acknowledge' | 'startWork'
 
 const ACTION_CALLS: Record<ReportAction, (id: string) => Promise<Alert>> = {
   acknowledge: alertsApi.acknowledge,
   startWork: alertsApi.startWork,
-  reject: alertsApi.reject,
 }
 
 /**

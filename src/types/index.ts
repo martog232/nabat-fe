@@ -165,6 +165,23 @@ export type Authority = Required<components['schemas']['AuthorityResponse']>
 /** One forward of a report, as `GET /api/v1/alerts/{id}/forwards` lists them, oldest first. */
 export type ReportForward = Required<components['schemas']['ForwardResponse']>
 
+export type RejectionDecision = NonNullable<components['schemas']['RejectionResponse']['decision']>
+
+/**
+ * One rejection of a report, as `GET /api/v1/alerts/{id}/rejections` lists them: why, the
+ * reporter's dispute if they made one, and a moderator's decision on it.
+ */
+export interface Rejection {
+  reason: string
+  byModerator: boolean
+  authorityCode: string
+  rejectedAt: string
+  disputeReason: string | null
+  disputedAt: string | null
+  decision: RejectionDecision | null
+  decidedAt: string | null
+}
+
 export type ReportRanking = NonNullable<components['schemas']['RankedReportsResponse']['ranking']>
 
 /** One page of the public list: `GET /api/v1/alerts/ranked`. */

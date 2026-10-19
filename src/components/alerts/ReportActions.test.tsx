@@ -9,6 +9,7 @@ import { UNCHECKED_FIX } from '../../types'
 const actionMutate = vi.fn()
 const resolveMutate = vi.fn()
 const forwardMutate = vi.fn()
+const rejectMutate = vi.fn()
 
 vi.mock('../../hooks/useAlerts', () => ({
   useReportAction: () => ({ mutate: actionMutate, isPending: false, variables: undefined }),
@@ -17,6 +18,10 @@ vi.mock('../../hooks/useAlerts', () => ({
 
 vi.mock('../../hooks/useForwards', () => ({
   useForwardReport: () => ({ mutate: forwardMutate, isPending: false }),
+}))
+
+vi.mock('../../hooks/useRejections', () => ({
+  useRejectReport: () => ({ mutate: rejectMutate, isPending: false }),
 }))
 
 vi.mock('../../hooks/useAuthorities', () => ({
@@ -60,6 +65,7 @@ beforeEach(() => {
   actionMutate.mockReset()
   resolveMutate.mockReset()
   forwardMutate.mockReset()
+  rejectMutate.mockReset()
 })
 afterEach(cleanup)
 
@@ -115,6 +121,23 @@ describe('ReportActions', () => {
 
     expect(forwardMutate).toHaveBeenCalledWith(
       { authorityCode: 'CGM', reason: 'Знакът е на ЦГМ' }, expect.anything())
+  })
+
+  /** Final, and it locks the thread: never one click, and never without a reason. */
+  it('asks why before rejecting, and sends the reason', async () => {
+    signIn(account('o1', 'OFFICIAL', 'LOZENETS'))
+    render(<ReportActions alert={report} />)
+    const user = userEvent.setup()
+    await user.click(screen.getByRole('button', { name: 'Отхвърли' }))
+    expect(rejectMutate).not.toHaveBeenCalled()
+
+    const submit = screen.getAllByRole('button', { name: 'Отхвърли' }).at(-1) as HTMLElement
+    expect(submit).toBeDisabled()
+    await user.type(screen.getByLabelText('Защо се отхвърля'), 'Дублира сигнал от вчера')
+    await user.click(submit)
+
+    expect(rejectMutate).toHaveBeenCalledWith('Дублира сигнал от вчера', expect.anything())
+    expect(actionMutate).not.toHaveBeenCalled()
   })
 
   it('shows nothing on a closed report', () => {

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { useAuthStore } from '../../store/authStore'
 import { useUnreadCount } from '../../hooks/useNotifications'
 import { NotificationPanel } from '../notifications/NotificationPanel'
-import { canActForAuthority } from '../../utils/permissions'
+import { canActForAuthority, canModerateContent } from '../../utils/permissions'
 
 export function Navbar() {
   const [showNotifications, setShowNotifications] = useState(false)
@@ -50,6 +50,16 @@ export function Navbar() {
           >
             Районите
           </Link>
+
+          {/* The moderators' queue of disputed rejections: nothing else brings them to it. */}
+          {canModerateContent(user.role) && (
+            <Link
+              to="/disputes"
+              className="flex h-11 items-center rounded-full border border-surface-border bg-surface-card/80 px-4 text-sm font-medium text-slate-700 backdrop-blur transition-colors hover:bg-surface-elevated sm:h-9"
+            >
+              Оспорени
+            </Link>
+          )}
 
           {/* An official's working list is the thing they open the app for, so it gets a
               way in from the map rather than only from settings. */}

@@ -5,6 +5,8 @@ import type {
   NearbyAlertsResponse,
   RankedReportsResponse,
   ReportForward,
+  Rejection,
+  RejectionDecision,
   ReportRanking,
   SimilarReportsResponse,
 } from '../types'
@@ -80,9 +82,25 @@ export const alertsApi = {
   startWork: (id: string) =>
     apiClient.patch<Alert>(`/alerts/${id}/start-work`).then((r) => r.data),
 
-  /** Closed without a fix. The report's authority or a moderator — not the reporter. */
-  reject: (id: string) =>
-    apiClient.patch<Alert>(`/alerts/${id}/reject`).then((r) => r.data),
+  /** Closed without a fix, saying why. The report's authority or a moderator — not the reporter. */
+  reject: (id: string, reason: string) =>
+    apiClient.patch<Alert>(`/alerts/${id}/reject`, { reason }).then((r) => r.data),
+
+  /** Every rejection of the report, oldest first, with its dispute and decision. */
+  rejections: (id: string) =>
+    apiClient.get<Rejection[]>(`/alerts/${id}/rejections`).then((r) => r.data),
+
+  /** The reporter contests the rejection of their report, once, saying why. */
+  disputeRejection: (id: string, reason: string) =>
+    apiClient.post<Rejection>(`/alerts/${id}/rejections/dispute`, { reason }).then((r) => r.data),
+
+  /** A moderator upholds a disputed rejection or reopens the report. */
+  decideDispute: (id: string, decision: RejectionDecision) =>
+    apiClient.post<Alert>(`/alerts/${id}/rejections/decision`, { decision }).then((r) => r.data),
+
+  /** Reports whose rejection is disputed and waiting for a moderator, oldest dispute first. */
+  listDisputed: () =>
+    apiClient.get<Alert[]>('/alerts/disputed').then((r) => r.data),
 
   /**
    * An official's working list: the reports their authority answers for. Which authority comes from

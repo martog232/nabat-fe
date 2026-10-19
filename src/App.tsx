@@ -13,6 +13,8 @@ import { ProtectedRoute } from './components/auth/ProtectedRoute'
 import { PublicOnlyRoute } from './components/auth/PublicOnlyRoute'
 import { AdminRoute } from './components/auth/AdminRoute'
 import { OfficialRoute } from './components/auth/OfficialRoute'
+import { ModeratorRoute } from './components/auth/ModeratorRoute'
+import { DisputesPage } from './pages/DisputesPage'
 import { ErrorBoundary } from './components/common/ErrorBoundary'
 import { ToastContainer } from './components/common/ToastContainer'
 
@@ -74,6 +76,15 @@ export default function App() {
               <OfficialRoute>
                 <AssignedReportsPage />
               </OfficialRoute>
+            }
+          />
+
+          <Route
+            path="/disputes"
+            element={
+              <ModeratorRoute>
+                <DisputesPage />
+              </ModeratorRoute>
             }
           />
 
