@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useDistrictReports } from '../hooks/useAlerts'
+import { useAssignedReports } from '../hooks/useAlerts'
 import { useDistrictNames } from '../hooks/useDistricts'
+import { useAuthorityNames } from '../hooks/useAuthorities'
 import { useAuthStore } from '../store/authStore'
 import { ReportActions } from '../components/alerts/ReportActions'
 import { StatusBadge } from '../components/common/Badge'
@@ -26,20 +27,22 @@ function formatDate(iso: string) {
 }
 
 /**
- * A district official's working list: every report in their own district, newest first,
- * with what they may do to each right beside it.
+ * An official's working list: every report their authority answers for, newest first, with
+ * what they may do to each right beside it. For a district that is its own territory; for an
+ * institution it is the whole city, so each report says which district it is in.
  *
- * The district is the account's, and the server takes it from there — this page never names
+ * The authority is the account's, and the server takes it from there — this page never names
  * one in a request, so there is no way to point it at somebody else's.
  */
-export function DistrictPage() {
+export function AssignedReportsPage() {
   const user = useAuthStore((s) => s.user)
   const districtNames = useDistrictNames()
+  const authorityNames = useAuthorityNames()
   const categoryIndex = useCategoryIndex()
   const [tab, setTab] = useState(0)
-  const { data: reports = [], isLoading, isError } = useDistrictReports(TABS[tab].statuses)
+  const { data: reports = [], isLoading, isError } = useAssignedReports(TABS[tab].statuses)
 
-  const districtName = user?.districtCode ? districtNames.get(user.districtCode) ?? user.districtCode : ''
+  const authorityName = user?.authorityCode ? authorityNames.get(user.authorityCode) ?? user.authorityCode : ''
 
   return (
     <div className="h-full overflow-y-auto bg-surface-DEFAULT">
@@ -55,8 +58,8 @@ export function DistrictPage() {
             </svg>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900">{districtName}</h1>
-            <p className="text-sm text-slate-600">Сигнали, изпратени до вашия район</p>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900">{authorityName}</h1>
+            <p className="text-sm text-slate-600">Сигнали, изпратени до вас</p>
           </div>
         </header>
 
@@ -104,7 +107,7 @@ export function DistrictPage() {
                   </div>
                   <p className="mt-1 text-sm text-slate-700">{r.description}</p>
                   <p className="mt-2 text-xs text-slate-500">
-                    {resolveCategory(categoryIndex, r.categoryCode)?.category.name ?? '—'} · {formatDate(r.createdAt)} · подкрепа: {Math.max(0, r.confirmationCount + r.upvoteCount - r.downvoteCount)}
+                    {resolveCategory(categoryIndex, r.categoryCode)?.category.name ?? '—'} · {r.districtCode ? `${districtNames.get(r.districtCode) ?? r.districtCode} · ` : ''}{formatDate(r.createdAt)} · подкрепа: {Math.max(0, r.confirmationCount + r.upvoteCount - r.downvoteCount)}
                     {' · '}
                     <a
                       className="underline hover:text-slate-700"

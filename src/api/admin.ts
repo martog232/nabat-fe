@@ -13,10 +13,10 @@ export const adminApi = {
       .get<AdminUserPage>('/admin/users', { params: { page, size } })
       .then((r) => r.data),
 
-  /** `districtCode` is required for DISTRICT_OFFICIAL and refused for every other role. */
-  changeRole: (id: string, role: Role, districtCode?: string) =>
+  /** `authorityCode` — a district or an institution — is required for OFFICIAL and refused for every other role. */
+  changeRole: (id: string, role: Role, authorityCode?: string) =>
     apiClient
-      .patch<User>(`/admin/users/${id}/role`, { role, districtCode: districtCode ?? null })
+      .patch<User>(`/admin/users/${id}/role`, { role, authorityCode: authorityCode ?? null })
       .then((r) => r.data),
 
   /**

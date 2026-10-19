@@ -30,12 +30,13 @@ const report: Alert = {
   credibilityScore: 0,
   resolvedAt: null,
   districtCode: 'LOZENETS',
+  authorityCode: 'LOZENETS',
   closedBy: null,
   fixCheck: UNCHECKED_FIX,
 }
 
-const account = (id: string, role: User['role'], districtCode: string | null = null): User => ({
-  id, email: `${id}@example.com`, displayName: id, role, districtCode, enabled: true, emailVerified: true,
+const account = (id: string, role: User['role'], authorityCode: string | null = null): User => ({
+  id, email: `${id}@example.com`, displayName: id, role, authorityCode, enabled: true, emailVerified: true,
 })
 
 const signIn = (u: User) => useAuthStore.setState({ user: u })
@@ -49,20 +50,20 @@ afterEach(cleanup)
 
 describe('ReportActions', () => {
   it('gives the report\'s own district every step it can still take', () => {
-    signIn(account('o1', 'DISTRICT_OFFICIAL', 'LOZENETS'))
+    signIn(account('o1', 'OFFICIAL', 'LOZENETS'))
     render(<ReportActions alert={report} />)
     expect(labels()).toEqual(['Приеми', 'Започни работа', 'Маркирай като решен', 'Отхвърли'])
   })
 
   it('stops offering a step the report is already past', () => {
-    signIn(account('o1', 'DISTRICT_OFFICIAL', 'LOZENETS'))
+    signIn(account('o1', 'OFFICIAL', 'LOZENETS'))
     render(<ReportActions alert={{ ...report, status: 'IN_PROGRESS' }} />)
     expect(labels()).toEqual(['Маркирай като решен', 'Отхвърли'])
   })
 
   /** Nothing at all, not a set of buttons that would each answer 403. */
   it('shows an official of another district nothing', () => {
-    signIn(account('o2', 'DISTRICT_OFFICIAL', 'TRIADITSA'))
+    signIn(account('o2', 'OFFICIAL', 'TRIADITSA'))
     const { container } = render(<ReportActions alert={report} />)
     expect(container).toBeEmptyDOMElement()
   })
@@ -74,7 +75,7 @@ describe('ReportActions', () => {
   })
 
   it('sends the step that was clicked', async () => {
-    signIn(account('o1', 'DISTRICT_OFFICIAL', 'LOZENETS'))
+    signIn(account('o1', 'OFFICIAL', 'LOZENETS'))
     render(<ReportActions alert={report} />)
     await userEvent.setup().click(screen.getByRole('button', { name: 'Започни работа' }))
     expect(actionMutate).toHaveBeenCalledWith('startWork')
@@ -82,7 +83,7 @@ describe('ReportActions', () => {
   })
 
   it('shows nothing on a closed report', () => {
-    signIn(account('o1', 'DISTRICT_OFFICIAL', 'LOZENETS'))
+    signIn(account('o1', 'OFFICIAL', 'LOZENETS'))
     const { container } = render(<ReportActions alert={{ ...report, status: 'RESOLVED' }} />)
     expect(container).toBeEmptyDOMElement()
   })

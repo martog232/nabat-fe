@@ -36,6 +36,7 @@ const report = (over: Partial<Alert>): Alert => ({
   credibilityScore: 0,
   resolvedAt: null,
   districtCode: 'LOZENETS',
+  authorityCode: 'LOZENETS',
   closedBy: null,
   fixCheck: UNCHECKED_FIX,
   ...over,
@@ -103,11 +104,11 @@ describe('ReportsPage', () => {
   /** "Resolved" alone is half the story; who said so is the other half. */
   it('says who closed a closed report', async () => {
     ranked.mockResolvedValue({
-      alerts: [report({ status: 'RESOLVED', closedBy: 'DISTRICT', resolvedAt: new Date().toISOString() })],
+      alerts: [report({ status: 'RESOLVED', closedBy: 'AUTHORITY', resolvedAt: new Date().toISOString() })],
       ranking: 'HOT', page: 0, size: 25, total: 1,
     })
     renderPage()
 
-    expect(await screen.findByText(/затворен от района/)).toBeInTheDocument()
+    expect(await screen.findByText(/затворен от отговорната институция/)).toBeInTheDocument()
   })
 })

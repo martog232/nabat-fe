@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { useAuthStore } from '../../store/authStore'
 import { useUnreadCount } from '../../hooks/useNotifications'
 import { NotificationPanel } from '../notifications/NotificationPanel'
-import { canActForADistrict } from '../../utils/permissions'
+import { canActForAuthority } from '../../utils/permissions'
 
 export function Navbar() {
   const [showNotifications, setShowNotifications] = useState(false)
@@ -53,12 +53,12 @@ export function Navbar() {
 
           {/* An official's working list is the thing they open the app for, so it gets a
               way in from the map rather than only from settings. */}
-          {canActForADistrict(user.role) && (
+          {canActForAuthority(user.role) && (
             <Link
-              to="/district"
+              to="/assigned"
               className="flex h-11 items-center rounded-full border border-surface-border bg-surface-card/80 px-4 text-sm font-medium text-slate-700 backdrop-blur transition-colors hover:bg-surface-elevated sm:h-9"
             >
-              Моят район
+              Моите сигнали
             </Link>
           )}
 

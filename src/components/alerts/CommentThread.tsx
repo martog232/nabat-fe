@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useAuthStore } from '../../store/authStore'
 import { useAddComment, useComments, useRemoveComment } from '../../hooks/useComments'
+import { useAuthorityNames } from '../../hooks/useAuthorities'
 import { canModerateContent } from '../../utils/permissions'
 import type { Alert, Comment } from '../../types'
 import { COMMENT_MAX_LENGTH, isOpen } from '../../types'
@@ -23,6 +24,9 @@ const REMOVED_BY: Record<NonNullable<Comment['removedBy']>, string> = {
  */
 export function CommentThread({ alert }: { alert: Alert }) {
   const user = useAuthStore((s) => s.user)
+  // Marked with the authority's own name: a district, or an institution such as the CGM.
+  const authorityNames = useAuthorityNames()
+  const authorityName = (alert.authorityCode && authorityNames.get(alert.authorityCode)) || 'Отговорната институция'
   const open = isOpen(alert.status)
   const { data: comments = [], isLoading, isError } = useComments(alert.id, !!user)
   const add = useAddComment(alert.id)
@@ -65,8 +69,8 @@ export function CommentThread({ alert }: { alert: Alert }) {
               <li key={c.id} className="rounded-lg bg-surface-elevated px-3 py-2">
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs">
                   <span className="font-semibold text-slate-900">{c.authorName}</span>
-                  {c.byDistrict && (
-                    <span className="rounded-full bg-blue-500/10 px-1.5 py-0.5 font-semibold text-blue-700">Районът</span>
+                  {c.byAuthority && (
+                    <span className="rounded-full bg-blue-500/10 px-1.5 py-0.5 font-semibold text-blue-700">{authorityName}</span>
                   )}
                   {c.byReporter && (
                     <span className="rounded-full bg-slate-500/10 px-1.5 py-0.5 font-medium text-slate-700">Подател</span>

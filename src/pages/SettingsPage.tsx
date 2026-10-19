@@ -1,8 +1,8 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '../components/common/Button'
 import { useAuthStore } from '../store/authStore'
-import { canActForADistrict, canAdministerUsers, ROLE_LABELS } from '../utils/permissions'
-import { useDistrictNames } from '../hooks/useDistricts'
+import { canActForAuthority, canAdministerUsers, ROLE_LABELS } from '../utils/permissions'
+import { useAuthorityNames } from '../hooks/useAuthorities'
 
 /**
  * Everything about the account that is not the map.
@@ -15,7 +15,7 @@ export function SettingsPage() {
   const user = useAuthStore((s) => s.user)
   const logout = useAuthStore((s) => s.logout)
   const navigate = useNavigate()
-  const districtNames = useDistrictNames()
+  const authorityNames = useAuthorityNames()
 
   if (!user) {
     return null
@@ -61,19 +61,19 @@ export function SettingsPage() {
         </section>
 
 
-        {canActForADistrict(user.role) && user.districtCode && (
+        {canActForAuthority(user.role) && user.authorityCode && (
           <section className="mb-6 rounded-2xl border border-surface-border bg-surface-card p-6 shadow-sm">
             <div className="flex items-center justify-between gap-4">
               <div>
                 <h2 className="text-base font-semibold text-slate-900">
-                  {districtNames.get(user.districtCode) ?? user.districtCode}
+                  {authorityNames.get(user.authorityCode) ?? user.authorityCode}
                 </h2>
                 <p className="mt-1 text-sm text-slate-600">
-                  Сигналите, изпратени до вашия район, и какво е направено по тях.
+                  Сигналите, изпратени до вас, и какво е направено по тях.
                 </p>
               </div>
               <Link
-                to="/district"
+                to="/assigned"
                 className="rounded-lg border border-surface-border bg-surface-elevated px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-surface-hover"
               >
                 Отвори

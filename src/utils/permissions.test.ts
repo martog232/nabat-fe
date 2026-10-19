@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import {
-  actsForDistrictOf,
+  actsForAuthorityOf,
   canAdministerUsers,
   canAdvanceTo,
   canModerateContent,
@@ -15,7 +15,7 @@ const user = (id: string, role: User['role']): User => ({
   email: `${id}@example.com`,
   displayName: id,
   role,
-  districtCode: null,
+  authorityCode: null,
   enabled: true,
   emailVerified: false,
 })
@@ -36,6 +36,7 @@ const alert = (reportedBy: string, status: Alert['status'] = 'SUBMITTED'): Alert
   credibilityScore: 0,
   resolvedAt: status === 'RESOLVED' ? '2026-08-21T06:00:00Z' : null,
   districtCode: 'LOZENETS',
+  authorityCode: 'LOZENETS',
   closedBy: null,
   fixCheck: UNCHECKED_FIX,
 })
@@ -86,11 +87,11 @@ describe('canResolveAlert', () => {
 })
 
 describe('a district official', () => {
-  const official = (district: string): User => ({ ...user('o1', 'DISTRICT_OFFICIAL'), districtCode: district })
+  const official = (authority: string): User => ({ ...user('o1', 'OFFICIAL'), authorityCode: authority })
 
   it('acts for their own district and no other', () => {
-    expect(actsForDistrictOf(official('LOZENETS'), alert('u2'))).toBe(true)
-    expect(actsForDistrictOf(official('TRIADITSA'), alert('u2'))).toBe(false)
+    expect(actsForAuthorityOf(official('LOZENETS'), alert('u2'))).toBe(true)
+    expect(actsForAuthorityOf(official('TRIADITSA'), alert('u2'))).toBe(false)
   })
 
   /** The rule the role exists for: another district's report offers them nothing at all. */
@@ -111,7 +112,7 @@ describe('a district official', () => {
   })
 
   it('is not a moderator', () => {
-    expect(canModerateContent('DISTRICT_OFFICIAL')).toBe(false)
+    expect(canModerateContent('OFFICIAL')).toBe(false)
   })
 })
 

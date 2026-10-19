@@ -1,6 +1,6 @@
 import { useAuthStore } from '../../store/authStore'
 import { useAnswerFixCheck, useFixCheck } from '../../hooks/useFixCheck'
-import { actsForDistrictOf } from '../../utils/permissions'
+import { actsForAuthorityOf } from '../../utils/permissions'
 import type { Alert, FixCheckSummary, FixVerdict } from '../../types'
 import { FIX_OUTCOME_COLORS, FIX_OUTCOME_LABELS, FIX_VERDICT_LABELS, UNCHECKED_FIX } from '../../types'
 import { CircleCheck, CircleDot, CircleX, type LucideIcon } from 'lucide-react'
@@ -26,7 +26,7 @@ function tallyLine(s: FixCheckSummary): string {
  */
 export function FixCheckPanel({ alert }: { alert: Alert }) {
   const user = useAuthStore((s) => s.user)
-  const ownDistrict = actsForDistrictOf(user, alert)
+  const ownDistrict = actsForAuthorityOf(user, alert)
   const canAnswer = !!user && !ownDistrict
   const isResolved = alert.status === 'RESOLVED'
 

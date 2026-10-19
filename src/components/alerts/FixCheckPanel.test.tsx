@@ -35,12 +35,13 @@ const resolved: Alert = {
   credibilityScore: 0,
   resolvedAt: '2026-10-01T10:00:00Z',
   districtCode: 'LOZENETS',
-  closedBy: 'DISTRICT',
+  authorityCode: 'LOZENETS',
+  closedBy: 'AUTHORITY',
   fixCheck: UNCHECKED_FIX,
 }
 
-const account = (id: string, role: User['role'], districtCode: string | null = null): User => ({
-  id, email: `${id}@example.com`, displayName: id, role, districtCode, enabled: true, emailVerified: true,
+const account = (id: string, role: User['role'], authorityCode: string | null = null): User => ({
+  id, email: `${id}@example.com`, displayName: id, role, authorityCode, enabled: true, emailVerified: true,
 })
 
 const signIn = (u: User | null) => useAuthStore.setState({ user: u })
@@ -110,7 +111,7 @@ describe('FixCheckPanel', () => {
 
   /** The server refuses them; offering buttons that each answer 403 would be worse than none. */
   it('does not let the report\'s own district check its own work', () => {
-    signIn(account('o1', 'DISTRICT_OFFICIAL', 'LOZENETS'))
+    signIn(account('o1', 'OFFICIAL', 'LOZENETS'))
     render(<FixCheckPanel alert={resolved} />)
     expect(answers()).toHaveLength(0)
     expect(screen.getByText('Районът не може да проверява собствената си работа.')).toBeInTheDocument()
@@ -118,7 +119,7 @@ describe('FixCheckPanel', () => {
   })
 
   it('lets an official of another district answer like anyone else', () => {
-    signIn(account('o2', 'DISTRICT_OFFICIAL', 'TRIADITSA'))
+    signIn(account('o2', 'OFFICIAL', 'TRIADITSA'))
     render(<FixCheckPanel alert={resolved} />)
     expect(answers()).toHaveLength(3)
   })

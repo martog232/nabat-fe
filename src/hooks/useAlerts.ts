@@ -171,10 +171,10 @@ export function useReportAction(alertId: string) {
  * `statuses` says otherwise. The district is not a parameter: the server takes it from the
  * account.
  */
-export function useDistrictReports(statuses: AlertStatus[] = []) {
+export function useAssignedReports(statuses: AlertStatus[] = []) {
   return useQuery({
     queryKey: ['alerts', 'district', [...statuses].sort()],
-    queryFn: () => alertsApi.listForOwnDistrict(statuses),
+    queryFn: () => alertsApi.listForOwnAuthority(statuses),
   })
 }
 

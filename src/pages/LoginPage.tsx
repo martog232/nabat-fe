@@ -84,7 +84,7 @@ export function LoginPage() {
           Демо: test@example.com / admin@example.com
         </p>
         <p className="text-center text-xs text-slate-700 mt-1">
-          Район: &lt;район&gt;@rayon.nabat.test / rayon12345
+          Район: &lt;район&gt;@rayon.nabat.test, институция: cgm@institution.nabat.test / rayon12345
         </p>
       </div>
     </div>

@@ -6,13 +6,14 @@ import { CLOSED_BY_LABELS } from '../../types'
 import { GroupIcon } from '../common/GroupIcon'
 import { StatusBadge } from '../common/Badge'
 import { useDistrictNames } from '../../hooks/useDistricts'
+import { useAuthorityNames } from '../../hooks/useAuthorities'
 import { useCategoryIndex } from '../../hooks/useCategories'
 import { resolveCategory } from '../../utils/categories'
 import type { VoteType } from '../../types'
 import { ReportActions } from './ReportActions'
 import { FixCheckPanel } from './FixCheckPanel'
 import { CommentThread } from './CommentThread'
-import { BadgeCheck, CalendarDays, Landmark, ThumbsDown, ThumbsUp, X, type LucideIcon } from 'lucide-react'
+import { BadgeCheck, Building2, CalendarDays, Landmark, ThumbsDown, ThumbsUp, X, type LucideIcon } from 'lucide-react'
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleString('bg-BG', {
@@ -31,6 +32,7 @@ export function AlertDetail() {
   const selectedAlert = inList ?? (fetched?.id === selectedAlertId ? fetched : null)
   const user = useAuthStore((s) => s.user)
   const districtNames = useDistrictNames()
+  const authorityNames = useAuthorityNames()
   const categoryIndex = useCategoryIndex()
 
   const { data: voteData } = useVoteData(selectedAlert?.id ?? '')
@@ -108,9 +110,14 @@ export function AlertDetail() {
             {a.districtCode && (
               <span className="inline-flex items-center gap-1"><Landmark className="h-3.5 w-3.5" aria-hidden /> {districtNames.get(a.districtCode) ?? a.districtCode}</span>
             )}
+            {/* Said only when it is not the district: a bus stop goes to the Centre for Urban
+                Mobility wherever it is, and the reader should know who was asked. */}
+            {a.authorityCode && a.authorityCode !== a.districtCode && (
+              <span className="inline-flex items-center gap-1"><Building2 className="h-3.5 w-3.5" aria-hidden /> Отговаря: {authorityNames.get(a.authorityCode) ?? a.authorityCode}</span>
+            )}
           </div>
 
-          {/* Who closed it matters as much as that it closed: the district saying "fixed"
+          {/* Who closed it matters as much as that it closed: the authority saying "fixed"
               and the reporter saying so are not the same claim. */}
           {a.status === 'RESOLVED' && a.resolvedAt && (
             <div className="text-xs text-slate-500">

@@ -16,6 +16,10 @@ vi.mock('../../hooks/useComments', () => ({
   useRemoveComment: () => ({ mutate: removeMutate, isPending: false }),
 }))
 
+vi.mock('../../hooks/useAuthorities', () => ({
+  useAuthorityNames: () => new Map([['LOZENETS', 'Район Лозенец']]),
+}))
+
 const report: Alert = {
   id: 'a1',
   title: 'Дупка',
@@ -32,6 +36,7 @@ const report: Alert = {
   credibilityScore: 0,
   resolvedAt: null,
   districtCode: 'LOZENETS',
+  authorityCode: 'LOZENETS',
   closedBy: null,
   fixCheck: UNCHECKED_FIX,
 }
@@ -39,7 +44,7 @@ const report: Alert = {
 const comment = (over: Partial<Comment>): Comment => ({
   id: 'c1',
   authorName: 'Мария',
-  byDistrict: false,
+  byAuthority: false,
   byReporter: false,
   mine: false,
   body: 'Още е там.',
@@ -49,7 +54,7 @@ const comment = (over: Partial<Comment>): Comment => ({
 })
 
 const account = (role: User['role']): User => ({
-  id: 'me', email: 'me@example.com', displayName: 'Аз', role, districtCode: null, enabled: true, emailVerified: true,
+  id: 'me', email: 'me@example.com', displayName: 'Аз', role, authorityCode: null, enabled: true, emailVerified: true,
 })
 
 const signIn = (u: User | null) => useAuthStore.setState({ user: u })
@@ -65,13 +70,13 @@ describe('CommentThread', () => {
   it('shows who wrote what, marking the district and the reporter', () => {
     signIn(account('USER'))
     thread = [
-      comment({ id: 'c1', authorName: 'Служител', byDistrict: true, body: 'Насочено към поддръжката.' }),
+      comment({ id: 'c1', authorName: 'Служител', byAuthority: true, body: 'Насочено към поддръжката.' }),
       comment({ id: 'c2', authorName: 'Иван', byReporter: true, body: 'Благодаря.' }),
     ]
     render(<CommentThread alert={report} />)
 
     expect(screen.getByRole('heading', { name: 'Коментари (2)' })).toBeInTheDocument()
-    expect(screen.getByText('Районът')).toBeInTheDocument()
+    expect(screen.getByText('Район Лозенец')).toBeInTheDocument()
     expect(screen.getByText('Подател')).toBeInTheDocument()
     expect(screen.getByText('Насочено към поддръжката.')).toBeInTheDocument()
   })
@@ -96,7 +101,7 @@ describe('CommentThread', () => {
   it('locks a resolved report, keeps its thread, and points at "is it really fixed?"', () => {
     signIn(account('USER'))
     thread = [comment({ mine: true })]
-    render(<CommentThread alert={{ ...report, status: 'RESOLVED', closedBy: 'DISTRICT' }} />)
+    render(<CommentThread alert={{ ...report, status: 'RESOLVED', closedBy: 'AUTHORITY' }} />)
 
     expect(screen.getByText('Още е там.')).toBeInTheDocument()
     expect(screen.queryByLabelText('Вашият коментар')).not.toBeInTheDocument()

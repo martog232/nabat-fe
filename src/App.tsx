@@ -6,13 +6,13 @@ import { MapPage } from './pages/MapPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { LandingPage } from './pages/LandingPage'
 import { AdminPage } from './pages/AdminPage'
-import { DistrictPage } from './pages/DistrictPage'
+import { AssignedReportsPage } from './pages/AssignedReportsPage'
 import { ReportsPage } from './pages/ReportsPage'
 import { DistrictComparisonPage } from './pages/DistrictComparisonPage'
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
 import { PublicOnlyRoute } from './components/auth/PublicOnlyRoute'
 import { AdminRoute } from './components/auth/AdminRoute'
-import { DistrictRoute } from './components/auth/DistrictRoute'
+import { OfficialRoute } from './components/auth/OfficialRoute'
 import { ErrorBoundary } from './components/common/ErrorBoundary'
 import { ToastContainer } from './components/common/ToastContainer'
 
@@ -69,11 +69,11 @@ export default function App() {
           {/* Public too: published data, about the district administrations. */}
           <Route path="/districts" element={<DistrictComparisonPage />} />
           <Route
-            path="/district"
+            path="/assigned"
             element={
-              <DistrictRoute>
-                <DistrictPage />
-              </DistrictRoute>
+              <OfficialRoute>
+                <AssignedReportsPage />
+              </OfficialRoute>
             }
           />
 

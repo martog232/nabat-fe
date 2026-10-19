@@ -43,8 +43,8 @@ type ApiUser = components['schemas']['UserResponse']
 export type User = Required<
   Pick<ApiUser, 'id' | 'email' | 'displayName' | 'role' | 'enabled' | 'emailVerified'>
 > & {
-  /** The district a DISTRICT_OFFICIAL acts for; null for every other role. */
-  districtCode: string | null
+  /** The authority an OFFICIAL acts for — a district or an institution; null for every other role. */
+  authorityCode: string | null
 }
 
 /**
@@ -82,9 +82,14 @@ export interface Alert {
   credibilityScore: number   // computed by the voting service — never recomputed here
   resolvedAt: string | null  // ISO Instant, set only when RESOLVED
   photoUrl?: string          // URL of uploaded photo, if any
-  /** The Sofia district the report is in — who it was sent to. Null only on old reports. */
+  /** The Sofia district the report is in. Null only on old reports. */
   districtCode: string | null
-  /** Who closed it; null while open. "The district says fixed" is not "the reporter says so". */
+  /**
+   * Who answers for it and was sent it: the district, or the city-wide institution its
+   * category belongs to. Name it with `useAuthorityNames`.
+   */
+  authorityCode: string | null
+  /** Who closed it; null while open. "The authority says fixed" is not "the reporter says so". */
   closedBy: ClosedBy | null
   /** Whether people say a resolved report is really fixed. Always present; UNCHECKED until someone answers. */
   fixCheck: FixCheckSummary
@@ -150,6 +155,12 @@ export interface CategoryGroup {
 export type District = Omit<Required<components['schemas']['DistrictResponse']>, 'population'> & {
   population?: number
 }
+
+/**
+ * Someone a report goes to, as `GET /api/v1/authorities` lists them: a district
+ * administration, or a city-wide institution that takes some categories wherever they are.
+ */
+export type Authority = Required<components['schemas']['AuthorityResponse']>
 
 export type ReportRanking = NonNullable<components['schemas']['RankedReportsResponse']['ranking']>
 
@@ -419,7 +430,7 @@ export const STATUS_MARKER_COLORS: Record<AlertStatus, string> = {
 
 /** Who closed a report, said so a reader knows how much weight to give it. */
 export const CLOSED_BY_LABELS: Record<ClosedBy, string> = {
-  DISTRICT: 'от района',
+  AUTHORITY: 'от отговорната институция',
   REPORTER: 'от подателя',
   MODERATOR: 'от модератор',
 }
@@ -496,12 +507,13 @@ export type CommentRemoval = NonNullable<components['schemas']['CommentResponse'
 
 /**
  * One comment in a report's thread, as `GET /api/v1/alerts/{id}/comments` returns it.
- * `byDistrict` and `byReporter` are the author's standing when they wrote, not now.
+ * `byAuthority` (an official of the report's authority) and `byReporter` are the author's
+ * standing when they wrote, not now.
  */
 export interface Comment {
   id: string
   authorName: string
-  byDistrict: boolean
+  byAuthority: boolean
   byReporter: boolean
   /** Written by the signed-in user. */
   mine: boolean

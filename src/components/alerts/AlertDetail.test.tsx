@@ -33,6 +33,7 @@ const alert: Alert = {
   credibilityScore: 10,
   resolvedAt: null,
   districtCode: 'LOZENETS',
+  authorityCode: 'LOZENETS',
   closedBy: null,
   fixCheck: UNCHECKED_FIX,
 }
@@ -42,7 +43,7 @@ const user: User = {
   email: 'voter@example.com',
   displayName: 'Voter',
   role: 'USER',
-  districtCode: null,
+  authorityCode: null,
   enabled: true,
   emailVerified: true,
 }
@@ -57,6 +58,10 @@ vi.mock('../../hooks/useAlerts', () => ({
 
 vi.mock('../../hooks/useDistricts', () => ({
   useDistrictNames: () => new Map([['LOZENETS', 'Район Лозенец']]),
+}))
+
+vi.mock('../../hooks/useAuthorities', () => ({
+  useAuthorityNames: () => new Map([['LOZENETS', 'Район Лозенец']]),
 }))
 
 vi.mock('../../api/votes', () => ({

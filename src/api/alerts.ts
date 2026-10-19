@@ -68,17 +68,17 @@ export const alertsApi = {
   startWork: (id: string) =>
     apiClient.patch<Alert>(`/alerts/${id}/start-work`).then((r) => r.data),
 
-  /** Closed without a fix. The district or a moderator — not the reporter. */
+  /** Closed without a fix. The report's authority or a moderator — not the reporter. */
   reject: (id: string) =>
     apiClient.patch<Alert>(`/alerts/${id}/reject`).then((r) => r.data),
 
   /**
-   * An official's working list: the reports in their own district. Which district comes from
+   * An official's working list: the reports their authority answers for. Which authority comes from
    * the account on the server — there is no parameter for it here, by design.
    */
-  listForOwnDistrict: (statuses: AlertStatus[] = []) =>
+  listForOwnAuthority: (statuses: AlertStatus[] = []) =>
     apiClient
-      .get<Alert[]>('/alerts/district', {
+      .get<Alert[]>('/alerts/assigned', {
         params: { status: statuses },
         paramsSerializer: { indexes: null },
       })

@@ -5,11 +5,11 @@ import { Button } from '../components/common/Button'
 import { useAuthStore } from '../store/authStore'
 import { useToastStore } from '../store/toastStore'
 import type { Role, User } from '../types'
-import { useDistricts } from '../hooks/useDistricts'
+import { useAuthorities } from '../hooks/useAuthorities'
 import { ROLE_LABELS } from '../utils/permissions'
 
 const PAGE_SIZE = 25
-const ASSIGNABLE_ROLES: Role[] = ['USER', 'MODERATOR', 'ADMIN', 'DISTRICT_OFFICIAL']
+const ASSIGNABLE_ROLES: Role[] = ['USER', 'MODERATOR', 'ADMIN', 'OFFICIAL']
 
 /**
  * Account administration: who has which role, and whose account is switched off.
@@ -33,12 +33,12 @@ export function AdminPage() {
   const [error, setError] = useState<string | null>(null)
   const [busyId, setBusyId] = useState<string | null>(null)
   /**
-   * The row where "District official" was picked but no district yet. The role cannot be
-   * saved without one — the server refuses it — so choosing it opens the district picker
+   * The row where "Official" was picked but no authority yet. The role cannot be saved
+   * without one — the server refuses it — so choosing it opens the authority picker
    * instead of sending a request that would only come back 400.
    */
-  const [choosingDistrictFor, setChoosingDistrictFor] = useState<string | null>(null)
-  const { data: districts = [] } = useDistricts()
+  const [choosingAuthorityFor, setChoosingAuthorityFor] = useState<string | null>(null)
+  const { data: authorities = [] } = useAuthorities()
 
   const load = useCallback(async (which: number) => {
     setLoading(true)
@@ -62,16 +62,16 @@ export function AdminPage() {
   const replace = (updated: User) =>
     setUsers((current) => current.map((u) => (u.id === updated.id ? updated : u)))
 
-  const changeRole = async (user: User, role: Role, districtCode?: string) => {
-    if (role === 'DISTRICT_OFFICIAL' && !districtCode) {
-      setChoosingDistrictFor(user.id)
+  const changeRole = async (user: User, role: Role, authorityCode?: string) => {
+    if (role === 'OFFICIAL' && !authorityCode) {
+      setChoosingAuthorityFor(user.id)
       return
     }
-    setChoosingDistrictFor(null)
+    setChoosingAuthorityFor(null)
     setBusyId(user.id)
     try {
-      replace(await adminApi.changeRole(user.id, role, districtCode))
-      const where = districtCode ? ` за ${districts.find((d) => d.code === districtCode)?.name ?? districtCode}` : ''
+      replace(await adminApi.changeRole(user.id, role, authorityCode))
+      const where = authorityCode ? ` за ${authorities.find((a) => a.code === authorityCode)?.name ?? authorityCode}` : ''
       addToast({ type: 'success', message: `${user.displayName} вече е ${roleLabel(role).toLowerCase()}${where}` })
     } catch {
       addToast({ type: 'error', message: `Ролята на ${user.displayName} не можа да се смени` })
@@ -177,7 +177,7 @@ export function AdminPage() {
                     </label>
                     <select
                       id={`role-${user.id}`}
-                      value={choosingDistrictFor === user.id ? 'DISTRICT_OFFICIAL' : user.role}
+                      value={choosingAuthorityFor === user.id ? 'OFFICIAL' : user.role}
                       disabled={isSelf || busy}
                       onChange={(e) => void changeRole(user, e.target.value as Role)}
                       className="rounded-lg border border-surface-border bg-surface-elevated px-3 py-2 text-sm text-slate-800 disabled:opacity-50"
@@ -189,21 +189,21 @@ export function AdminPage() {
                       ))}
                     </select>
 
-                    {(user.role === 'DISTRICT_OFFICIAL' || choosingDistrictFor === user.id) && (
+                    {(user.role === 'OFFICIAL' || choosingAuthorityFor === user.id) && (
                       <>
-                        <label className="sr-only" htmlFor={`district-${user.id}`}>
-                          Район на {user.displayName}
+                        <label className="sr-only" htmlFor={`authority-${user.id}`}>
+                          Орган на {user.displayName}
                         </label>
                         <select
-                          id={`district-${user.id}`}
-                          value={choosingDistrictFor === user.id ? '' : user.districtCode ?? ''}
+                          id={`authority-${user.id}`}
+                          value={choosingAuthorityFor === user.id ? '' : user.authorityCode ?? ''}
                           disabled={isSelf || busy}
-                          onChange={(e) => void changeRole(user, 'DISTRICT_OFFICIAL', e.target.value)}
+                          onChange={(e) => void changeRole(user, 'OFFICIAL', e.target.value)}
                           className="rounded-lg border border-surface-border bg-surface-elevated px-3 py-2 text-sm text-slate-800 disabled:opacity-50"
                         >
-                          <option value="" disabled>Изберете район…</option>
-                          {districts.map((d) => (
-                            <option key={d.code} value={d.code}>{d.name}</option>
+                          <option value="" disabled>Изберете район или институция…</option>
+                          {authorities.map((a) => (
+                            <option key={a.code} value={a.code}>{a.name}</option>
                           ))}
                         </select>
                       </>

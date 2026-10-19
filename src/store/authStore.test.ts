@@ -6,7 +6,7 @@ const mockUser = {
   email: 'test@test.com',
   displayName: 'Test',
   role: 'USER' as const,
-  districtCode: null,
+  authorityCode: null,
   enabled: true,
   emailVerified: false,
 }

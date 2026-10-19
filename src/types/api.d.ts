@@ -246,7 +246,7 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** The report's district says work has started */
+        /** The report's authority says work has started */
         patch: operations["startWork"];
         trace?: never;
     };
@@ -296,7 +296,7 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** The report's district confirms it has received it */
+        /** The report's authority confirms it has received it */
         patch: operations["acknowledge"];
         trace?: never;
     };
@@ -447,6 +447,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/authorities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The districts and city-wide institutions that reports go to */
+        get: operations["list_3"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/me": {
         parameters: {
             query?: never;
@@ -562,15 +579,15 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/alerts/district": {
+    "/api/v1/alerts/assigned": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Reports in the district the caller acts for, newest first */
-        get: operations["listForOwnDistrict"];
+        /** Reports the caller's authority answers for, newest first */
+        get: operations["listForOwnAuthority"];
         put?: never;
         post?: never;
         delete?: never;
@@ -775,16 +792,16 @@ export interface components {
              * @example USER
              * @enum {string}
              */
-            role?: "USER" | "MODERATOR" | "ADMIN" | "DISTRICT_OFFICIAL";
+            role?: "USER" | "MODERATOR" | "ADMIN" | "OFFICIAL";
             /** @description Whether the email address has been verified */
             emailVerified?: boolean;
             /** @description Whether the account may sign in — an admin can switch this off */
             enabled?: boolean;
             /**
-             * @description For a district official, the district they act for; null for every other role
+             * @description For an official, the authority they act for: a district or an institution; null for every other role
              * @example LOZENETS
              */
-            districtCode?: string;
+            authorityCode?: string;
         };
         RefreshTokenRequest: {
             refreshToken: string;
@@ -926,13 +943,18 @@ export interface components {
              */
             districtCode?: string;
             /**
-             * @description Who closed the report — the district, the reporter, or a moderator. Null while open, and on reports closed before this was recorded
-             * @example DISTRICT
+             * @description Who closed the report — the authority that answers for it, the reporter, or a moderator. Null while open, and on reports closed before this was recorded
+             * @example AUTHORITY
              * @enum {string}
              */
-            closedBy?: "DISTRICT" | "REPORTER" | "MODERATOR";
+            closedBy?: "AUTHORITY" | "REPORTER" | "MODERATOR";
             /** @description Whether people say a resolved report is really fixed. All zero and UNCHECKED on reports nobody has checked */
             fixCheck?: components["schemas"]["FixCheckSummary"];
+            /**
+             * @description Who answers for the report: its district, or the city-wide institution its category belongs to. See GET /api/v1/authorities for names
+             * @example LOZENETS
+             */
+            authorityCode?: string;
         };
         /** @description A comment to add */
         CommentRequest: {
@@ -948,8 +970,8 @@ export interface components {
             id?: string;
             /** @description The author's display name when they wrote it */
             authorName?: string;
-            /** @description Written by an official of the report's own district */
-            byDistrict?: boolean;
+            /** @description Written by an official of the report's authority */
+            byAuthority?: boolean;
             /** @description Written by the person who reported it */
             byReporter?: boolean;
             /** @description Written by the caller */
@@ -1028,12 +1050,12 @@ export interface components {
              * @example MODERATOR
              * @enum {string}
              */
-            role: "USER" | "MODERATOR" | "ADMIN" | "DISTRICT_OFFICIAL";
+            role: "USER" | "MODERATOR" | "ADMIN" | "OFFICIAL";
             /**
-             * @description Required for DISTRICT_OFFICIAL, and only for it: the district the account acts for
+             * @description Required for OFFICIAL, and only for it: the authority the account acts for, a district or an institution
              * @example LOZENETS
              */
-            districtCode?: string;
+            authorityCode?: string;
         };
         /** @description Enables or disables an account */
         SetEnabledRequest: {
@@ -1190,6 +1212,24 @@ export interface components {
              * @description No final answer when the archive was taken
              */
             stillOpen?: number;
+        };
+        /** @description Someone a report can go to: a district administration, or a city-wide institution */
+        AuthorityResponse: {
+            /**
+             * @description Stable code, as carried by a report's authorityCode
+             * @example CGM
+             */
+            code?: string;
+            /**
+             * @description Name
+             * @example Център за градска мобилност
+             */
+            name?: string;
+            /**
+             * @description A district administration, or an institution that takes some categories city-wide
+             * @enum {string}
+             */
+            kind?: "DISTRICT" | "INSTITUTION";
         };
         /** @description Indicates whether the current user has voted on an alert */
         UserVoteResponse: {
@@ -2059,6 +2099,26 @@ export interface operations {
             };
         };
     };
+    list_3: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AuthorityResponse"][];
+                };
+            };
+        };
+    };
     getCurrentUser: {
         parameters: {
             query?: never;
@@ -2226,7 +2286,7 @@ export interface operations {
             };
         };
     };
-    listForOwnDistrict: {
+    listForOwnAuthority: {
         parameters: {
             query?: {
                 status?: ("SUBMITTED" | "SENT" | "ACKNOWLEDGED" | "IN_PROGRESS" | "RESOLVED" | "REJECTED")[];

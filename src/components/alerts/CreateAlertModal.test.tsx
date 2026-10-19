@@ -35,6 +35,7 @@ const existing: Alert = {
   credibilityScore: 0,
   resolvedAt: null,
   districtCode: 'LOZENETS',
+  authorityCode: 'LOZENETS',
   closedBy: null,
   fixCheck: UNCHECKED_FIX,
 }
