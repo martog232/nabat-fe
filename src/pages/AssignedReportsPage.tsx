@@ -7,6 +7,7 @@ import { useAuthStore } from '../store/authStore'
 import { ReportActions } from '../components/alerts/ReportActions'
 import { StatusBadge } from '../components/common/Badge'
 import { FixOutcomeBadge } from '../components/alerts/FixOutcomeBadge'
+import { OverdueBadge } from '../components/alerts/OverdueBadge'
 import type { AlertStatus } from '../types'
 import { OPEN_STATUSES } from '../types'
 import { GroupIcon } from '../components/common/GroupIcon'
@@ -101,6 +102,7 @@ export function AssignedReportsPage() {
                   <div className="flex items-center justify-between gap-2">
                     <p className="truncate font-semibold text-slate-900">{r.title}</p>
                     <div className="flex flex-shrink-0 items-center gap-1">
+                      <OverdueBadge alert={r} />
                       <FixOutcomeBadge alert={r} />
                       <StatusBadge status={r.status} />
                     </div>

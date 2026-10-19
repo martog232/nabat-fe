@@ -20,6 +20,7 @@ const baseAlert: Alert = {
   resolvedAt: null,
   districtCode: 'LOZENETS',
   authorityCode: 'LOZENETS',
+  answerDueAt: null,
   closedBy: null,
   fixCheck: UNCHECKED_FIX,
 }

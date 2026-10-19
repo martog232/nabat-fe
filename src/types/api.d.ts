@@ -1076,6 +1076,11 @@ export interface components {
              * @example LOZENETS
              */
             authorityCode?: string;
+            /**
+             * Format: date-time
+             * @description When its authority has to have answered by; null when nothing is waiting on it. Past this, the report is overdue
+             */
+            answerDueAt?: string;
         };
         /** @description Why */
         ReasonRequest: {
@@ -2586,6 +2591,8 @@ export interface operations {
                 ranking?: "HOT" | "LONGEST_WAITING" | "NEWEST";
                 page?: number;
                 size?: number;
+                /** @description Only reports past the deadline for their authority's answer */
+                overdue?: boolean;
             };
             header?: never;
             path?: never;

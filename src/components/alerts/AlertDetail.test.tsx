@@ -34,6 +34,7 @@ const alert: Alert = {
   resolvedAt: null,
   districtCode: 'LOZENETS',
   authorityCode: 'LOZENETS',
+  answerDueAt: null,
   closedBy: null,
   fixCheck: UNCHECKED_FIX,
 }

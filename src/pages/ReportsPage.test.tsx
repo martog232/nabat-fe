@@ -37,6 +37,7 @@ const report = (over: Partial<Alert>): Alert => ({
   resolvedAt: null,
   districtCode: 'LOZENETS',
   authorityCode: 'LOZENETS',
+  answerDueAt: null,
   closedBy: null,
   fixCheck: UNCHECKED_FIX,
   ...over,

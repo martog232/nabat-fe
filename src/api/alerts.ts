@@ -115,13 +115,14 @@ export const alertsApi = {
       .then((r) => r.data),
 
   /** The public list. Needs no session. */
-  listRanked: (params: { ranking: ReportRanking; district?: string; statuses?: AlertStatus[]; page?: number; size?: number }) =>
+  listRanked: (params: { ranking: ReportRanking; district?: string; statuses?: AlertStatus[]; overdue?: boolean; page?: number; size?: number }) =>
     apiClient
       .get<RankedReportsResponse>('/alerts/ranked', {
         params: {
           ranking: params.ranking,
           district: params.district || undefined,
           status: params.statuses ?? [],
+          overdue: params.overdue || undefined,
           page: params.page ?? 0,
           size: params.size ?? 50,
         },

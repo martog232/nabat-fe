@@ -37,6 +37,7 @@ const report: Alert = {
   resolvedAt: null,
   districtCode: 'LOZENETS',
   authorityCode: 'LOZENETS',
+  answerDueAt: null,
   closedBy: 'AUTHORITY',
   fixCheck: UNCHECKED_FIX,
 }

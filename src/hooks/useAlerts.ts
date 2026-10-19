@@ -185,11 +185,12 @@ export function useRankedReports(params: {
   ranking: ReportRanking
   district?: string
   statuses: AlertStatus[]
+  overdue?: boolean
   page: number
   size: number
 }) {
   return useQuery({
-    queryKey: ['alerts', 'ranked', params.ranking, params.district ?? '', [...params.statuses].sort(), params.page, params.size],
+    queryKey: ['alerts', 'ranked', params.ranking, params.district ?? '', [...params.statuses].sort(), !!params.overdue, params.page, params.size],
     queryFn: () => alertsApi.listRanked(params),
     placeholderData: (previous) => previous,
   })

@@ -38,6 +38,7 @@ const alert = (reportedBy: string, status: Alert['status'] = 'SUBMITTED'): Alert
   resolvedAt: status === 'RESOLVED' ? '2026-08-21T06:00:00Z' : null,
   districtCode: 'LOZENETS',
   authorityCode: 'LOZENETS',
+  answerDueAt: null,
   closedBy: null,
   fixCheck: UNCHECKED_FIX,
 })

@@ -89,6 +89,11 @@ export interface Alert {
    * category belongs to. Name it with `useAuthorityNames`.
    */
   authorityCode: string | null
+  /**
+   * When its authority has to have answered by; null when nothing is waiting on it (not yet
+   * delivered, answered, or closed). Past it, the report is overdue — see `overdueDays`.
+   */
+  answerDueAt: string | null
   /** Who closed it; null while open. "The authority says fixed" is not "the reporter says so". */
   closedBy: ClosedBy | null
   /** Whether people say a resolved report is really fixed. Always present; UNCHECKED until someone answers. */

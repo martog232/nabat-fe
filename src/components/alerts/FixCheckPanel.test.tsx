@@ -36,6 +36,7 @@ const resolved: Alert = {
   resolvedAt: '2026-10-01T10:00:00Z',
   districtCode: 'LOZENETS',
   authorityCode: 'LOZENETS',
+  answerDueAt: null,
   closedBy: 'AUTHORITY',
   fixCheck: UNCHECKED_FIX,
 }

@@ -5,6 +5,7 @@ import { useDistricts, useDistrictNames } from '../hooks/useDistricts'
 import { useAuthStore } from '../store/authStore'
 import { StatusBadge } from '../components/common/Badge'
 import { FixOutcomeBadge } from '../components/alerts/FixOutcomeBadge'
+import { OverdueBadge } from '../components/alerts/OverdueBadge'
 import { FixCheckPanel } from '../components/alerts/FixCheckPanel'
 import { GroupIcon } from '../components/common/GroupIcon'
 import type { Alert, AlertStatus, ReportRanking } from '../types'
@@ -56,6 +57,8 @@ export function ReportsPage() {
   const [ranking, setRanking] = useState<ReportRanking>('HOT')
   const [district, setDistrict] = useState('')
   const [stateFilter, setStateFilter] = useState(0)
+  // Only reports past the deadline for their authority's answer: who has left whom waiting.
+  const [overdueOnly, setOverdueOnly] = useState(false)
   const [page, setPage] = useState(0)
   const [checking, setChecking] = useState<string | null>(null)
 
@@ -66,6 +69,7 @@ export function ReportsPage() {
     ranking,
     district: district || undefined,
     statuses: STATE_FILTERS[stateFilter].statuses,
+    overdue: overdueOnly,
     page,
     size: PAGE_SIZE,
   })
@@ -121,6 +125,9 @@ export function ReportsPage() {
               {f.label}
             </button>
           ))}
+          <button type="button" aria-pressed={overdueOnly} onClick={() => choose(setOverdueOnly)(!overdueOnly)} className={pill(overdueOnly)}>
+            Само просрочени
+          </button>
           <label className="sr-only" htmlFor="district-filter">Район</label>
           <select
             id="district-filter"
@@ -154,6 +161,7 @@ export function ReportsPage() {
                   <div className="flex items-center justify-between gap-2">
                     <p className="truncate font-semibold text-slate-900">{r.title}</p>
                     <div className="flex flex-shrink-0 items-center gap-1">
+                      <OverdueBadge alert={r} />
                       <FixOutcomeBadge alert={r} />
                       <StatusBadge status={r.status} />
                     </div>

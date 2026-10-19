@@ -15,6 +15,8 @@ import { FixCheckPanel } from './FixCheckPanel'
 import { CommentThread } from './CommentThread'
 import { ForwardHistory } from './ForwardHistory'
 import { RejectionPanel } from './RejectionPanel'
+import { OverdueBadge } from './OverdueBadge'
+import { overdueDays } from '../../utils/deadline'
 import { BadgeCheck, Building2, CalendarDays, Landmark, ThumbsDown, ThumbsUp, X, type LucideIcon } from 'lucide-react'
 
 function formatDate(iso: string) {
@@ -93,6 +95,7 @@ export function AlertDetail() {
               <h3 className="font-bold text-slate-900 text-base leading-tight mb-1">{a.title}</h3>
               <div className="flex items-center gap-2">
                 <StatusBadge status={a.status} />
+                <OverdueBadge alert={a} />
                 {category && (
                   <span className="text-xs text-slate-500">
                     {category.group.name} · {category.category.name}
@@ -118,6 +121,11 @@ export function AlertDetail() {
               <span className="inline-flex items-center gap-1"><Building2 className="h-3.5 w-3.5" aria-hidden /> Отговаря: {authorityNames.get(a.authorityCode) ?? a.authorityCode}</span>
             )}
           </div>
+
+          {/* The clock the authority is on, while it is on one and not yet past it. */}
+          {a.answerDueAt && overdueDays(a) === null && (
+            <div className="text-xs text-slate-500">Срок за отговор: {formatDate(a.answerDueAt)}</div>
+          )}
 
           {/* Who closed it matters as much as that it closed: the authority saying "fixed"
               and the reporter saying so are not the same claim. */}
