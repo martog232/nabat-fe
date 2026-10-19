@@ -8,10 +8,24 @@ import { UNCHECKED_FIX } from '../../types'
 
 const actionMutate = vi.fn()
 const resolveMutate = vi.fn()
+const forwardMutate = vi.fn()
 
 vi.mock('../../hooks/useAlerts', () => ({
   useReportAction: () => ({ mutate: actionMutate, isPending: false, variables: undefined }),
   useResolveAlert: () => ({ mutate: resolveMutate, isPending: false }),
+}))
+
+vi.mock('../../hooks/useForwards', () => ({
+  useForwardReport: () => ({ mutate: forwardMutate, isPending: false }),
+}))
+
+vi.mock('../../hooks/useAuthorities', () => ({
+  useAuthorities: () => ({
+    data: [
+      { code: 'LOZENETS', name: 'Район Лозенец', kind: 'DISTRICT' },
+      { code: 'CGM', name: 'Център за градска мобилност', kind: 'INSTITUTION' },
+    ],
+  }),
 }))
 
 const report: Alert = {
@@ -45,6 +59,7 @@ const labels = () => screen.queryAllByRole('button').map((b) => b.textContent)
 beforeEach(() => {
   actionMutate.mockReset()
   resolveMutate.mockReset()
+  forwardMutate.mockReset()
 })
 afterEach(cleanup)
 
@@ -52,13 +67,13 @@ describe('ReportActions', () => {
   it('gives the report\'s own district every step it can still take', () => {
     signIn(account('o1', 'OFFICIAL', 'LOZENETS'))
     render(<ReportActions alert={report} />)
-    expect(labels()).toEqual(['Приеми', 'Започни работа', 'Маркирай като решен', 'Отхвърли'])
+    expect(labels()).toEqual(['Приеми', 'Започни работа', 'Маркирай като решен', 'Отхвърли', 'Не е наше — препрати'])
   })
 
   it('stops offering a step the report is already past', () => {
     signIn(account('o1', 'OFFICIAL', 'LOZENETS'))
     render(<ReportActions alert={{ ...report, status: 'IN_PROGRESS' }} />)
-    expect(labels()).toEqual(['Маркирай като решен', 'Отхвърли'])
+    expect(labels()).toEqual(['Маркирай като решен', 'Отхвърли', 'Не е наше — препрати'])
   })
 
   /** Nothing at all, not a set of buttons that would each answer 403. */
@@ -80,6 +95,26 @@ describe('ReportActions', () => {
     await userEvent.setup().click(screen.getByRole('button', { name: 'Започни работа' }))
     expect(actionMutate).toHaveBeenCalledWith('startWork')
     expect(resolveMutate).not.toHaveBeenCalled()
+  })
+
+  /** Not the reporter: they chose the category, which chose the authority. */
+  it('offers forwarding to the authority, and sends where and why', async () => {
+    signIn(account('o1', 'OFFICIAL', 'LOZENETS'))
+    render(<ReportActions alert={report} />)
+    const user = userEvent.setup()
+    await user.click(screen.getByRole('button', { name: 'Не е наше — препрати' }))
+
+    // Its own authority is not offered.
+    expect(screen.queryByRole('option', { name: 'Район Лозенец' })).not.toBeInTheDocument()
+    const submit = screen.getByRole('button', { name: 'Препрати' })
+    expect(submit).toBeDisabled()
+
+    await user.selectOptions(screen.getByLabelText('Към кого'), 'CGM')
+    await user.type(screen.getByLabelText('Защо е тяхно'), 'Знакът е на ЦГМ')
+    await user.click(submit)
+
+    expect(forwardMutate).toHaveBeenCalledWith(
+      { authorityCode: 'CGM', reason: 'Знакът е на ЦГМ' }, expect.anything())
   })
 
   it('shows nothing on a closed report', () => {

@@ -13,6 +13,7 @@ import type { VoteType } from '../../types'
 import { ReportActions } from './ReportActions'
 import { FixCheckPanel } from './FixCheckPanel'
 import { CommentThread } from './CommentThread'
+import { ForwardHistory } from './ForwardHistory'
 import { BadgeCheck, Building2, CalendarDays, Landmark, ThumbsDown, ThumbsUp, X, type LucideIcon } from 'lucide-react'
 
 function formatDate(iso: string) {
@@ -136,6 +137,9 @@ export function AlertDetail() {
           {/* What this user may do to move the report along — the district's steps, and
               "fixed" for whoever may say so. Renders nothing for everyone else. */}
           <ReportActions alert={a} />
+
+          {/* Where it has been, when it has moved: the chain is part of the record. */}
+          <ForwardHistory alert={a} />
 
           {/*
             Vote buttons.

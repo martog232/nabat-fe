@@ -4,6 +4,7 @@ import type {
   CreateAlertRequest,
   NearbyAlertsResponse,
   RankedReportsResponse,
+  ReportForward,
   ReportRanking,
   SimilarReportsResponse,
 } from '../types'
@@ -60,11 +61,22 @@ export const alertsApi = {
   resolve: (id: string) =>
     apiClient.patch<Alert>(`/alerts/${id}/resolve`).then((r) => r.data),
 
-  /** The district has received the report. Its own officials only. */
+  /**
+   * Hands the report to the authority it belongs to, saying why. Its authority or a
+   * moderator; it goes back to SUBMITTED until it is mailed there.
+   */
+  forward: (id: string, authorityCode: string, reason: string) =>
+    apiClient.post<Alert>(`/alerts/${id}/forward`, { authorityCode, reason }).then((r) => r.data),
+
+  /** Where the report has been forwarded, oldest first. */
+  forwards: (id: string) =>
+    apiClient.get<ReportForward[]>(`/alerts/${id}/forwards`).then((r) => r.data),
+
+  /** The authority that answers for the report has received it. Its own officials only. */
   acknowledge: (id: string) =>
     apiClient.patch<Alert>(`/alerts/${id}/acknowledge`).then((r) => r.data),
 
-  /** The district has started work on it. Its own officials only. */
+  /** The authority that answers for the report has started work on it. Its own officials only. */
   startWork: (id: string) =>
     apiClient.patch<Alert>(`/alerts/${id}/start-work`).then((r) => r.data),
 

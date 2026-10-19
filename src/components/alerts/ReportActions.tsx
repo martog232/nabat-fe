@@ -1,7 +1,9 @@
+import { useState } from 'react'
 import type { Alert } from '../../types'
 import { useAuthStore } from '../../store/authStore'
 import { useReportAction, useResolveAlert, type ReportAction } from '../../hooks/useAlerts'
-import { canAdvanceTo, canRejectAlert, canResolveAlert } from '../../utils/permissions'
+import { canAdvanceTo, canForward, canRejectAlert, canResolveAlert } from '../../utils/permissions'
+import { ForwardForm } from './ForwardForm'
 
 interface Props {
   alert: Alert
@@ -11,14 +13,16 @@ interface Props {
  * Everything the signed-in user may do to move this report along, and nothing they may not.
  *
  * Which buttons appear mirrors the server's rules: acknowledging and starting work are the
- * report's own district's; rejecting is the district's or a moderator's; marking fixed is
- * open to the district, the reporter, or a moderator. The server re-checks all of it — an
- * official of another district sees nothing here, and would be refused if they tried.
+ * report's own authority's; rejecting is the authority's or a moderator's; marking fixed is
+ * open to the authority, the reporter, or a moderator; forwarding to another authority is the
+ * authority's or a moderator's. The server re-checks all of it — an official of another
+ * authority sees nothing here, and would be refused if they tried.
  */
 export function ReportActions({ alert }: Props) {
   const user = useAuthStore((s) => s.user)
   const action = useReportAction(alert.id)
   const resolve = useResolveAlert(alert.id)
+  const [forwarding, setForwarding] = useState(false)
 
   const buttons: { key: ReportAction | 'resolve'; label: string; show: boolean; tone: 'primary' | 'plain' | 'danger' }[] = [
     { key: 'acknowledge', label: 'Приеми', show: canAdvanceTo(user, alert, 'ACKNOWLEDGED'), tone: 'plain' },
@@ -27,7 +31,8 @@ export function ReportActions({ alert }: Props) {
     { key: 'reject', label: 'Отхвърли', show: canRejectAlert(user, alert), tone: 'danger' },
   ]
   const visible = buttons.filter((b) => b.show)
-  if (visible.length === 0) return null
+  const mayForward = canForward(user, alert)
+  if (visible.length === 0 && !mayForward) return null
 
   const busy = action.isPending || resolve.isPending
   const pendingKey = resolve.isPending ? 'resolve' : action.isPending ? action.variables : undefined
@@ -45,18 +50,32 @@ export function ReportActions({ alert }: Props) {
   }
 
   return (
-    <div className="grid grid-cols-2 gap-2" role="group" aria-label="Действия по сигнала">
-      {visible.map((b) => (
-        <button
-          key={b.key}
-          type="button"
-          onClick={() => run(b.key)}
-          disabled={busy}
-          className={`rounded-xl border py-3 sm:py-2 text-sm font-semibold transition disabled:opacity-60 disabled:cursor-not-allowed ${toneClass[b.tone]}`}
-        >
-          {pendingKey === b.key ? '…' : b.label}
-        </button>
-      ))}
+    <div className="space-y-2">
+      <div className="grid grid-cols-2 gap-2" role="group" aria-label="Действия по сигнала">
+        {visible.map((b) => (
+          <button
+            key={b.key}
+            type="button"
+            onClick={() => run(b.key)}
+            disabled={busy}
+            className={`rounded-xl border py-3 sm:py-2 text-sm font-semibold transition disabled:opacity-60 disabled:cursor-not-allowed ${toneClass[b.tone]}`}
+          >
+            {pendingKey === b.key ? '…' : b.label}
+          </button>
+        ))}
+        {/* Not a rejection: the report is real, it was only sent to the wrong address. */}
+        {mayForward && !forwarding && (
+          <button
+            type="button"
+            onClick={() => setForwarding(true)}
+            disabled={busy}
+            className={`col-span-2 rounded-xl border py-3 sm:py-2 text-sm font-semibold transition disabled:opacity-60 ${toneClass.plain}`}
+          >
+            Не е наше — препрати
+          </button>
+        )}
+      </div>
+      {forwarding && <ForwardForm alert={alert} onDone={() => setForwarding(false)} />}
     </div>
   )
 }

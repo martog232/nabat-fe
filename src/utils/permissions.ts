@@ -57,6 +57,16 @@ export function canRejectAlert(user: User | null, alert: Alert): boolean {
   return actsForAuthorityOf(user, alert) || canModerateContent(user.role)
 }
 
+/**
+ * Whether this user may hand the report to another authority: its own authority, or a
+ * moderator correcting the routing — never the reporter. Mirrors `ForwardReportService`, all
+ * but its limit: after three forwards the server refuses the authority and says so.
+ */
+export function canForward(user: User | null, alert: Alert): boolean {
+  if (!user || !isOpen(alert.status)) return false
+  return actsForAuthorityOf(user, alert) || canModerateContent(user.role)
+}
+
 /** The forward order of the open states, as `AlertStatus.canMoveTo` compares them. */
 const OPEN_ORDER: AlertStatus[] = ['SUBMITTED', 'SENT', 'ACKNOWLEDGED', 'IN_PROGRESS']
 

@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { useAlertStore } from '../../store/alertStore'
 import { useNotifications, useMarkAsRead, useMarkAllAsRead } from '../../hooks/useNotifications'
 import type { Notification, NotificationType } from '../../types'
-import { BadgeCheck, Bell, Lock, MessageCircle, ThumbsDown, ThumbsUp, Trophy, type LucideIcon } from 'lucide-react'
+import { BadgeCheck, Bell, Forward, Lock, MessageCircle, ThumbsDown, ThumbsUp, Trophy, type LucideIcon } from 'lucide-react'
 
 interface NotificationPanelProps {
   onClose: () => void
@@ -16,6 +16,7 @@ const NOTIFICATION_ICONS: Record<NotificationType, LucideIcon> = {
   ALERT_MILESTONE: Trophy,
   ALERT_RESOLVED: Lock,
   COMMENT_ADDED: MessageCircle,
+  REPORT_FORWARDED: Forward,
 }
 
 function timeAgo(iso: string): string {

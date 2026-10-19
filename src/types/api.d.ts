@@ -199,6 +199,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/alerts/{id}/forward": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Hand the report to the authority it belongs to, saying why */
+        post: operations["forward"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/alerts/{id}/comments": {
         parameters: {
             query?: never;
@@ -496,6 +513,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/alerts/{id}/forwards": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Where the report has been forwarded, oldest first */
+        get: operations["forwards"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/alerts/{alertId}/votes/stats": {
         parameters: {
             query?: never;
@@ -703,7 +737,7 @@ export interface components {
              * @example VOTE
              * @enum {string}
              */
-            type?: "ALERT_UPVOTED" | "ALERT_DOWNVOTED" | "ALERT_CONFIRMED" | "ALERT_MILESTONE" | "ALERT_RESOLVED" | "COMMENT_ADDED";
+            type?: "ALERT_UPVOTED" | "ALERT_DOWNVOTED" | "ALERT_CONFIRMED" | "ALERT_MILESTONE" | "ALERT_RESOLVED" | "COMMENT_ADDED" | "REPORT_FORWARDED";
             /**
              * @description Short notification title
              * @example New vote on your alert
@@ -955,6 +989,19 @@ export interface components {
              * @example LOZENETS
              */
             authorityCode?: string;
+        };
+        /** @description Where to forward a report, and why */
+        ForwardRequest: {
+            /**
+             * @description The authority it belongs to, as listed by GET /api/v1/authorities
+             * @example CGM
+             */
+            authorityCode: string;
+            /**
+             * @description Why it is that authority's, 1 to 1000 characters
+             * @example Шахтата е на водопровода.
+             */
+            reason: string;
         };
         /** @description A comment to add */
         CommentRequest: {
@@ -1230,6 +1277,30 @@ export interface components {
              * @enum {string}
              */
             kind?: "DISTRICT" | "INSTITUTION";
+        };
+        /** @description One forward of a report */
+        ForwardResponse: {
+            /**
+             * Format: int32
+             * @description 1 for the first forward, then 2, 3...
+             */
+            sequence?: number;
+            /**
+             * @description The authority that had it
+             * @example LOZENETS
+             */
+            fromAuthority?: string;
+            /**
+             * @description The authority it went to
+             * @example CGM
+             */
+            toAuthority?: string;
+            /** @description Made by a moderator rather than by the authority that had it */
+            byModerator?: boolean;
+            /** @description Why */
+            reason?: string;
+            /** Format: date-time */
+            forwardedAt?: string;
         };
         /** @description Indicates whether the current user has voted on an alert */
         UserVoteResponse: {
@@ -1716,6 +1787,32 @@ export interface operations {
             };
         };
     };
+    forward: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ForwardRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AlertResponse"];
+                };
+            };
+        };
+    };
     thread: {
         parameters: {
             query?: never;
@@ -2157,6 +2254,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["AlertResponse"];
+                };
+            };
+        };
+    };
+    forwards: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ForwardResponse"][];
                 };
             };
         };

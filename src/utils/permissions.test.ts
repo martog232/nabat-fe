@@ -4,6 +4,7 @@ import {
   canAdministerUsers,
   canAdvanceTo,
   canModerateContent,
+  canForward,
   canRejectAlert,
   canResolveAlert,
 } from './permissions'
@@ -135,5 +136,31 @@ describe('acknowledging and starting work', () => {
   it('belongs to the district alone — not the reporter, not a moderator', () => {
     expect(canAdvanceTo(user('u1', 'USER'), alert('u1', 'SENT'), 'ACKNOWLEDGED')).toBe(false)
     expect(canAdvanceTo(user('m1', 'MODERATOR'), alert('u2', 'SENT'), 'IN_PROGRESS')).toBe(false)
+  })
+})
+
+describe('an institution', () => {
+  const official = (authority: string): User => ({ ...user('o1', 'OFFICIAL'), authorityCode: authority })
+  const busStop: Alert = { ...alert('u2'), authorityCode: 'CGM' }
+
+  /** The authority, not the place: a bus stop in Lozenets is the CGM's. */
+  it('acts on a report in a district because its category is theirs', () => {
+    expect(actsForAuthorityOf(official('CGM'), busStop)).toBe(true)
+    expect(actsForAuthorityOf(official('LOZENETS'), busStop)).toBe(false)
+  })
+})
+
+describe('canForward', () => {
+  const official = (authority: string): User => ({ ...user('o1', 'OFFICIAL'), authorityCode: authority })
+
+  it('is the report\'s authority\'s or a moderator\'s, and never the reporter\'s', () => {
+    expect(canForward(official('LOZENETS'), alert('u2'))).toBe(true)
+    expect(canForward(user('m1', 'MODERATOR'), alert('u2'))).toBe(true)
+    expect(canForward(user('u2', 'USER'), alert('u2'))).toBe(false)
+    expect(canForward(official('TRIADITSA'), alert('u2'))).toBe(false)
+  })
+
+  it('is not offered on a closed report', () => {
+    expect(canForward(official('LOZENETS'), alert('u2', 'RESOLVED'))).toBe(false)
   })
 })

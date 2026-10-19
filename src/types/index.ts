@@ -162,6 +162,9 @@ export type District = Omit<Required<components['schemas']['DistrictResponse']>,
  */
 export type Authority = Required<components['schemas']['AuthorityResponse']>
 
+/** One forward of a report, as `GET /api/v1/alerts/{id}/forwards` lists them, oldest first. */
+export type ReportForward = Required<components['schemas']['ForwardResponse']>
+
 export type ReportRanking = NonNullable<components['schemas']['RankedReportsResponse']['ranking']>
 
 /** One page of the public list: `GET /api/v1/alerts/ranked`. */
@@ -346,6 +349,7 @@ export type NotificationType =
   | 'ALERT_MILESTONE'
   | 'ALERT_RESOLVED'
   | 'COMMENT_ADDED'
+  | 'REPORT_FORWARDED'
 
 export interface Notification {
   id: string
