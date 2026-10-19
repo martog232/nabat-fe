@@ -737,7 +737,7 @@ export interface components {
              * @example VOTE
              * @enum {string}
              */
-            type?: "ALERT_UPVOTED" | "ALERT_DOWNVOTED" | "ALERT_CONFIRMED" | "ALERT_MILESTONE" | "ALERT_RESOLVED" | "COMMENT_ADDED" | "REPORT_FORWARDED";
+            type?: "ALERT_UPVOTED" | "ALERT_DOWNVOTED" | "ALERT_CONFIRMED" | "ALERT_MILESTONE" | "ALERT_RESOLVED" | "COMMENT_ADDED" | "REPORT_FORWARDED" | "REPORT_PROGRESSED";
             /**
              * @description Short notification title
              * @example New vote on your alert

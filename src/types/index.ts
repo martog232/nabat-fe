@@ -350,6 +350,7 @@ export type NotificationType =
   | 'ALERT_RESOLVED'
   | 'COMMENT_ADDED'
   | 'REPORT_FORWARDED'
+  | 'REPORT_PROGRESSED'
 
 export interface Notification {
   id: string
