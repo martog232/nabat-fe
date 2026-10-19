@@ -58,6 +58,8 @@ interface AuthState {
   error: string | null
 
   login: (email: string, password: string) => Promise<void>
+  /** The official's way in from a report mail: the key behind its button, no password. */
+  signInWithLink: (token: string) => Promise<void>
   register: (email: string, password: string, displayName: string) => Promise<void>
   logout: () => void
   clearError: () => void
@@ -107,6 +109,19 @@ const createAuthState: StateCreator<
     } catch (err: unknown) {
       const msg = getApiErrorMessage(err, 'Входът не успя')
       set({ isLoading: false, error: msg })
+      throw err
+    }
+  },
+
+  signInWithLink: async (token) => {
+    set({ isLoading: true, error: null })
+    try {
+      const data = await authApi.signInWithLink(token)
+      localStorage.setItem('accessToken', data.accessToken)
+      localStorage.setItem('refreshToken', data.refreshToken)
+      set({ user: data.user, accessToken: data.accessToken, refreshToken: data.refreshToken, isLoading: false })
+    } catch (err: unknown) {
+      set({ isLoading: false, error: getApiErrorMessage(err, 'Линкът не е валиден или е изтекъл') })
       throw err
     }
   },

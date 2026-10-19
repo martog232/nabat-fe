@@ -5,6 +5,10 @@ export const authApi = {
   login: (data: LoginRequest) =>
     apiClient.post<AuthResponse>('/auth/login', data).then((r) => r.data),
 
+  /** Signs an official in with the key behind a report mail's button. */
+  signInWithLink: (token: string) =>
+    apiClient.post<AuthResponse>('/auth/link', { token }).then((r) => r.data),
+
   register: (data: RegisterRequest) =>
     apiClient.post<AuthResponse>('/auth/register', data).then((r) => r.data),
 

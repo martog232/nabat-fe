@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { LoginPage } from './pages/LoginPage'
 import { RegisterPage } from './pages/RegisterPage'
+import { LinkPage } from './pages/LinkPage'
 import { MapPage } from './pages/MapPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { LandingPage } from './pages/LandingPage'
@@ -32,6 +33,8 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          {/* Public: it is how an official without a password gets in, from a report mail. */}
+          <Route path="/link" element={<LinkPage />} />
           <Route
             path="/"
             element={

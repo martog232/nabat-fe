@@ -167,6 +167,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/link": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["signInWithLink"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/forgot-password": {
         parameters: {
             query?: never;
@@ -927,6 +943,9 @@ export interface components {
              * @example s3cr3tP@ss
              */
             password: string;
+        };
+        SignInLinkRequest: {
+            token: string;
         };
         ForgotPasswordRequest: {
             /** Format: email */
@@ -1812,6 +1831,30 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["LoginRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AuthResponse"];
+                };
+            };
+        };
+    };
+    signInWithLink: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SignInLinkRequest"];
             };
         };
         responses: {
