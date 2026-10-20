@@ -9,7 +9,7 @@ import { useDistrictNames } from '../../hooks/useDistricts'
 import { useAuthorityNames } from '../../hooks/useAuthorities'
 import { useCategoryIndex } from '../../hooks/useCategories'
 import { resolveCategory } from '../../utils/categories'
-import type { VoteType } from '../../types'
+
 import { ReportActions } from './ReportActions'
 import { FixCheckPanel } from './FixCheckPanel'
 import { CommentThread } from './CommentThread'
@@ -17,7 +17,7 @@ import { ForwardHistory } from './ForwardHistory'
 import { RejectionPanel } from './RejectionPanel'
 import { OverdueBadge } from './OverdueBadge'
 import { overdueDays } from '../../utils/deadline'
-import { BadgeCheck, Building2, CalendarDays, Landmark, ThumbsDown, ThumbsUp, X, type LucideIcon } from 'lucide-react'
+import { Building2, CalendarDays, Eye, Landmark, X } from 'lucide-react'
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleString('bg-BG', {
@@ -50,23 +50,19 @@ export function AlertDetail() {
   const a = selectedAlert
   const category = resolveCategory(categoryIndex, a.categoryCode)
 
-  // The vote type currently being submitted — used to show a per-button spinner
-  const pendingVoteType = vote.isPending ? vote.variables : undefined
   const isMutating = vote.isPending || removeVote.isPending
+  // People who say they see it: confirmations, and the upvotes from before there was only one
+  // way to say so. The same number the public list ranks by.
+  const seenBy = stats ? stats.confirmations + stats.upvotes : 0
+  // An old upvote was the same statement, so it shows as having confirmed.
+  const iSeeIt = myVote?.voteType === 'CONFIRM' || myVote?.voteType === 'UPVOTE'
 
-  const credibilityScore = stats
-    ? stats.credibilityScore
-    : 0
-
-  const handleVote = (voteType: VoteType) => {
+  const toggleSeen = () => {
     if (!user || isMutating) return
-    if (myVote?.voteType === voteType) {
-      // Clicking the vote you already hold toggles it off.
-      removeVote.mutate()
-    } else {
-      // New vote, or a switch to a different type — the backend upserts either way.
-      vote.mutate(voteType)
-    }
+    // Pressing it again takes it back; otherwise confirm — over an old downvote too, which
+    // the backend replaces.
+    if (iSeeIt) removeVote.mutate()
+    else vote.mutate('CONFIRM')
   }
 
 
@@ -154,74 +150,41 @@ export function AlertDetail() {
           <ForwardHistory alert={a} />
 
           {/*
-            Vote buttons.
+            "I see it too" — the one thing a passer-by can add to a report. Up/down votes and a
+            credibility score were the safety feed's question, "is this real?"; for a pothole,
+            supporting and confirming are the same statement, and a report that is not real is
+            for its authority or a moderator to reject, saying why.
 
-            The counts render straight from the cache, which `useVote.onMutate` has
-            already moved — so the number changes on the click, not on the response.
-            Nothing here may hide it while the request is in flight: a spinner laid over
-            the count used to do exactly that, which made an optimistic update look like
-            a three-second one. The pressed state is the only in-flight cue, and a failed
-            vote rolls the cache back and raises a toast.
+            The count renders straight from the cache, which `useVote.onMutate` has already
+            moved, so it changes on the click; nothing may hide it while the request is in
+            flight. The pressed state is the only in-flight cue, and a failed vote rolls the
+            cache back and raises a toast.
           */}
           {stats && (
-            <div className="grid grid-cols-3 gap-2">
-              {(
-                [
-                  { label: 'Подкрепям',    icon: ThumbsUp, val: stats.upvotes,       type: 'UPVOTE'   },
-                  { label: 'Оспорвам',     icon: ThumbsDown, val: stats.downvotes,     type: 'DOWNVOTE' },
-                  { label: 'Потвърждавам', icon: BadgeCheck, val: stats.confirmations, type: 'CONFIRM'  },
-                ] as { label: string; icon: LucideIcon; val: number; type: VoteType }[]
-              ).map(({ label, icon: Icon, val, type }) => {
-                const isThisPending = pendingVoteType === type
-                const isRemoving    = removeVote.isPending && myVote?.voteType === type
-                // Read from the optimistic cache, so this does not wait for the server
-                // either. It used to be qualified with `&& !isMutating`, which dropped
-                // the highlight off the button for the duration of its own request.
-                const isActive      = myVote?.voteType === type
-                const isAnyPending  = isMutating && !isThisPending && !isRemoving
-
-                return (
-                  <button
-                    key={type}
-                    disabled={!user || isAnyPending || isThisPending || isRemoving}
-                    onClick={() => handleVote(type)}
-                    className={`
-                      relative flex flex-col items-center py-3 sm:py-2 rounded-xl border
-                      transition-all duration-150 cursor-pointer overflow-hidden
-                      ${isThisPending || isRemoving
-                        ? 'border-brand-500/60 bg-brand-500/15 scale-95'
-                        : isActive
-                          ? 'border-brand-500/50 bg-brand-500/10'
-                          : 'border-surface-border bg-surface-elevated hover:border-brand-500/30 hover:scale-[1.03]'}
-                      ${isThisPending || isRemoving
-                        ? ''
-                        : 'disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100'}
-                    `}
-                  >
-                    <span className="text-xs font-bold text-slate-900">
-                      {val}
-                    </span>
-                    <span className="inline-flex items-center gap-1 text-xs text-slate-600">
-                      <Icon className="h-3.5 w-3.5" aria-hidden /> {label}
-                    </span>
-                  </button>
-                )
-              })}
-            </div>
-          )}
-
-          {stats && (
-            <div className="flex items-center justify-between text-xs text-slate-500 pt-1 border-t border-surface-border">
-              <span>Оценка на достоверност</span>
-              <span className={`font-bold ${credibilityScore > 0 ? 'text-green-400' : credibilityScore < 0 ? 'text-red-400' : 'text-slate-400'}`}>
-                {credibilityScore > 0 ? '+' : ''}{credibilityScore}
+            <button
+              type="button"
+              aria-pressed={iSeeIt}
+              disabled={!user || isMutating}
+              onClick={toggleSeen}
+              className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 sm:py-2 text-sm transition
+                ${iSeeIt
+                  ? 'border-brand-500/50 bg-brand-500/10 text-brand-600'
+                  : 'border-surface-border bg-surface-elevated text-slate-700 hover:border-brand-500/30'}
+                ${isMutating ? 'scale-[0.98]' : ''}
+                disabled:opacity-60 disabled:cursor-not-allowed`}
+            >
+              <span className="inline-flex items-center gap-2 font-semibold">
+                <Eye className="h-4 w-4" aria-hidden /> {iSeeIt ? 'Виждате го' : 'И аз го виждам'}
               </span>
-            </div>
+              <span className="text-xs text-slate-600">
+                {seenBy === 1 ? '1 човек го вижда' : `${seenBy} души го виждат`}
+              </span>
+            </button>
           )}
 
           {!user && (
             <p className="text-xs text-slate-500 text-center">
-              <a href="/login" className="text-brand-400 hover:underline">Влезте</a>, за да гласувате
+              <a href="/login" className="text-brand-400 hover:underline">Влезте</a>, за да потвърдите, че го виждате
             </p>
           )}
 

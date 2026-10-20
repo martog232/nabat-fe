@@ -109,7 +109,7 @@ export function AssignedReportsPage() {
                   </div>
                   <p className="mt-1 text-sm text-slate-700">{r.description}</p>
                   <p className="mt-2 text-xs text-slate-500">
-                    {resolveCategory(categoryIndex, r.categoryCode)?.category.name ?? '—'} · {r.districtCode ? `${districtNames.get(r.districtCode) ?? r.districtCode} · ` : ''}{formatDate(r.createdAt)} · подкрепа: {Math.max(0, r.confirmationCount + r.upvoteCount - r.downvoteCount)}
+                    {resolveCategory(categoryIndex, r.categoryCode)?.category.name ?? '—'} · {r.districtCode ? `${districtNames.get(r.districtCode) ?? r.districtCode} · ` : ''}{formatDate(r.createdAt)} · виждат го: {r.confirmationCount + r.upvoteCount}
                     {' · '}
                     <a
                       className="underline hover:text-slate-700"

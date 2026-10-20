@@ -102,43 +102,49 @@ afterEach(() => {
   vi.clearAllMocks()
 })
 
-describe('AlertDetail voting', () => {
-  it('shows the incremented count while the vote request is still in flight', async () => {
+describe('AlertDetail: "I see it too"', () => {
+  it('shows the incremented count while the confirmation is still in flight', async () => {
     // Never resolves during the test: anything the assertions see is optimistic.
     mockedVotesApi.vote.mockReturnValue(new Promise<VoteReceipt>(() => {}))
     renderDetail()
 
-    const upvote = await screen.findByRole('button', { name: /Подкрепям/ })
-    expect(upvote).toHaveTextContent('5')
+    // Confirmations and the old upvotes, which said the same thing: 3 + 5.
+    const seen = await screen.findByRole('button', { name: /И аз го виждам/ })
+    expect(seen).toHaveTextContent('8 души го виждат')
 
-    await userEvent.click(upvote)
+    await userEvent.click(seen)
 
-    expect(upvote).toHaveTextContent('6')
-    // jsdom loads no stylesheet, so a count hidden by a class still reads as text.
-    // The regression was presentational, so the assertion has to name the two things
-    // that did the hiding — an opacity toggle on the number and a spinner over it.
-    expect(upvote.innerHTML).not.toContain('opacity-0')
-    expect(upvote.innerHTML).not.toContain('animate-spin')
-    expect(mockedVotesApi.vote).toHaveBeenCalledWith(alert.id, { voteType: 'UPVOTE' })
+    expect(seen).toHaveTextContent('9 души го виждат')
+    expect(seen).toHaveAttribute('aria-pressed', 'true')
+    expect(mockedVotesApi.vote).toHaveBeenCalledWith(alert.id, { voteType: 'CONFIRM' })
   })
 
-  it('keeps the button highlighted from the click, not from the response', async () => {
-    mockedVotesApi.vote.mockReturnValue(new Promise<VoteReceipt>(() => {}))
-    renderDetail()
-
-    const upvote = await screen.findByRole('button', { name: /Подкрепям/ })
-    await userEvent.click(upvote)
-
-    expect(upvote.className).toContain('border-brand-500')
-  })
-
-  it('rolls the count back when the vote fails', async () => {
+  it('rolls the count back when the confirmation fails', async () => {
     mockedVotesApi.vote.mockRejectedValue(new Error('network down'))
     renderDetail()
 
-    const upvote = await screen.findByRole('button', { name: /Подкрепям/ })
-    await userEvent.click(upvote)
+    const seen = await screen.findByRole('button', { name: /И аз го виждам/ })
+    await userEvent.click(seen)
 
-    await waitFor(() => expect(upvote).toHaveTextContent('5'))
+    await waitFor(() => expect(seen).toHaveTextContent('8 души го виждат'))
+  })
+
+  /** An old upvote said the same: it shows as confirmed, and pressing takes it back. */
+  it('counts an old upvote as having seen it', async () => {
+    mockedVotesApi.getMyVote.mockResolvedValue({ hasVoted: true, voteType: 'UPVOTE' })
+    mockedVotesApi.removeVote.mockReturnValue(new Promise(() => {}))
+    renderDetail()
+
+    const seen = await screen.findByRole('button', { name: /Виждате го/ })
+    await userEvent.click(seen)
+
+    expect(mockedVotesApi.removeVote).toHaveBeenCalledWith(alert.id)
+  })
+
+  it('offers no up or down votes and no credibility score', async () => {
+    renderDetail()
+    await screen.findByRole('button', { name: /И аз го виждам/ })
+
+    expect(screen.queryByText(/Подкрепям|Оспорвам|достоверност/)).not.toBeInTheDocument()
   })
 })

@@ -1169,8 +1169,8 @@ export interface components {
         /** @description Request body for casting a vote on an alert */
         VoteRequest: {
             /**
-             * @description Type of vote to cast
-             * @example UPVOTE
+             * @description CONFIRM — "I see it too". The only one taken: UPVOTE and DOWNVOTE are refused with 400
+             * @example CONFIRM
              * @enum {string}
              */
             voteType: "UPVOTE" | "DOWNVOTE" | "CONFIRM";

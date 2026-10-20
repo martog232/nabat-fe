@@ -73,7 +73,7 @@ describe('ReportsPage', () => {
     expect(await screen.findByText('Pothole on Cherni Vrah')).toBeInTheDocument()
     // Where it went, how long it has waited, and how many people back it — support is
     // confirmations plus upvotes minus downvotes, the same figure the HOT order ranks by.
-    expect(await screen.findByText('Улично платно · Район Лозенец · чака 3 дни · подкрепа: 6')).toBeInTheDocument()
+    expect(await screen.findByText('Улично платно · Район Лозенец · чака 3 дни · виждат го: 6')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Вход, за да подадете сигнал' })).toBeInTheDocument()
   })
 

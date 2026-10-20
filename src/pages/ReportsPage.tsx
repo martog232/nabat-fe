@@ -171,7 +171,7 @@ export function ReportsPage() {
                     {resolveCategory(categoryIndex, r.categoryCode)?.category.name ?? '—'}
                     {r.districtCode && ` · ${districtNames.get(r.districtCode) ?? r.districtCode}`}
                     {` · ${age(r)}`}
-                    {` · подкрепа: ${Math.max(0, r.confirmationCount + r.upvoteCount - r.downvoteCount)}`}
+                    {` · виждат го: ${r.confirmationCount + r.upvoteCount}`}
                     {r.closedBy && ` · затворен ${CLOSED_BY_LABELS[r.closedBy]}`}
                   </p>
                   {/* A resolved report is where the district's word gets checked. Opened per
