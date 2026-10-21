@@ -5,6 +5,7 @@ import type {
   NearbyAlertsResponse,
   RankedReportsResponse,
   ReportForward,
+  ReportStep,
   Rejection,
   RejectionDecision,
   ReportRanking,
@@ -81,6 +82,10 @@ export const alertsApi = {
   /** The authority that answers for the report has started work on it. Its own officials only. */
   startWork: (id: string) =>
     apiClient.patch<Alert>(`/alerts/${id}/start-work`).then((r) => r.data),
+
+  /** Who did what to the report, and when, oldest first. */
+  history: (id: string) =>
+    apiClient.get<ReportStep[]>(`/alerts/${id}/history`).then((r) => r.data),
 
   /** The reporter takes their open report back, saying why. Final. */
   withdraw: (id: string, reason: string) =>

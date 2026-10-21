@@ -170,6 +170,16 @@ export type Authority = Required<components['schemas']['AuthorityResponse']>
 /** One forward of a report, as `GET /api/v1/alerts/{id}/forwards` lists them, oldest first. */
 export type ReportForward = Required<components['schemas']['ForwardResponse']>
 
+/** One step of a report's life, as `GET /api/v1/alerts/{id}/history` lists them, oldest first. */
+export interface ReportStep {
+  step: 'CREATED' | 'SENT' | 'ACKNOWLEDGED' | 'WORK_STARTED' | 'RESOLVED' | 'REJECTED' | 'FORWARDED' | 'REOPENED' | 'WITHDRAWN'
+  /** Null for what nabat does itself: delivering it. */
+  actorName: string | null
+  byAuthority: boolean
+  authorityCode: string | null
+  happenedAt: string
+}
+
 export type RejectionDecision = NonNullable<components['schemas']['RejectionResponse']['decision']>
 
 /**

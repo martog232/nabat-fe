@@ -14,6 +14,7 @@ import { ReportActions } from './ReportActions'
 import { FixCheckPanel } from './FixCheckPanel'
 import { CommentThread } from './CommentThread'
 import { ForwardHistory } from './ForwardHistory'
+import { ReportTimeline } from './ReportTimeline'
 import { RejectionPanel } from './RejectionPanel'
 import { OverdueBadge } from './OverdueBadge'
 import { overdueDays } from '../../utils/deadline'
@@ -151,6 +152,9 @@ export function AlertDetail() {
 
           {/* Where it has been, when it has moved: the chain is part of the record. */}
           <ForwardHistory alert={a} />
+
+          {/* Who did what, by name: folded away until asked for. */}
+          <ReportTimeline alert={a} />
 
           {/*
             "I see it too" — the one thing a passer-by can add to a report. Up/down votes and a

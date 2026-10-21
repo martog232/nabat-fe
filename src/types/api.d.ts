@@ -597,6 +597,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/alerts/{id}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Who did what to the report, and when, oldest first */
+        get: operations["history"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/alerts/{id}/forwards": {
         parameters: {
             query?: never;
@@ -1435,6 +1452,22 @@ export interface components {
              * @enum {string}
              */
             kind?: "DISTRICT" | "INSTITUTION";
+        };
+        /** @description One step in a report's life */
+        StepResponse: {
+            /** @enum {string} */
+            step?: "CREATED" | "SENT" | "ACKNOWLEDGED" | "WORK_STARTED" | "RESOLVED" | "REJECTED" | "FORWARDED" | "REOPENED" | "WITHDRAWN";
+            /** @description Who took it, by name when they did; null for what nabat does itself (delivering it) */
+            actorName?: string;
+            /** @description They spoke for the authority the report was with */
+            byAuthority?: boolean;
+            /**
+             * @description The authority the report was with
+             * @example LOZENETS
+             */
+            authorityCode?: string;
+            /** Format: date-time */
+            happenedAt?: string;
         };
         /** @description One forward of a report */
         ForwardResponse: {
@@ -2540,6 +2573,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["RejectionResponse"][];
+                };
+            };
+        };
+    };
+    history: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["StepResponse"][];
                 };
             };
         };
