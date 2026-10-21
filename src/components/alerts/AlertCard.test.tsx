@@ -72,7 +72,7 @@ describe('AlertCard', () => {
 
   it('says how far the report has got', () => {
     render(<AlertCard alert={{ ...baseAlert, status: 'SENT' }} />)
-    expect(screen.getByText('Изпратен до района')).toBeInTheDocument()
+    expect(screen.getByText('Изпратен до отговорните')).toBeInTheDocument()
   })
 
   it('calls selectAlert on click', async () => {

@@ -82,6 +82,10 @@ export const alertsApi = {
   startWork: (id: string) =>
     apiClient.patch<Alert>(`/alerts/${id}/start-work`).then((r) => r.data),
 
+  /** The reporter takes their open report back, saying why. Final. */
+  withdraw: (id: string, reason: string) =>
+    apiClient.post<Alert>(`/alerts/${id}/withdraw`, { reason }).then((r) => r.data),
+
   /** Closed without a fix, saying why. The report's authority or a moderator — not the reporter. */
   reject: (id: string, reason: string) =>
     apiClient.patch<Alert>(`/alerts/${id}/reject`, { reason }).then((r) => r.data),

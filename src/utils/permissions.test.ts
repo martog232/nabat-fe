@@ -5,6 +5,7 @@ import {
   canAdvanceTo,
   canModerateContent,
   canForward,
+  canWithdraw,
   canRejectAlert,
   canResolveAlert,
 } from './permissions'
@@ -163,5 +164,16 @@ describe('canForward', () => {
 
   it('is not offered on a closed report', () => {
     expect(canForward(official('LOZENETS'), alert('u2', 'RESOLVED'))).toBe(false)
+  })
+})
+
+describe('canWithdraw', () => {
+  /** The reporter's alone: an authority or a moderator rejects, saying why. */
+  it('is the reporter\'s, while the report is open', () => {
+    expect(canWithdraw(user('u2', 'USER'), alert('u2'))).toBe(true)
+    expect(canWithdraw(user('m1', 'MODERATOR'), alert('u2'))).toBe(false)
+    expect(canWithdraw(user('u3', 'USER'), alert('u2'))).toBe(false)
+    expect(canWithdraw(user('u2', 'USER'), alert('u2', 'RESOLVED'))).toBe(false)
+    expect(canWithdraw(null, alert('u2'))).toBe(false)
   })
 })

@@ -130,6 +130,9 @@ export function AlertDetail() {
               Решен {a.closedBy ? CLOSED_BY_LABELS[a.closedBy] + ' ' : ''}на {formatDate(a.resolvedAt)}
             </div>
           )}
+          {a.status === 'WITHDRAWN' && (
+            <div className="text-xs text-slate-500">Оттеглен от подателя. Защо — в дискусията.</div>
+          )}
           {a.status === 'REJECTED' && (
             <div className="text-xs text-slate-500">
               Отхвърлен{a.closedBy ? ' ' + CLOSED_BY_LABELS[a.closedBy] : ''}

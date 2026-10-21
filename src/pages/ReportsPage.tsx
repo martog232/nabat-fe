@@ -12,6 +12,7 @@ import type { Alert, AlertStatus, ReportRanking } from '../types'
 import {
   CLOSED_BY_LABELS,
   OPEN_STATUSES,
+  isOpen,
   RANKING_LABELS,
 } from '../types'
 import { useCategoryIndex } from '../hooks/useCategories'
@@ -32,6 +33,7 @@ const STATE_FILTERS: { label: string; statuses: AlertStatus[] }[] = [
   { label: 'Отворени', statuses: [...OPEN_STATUSES] },
   { label: 'Решени', statuses: ['RESOLVED'] },
   { label: 'Отхвърлени', statuses: ['REJECTED'] },
+  { label: 'Оттеглени', statuses: ['WITHDRAWN'] },
 ]
 
 function daysSince(iso: string): number {
@@ -41,7 +43,7 @@ function daysSince(iso: string): number {
 function age(alert: Alert): string {
   const days = daysSince(alert.createdAt)
   const span = days === 1 ? '1 ден' : `${days} дни`
-  if (alert.status === 'RESOLVED' || alert.status === 'REJECTED') return days === 0 ? 'подаден днес' : `подаден преди ${span}`
+  if (!isOpen(alert.status)) return days === 0 ? 'подаден днес' : `подаден преди ${span}`
   return days === 0 ? 'подаден днес' : `чака ${span}`
 }
 

@@ -215,6 +215,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/alerts/{id}/withdraw": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** The reporter withdraws their open report, saying why */
+        post: operations["withdraw_1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/alerts/{id}/rejections/dispute": {
         parameters: {
             query?: never;
@@ -1025,7 +1042,7 @@ export interface components {
              * @description Current lifecycle status
              * @enum {string}
              */
-            status?: "SUBMITTED" | "SENT" | "ACKNOWLEDGED" | "IN_PROGRESS" | "RESOLVED" | "REJECTED";
+            status?: "SUBMITTED" | "SENT" | "ACKNOWLEDGED" | "IN_PROGRESS" | "RESOLVED" | "REJECTED" | "WITHDRAWN";
             /**
              * Format: uuid
              * @description ID of the user who reported the alert
@@ -1081,6 +1098,14 @@ export interface components {
              * @description When its authority has to have answered by; null when nothing is waiting on it. Past this, the report is overdue
              */
             answerDueAt?: string;
+        };
+        /** @description Why the report is withdrawn */
+        WithdrawRequest: {
+            /**
+             * @description 1 to 1000 characters
+             * @example Сгреших мястото — подадох го отново на правилното.
+             */
+            reason: string;
         };
         /** @description Why */
         ReasonRequest: {
@@ -1901,7 +1926,7 @@ export interface operations {
     listByStatus: {
         parameters: {
             query?: {
-                status?: "SUBMITTED" | "SENT" | "ACKNOWLEDGED" | "IN_PROGRESS" | "RESOLVED" | "REJECTED";
+                status?: "SUBMITTED" | "SENT" | "ACKNOWLEDGED" | "IN_PROGRESS" | "RESOLVED" | "REJECTED" | "WITHDRAWN";
             };
             header?: never;
             path?: never;
@@ -1930,6 +1955,32 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["CreateAlertRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AlertResponse"];
+                };
+            };
+        };
+    };
+    withdraw_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WithdrawRequest"];
             };
         };
         responses: {
@@ -2587,7 +2638,7 @@ export interface operations {
         parameters: {
             query?: {
                 district?: string;
-                status?: ("SUBMITTED" | "SENT" | "ACKNOWLEDGED" | "IN_PROGRESS" | "RESOLVED" | "REJECTED")[];
+                status?: ("SUBMITTED" | "SENT" | "ACKNOWLEDGED" | "IN_PROGRESS" | "RESOLVED" | "REJECTED" | "WITHDRAWN")[];
                 ranking?: "HOT" | "LONGEST_WAITING" | "NEWEST";
                 page?: number;
                 size?: number;
@@ -2665,7 +2716,7 @@ export interface operations {
     listForOwnAuthority: {
         parameters: {
             query?: {
-                status?: ("SUBMITTED" | "SENT" | "ACKNOWLEDGED" | "IN_PROGRESS" | "RESOLVED" | "REJECTED")[];
+                status?: ("SUBMITTED" | "SENT" | "ACKNOWLEDGED" | "IN_PROGRESS" | "RESOLVED" | "REJECTED" | "WITHDRAWN")[];
             };
             header?: never;
             path?: never;

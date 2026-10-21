@@ -413,8 +413,8 @@ export type WsFrame = WsNewAlertFrame | WsAlertUpdatedFrame | WsNotificationFram
 
 /**
  * The states a report is still waiting in. Mirrors `AlertStatus.isOpen()` on the backend,
- * which is why it names the open states and derives the rest: RESOLVED and REJECTED are the
- * only two that are final, and everything else is on the map.
+ * which is why it names the open states and derives the rest: RESOLVED, REJECTED and WITHDRAWN are
+ * the final ones, and everything else is on the map.
  */
 export const OPEN_STATUSES: readonly AlertStatus[] = ['SUBMITTED', 'SENT', 'ACKNOWLEDGED', 'IN_PROGRESS']
 
@@ -425,11 +425,12 @@ export function isOpen(status: AlertStatus): boolean {
 /** Where a report is, in the words of the person waiting on it. */
 export const STATUS_LABELS: Record<AlertStatus, string> = {
   SUBMITTED: 'Подаден',
-  SENT: 'Изпратен до района',
+  SENT: 'Изпратен до отговорните',
   ACKNOWLEDGED: 'Приет',
   IN_PROGRESS: 'В процес',
   RESOLVED: 'Решен',
   REJECTED: 'Отхвърлен',
+  WITHDRAWN: 'Оттеглен',
 }
 
 export const STATUS_COLORS: Record<AlertStatus, string> = {
@@ -439,6 +440,7 @@ export const STATUS_COLORS: Record<AlertStatus, string> = {
   IN_PROGRESS:  'text-amber-400 bg-amber-400/10 border-amber-400/30',
   RESOLVED:     'text-green-400 bg-green-400/10 border-green-400/30',
   REJECTED:     'text-rose-400 bg-rose-400/10 border-rose-400/30',
+  WITHDRAWN:    'text-slate-400 bg-slate-400/10 border-slate-400/30',
 }
 
 /**
@@ -453,6 +455,7 @@ export const STATUS_MARKER_COLORS: Record<AlertStatus, string> = {
   IN_PROGRESS:  '#f59e0b',
   RESOLVED:     '#22c55e',
   REJECTED:     '#f43f5e',
+  WITHDRAWN:    '#64748b',
 }
 
 /** Who closed a report, said so a reader knows how much weight to give it. */

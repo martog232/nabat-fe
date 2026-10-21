@@ -2,10 +2,10 @@ import { useState } from 'react'
 import type { Alert } from '../../types'
 import { useAuthStore } from '../../store/authStore'
 import { useReportAction, useResolveAlert, type ReportAction } from '../../hooks/useAlerts'
-import { canAdvanceTo, canForward, canRejectAlert, canResolveAlert } from '../../utils/permissions'
+import { canAdvanceTo, canForward, canRejectAlert, canResolveAlert, canWithdraw } from '../../utils/permissions'
 import { ForwardForm } from './ForwardForm'
 import { ReasonForm } from './ReasonForm'
-import { useRejectReport } from '../../hooks/useRejections'
+import { useRejectReport, useWithdrawReport } from '../../hooks/useRejections'
 
 interface Props {
   alert: Alert
@@ -25,7 +25,8 @@ export function ReportActions({ alert }: Props) {
   const action = useReportAction(alert.id)
   const resolve = useResolveAlert(alert.id)
   const reject = useRejectReport(alert.id)
-  const [open, setOpen] = useState<'forward' | 'reject' | null>(null)
+  const withdraw = useWithdrawReport(alert.id)
+  const [open, setOpen] = useState<'forward' | 'reject' | 'withdraw' | null>(null)
 
   const buttons: { key: ReportAction | 'resolve' | 'reject'; label: string; show: boolean; tone: 'primary' | 'plain' | 'danger' }[] = [
     { key: 'acknowledge', label: 'Приеми', show: canAdvanceTo(user, alert, 'ACKNOWLEDGED'), tone: 'plain' },
@@ -35,9 +36,10 @@ export function ReportActions({ alert }: Props) {
   ]
   const visible = buttons.filter((b) => b.show)
   const mayForward = canForward(user, alert)
-  if (visible.length === 0 && !mayForward) return null
+  const mayWithdraw = canWithdraw(user, alert)
+  if (visible.length === 0 && !mayForward && !mayWithdraw) return null
 
-  const busy = action.isPending || resolve.isPending || reject.isPending
+  const busy = action.isPending || resolve.isPending || reject.isPending || withdraw.isPending
   const pendingKey = resolve.isPending ? 'resolve' : action.isPending ? action.variables : undefined
 
   const run = (key: ReportAction | 'resolve' | 'reject') => {
@@ -81,6 +83,28 @@ export function ReportActions({ alert }: Props) {
         )}
       </div>
       {open === 'forward' && <ForwardForm alert={alert} onDone={() => setOpen(null)} />}
+      {/* The reporter's way out that is not a false "fixed": a mistake, a duplicate, nothing. */}
+      {mayWithdraw && open === null && (
+        <button
+          type="button"
+          onClick={() => setOpen('withdraw')}
+          disabled={busy}
+          className="w-full text-center text-xs font-medium text-slate-500 hover:text-slate-800 hover:underline disabled:opacity-60"
+        >
+          Оттегли сигнала
+        </button>
+      )}
+      {open === 'withdraw' && (
+        <ReasonForm
+          label="Защо го оттегляте"
+          placeholder="Напр. сгреших мястото, или вече е подаден"
+          submitLabel="Оттегли"
+          tone="danger"
+          pending={withdraw.isPending}
+          onSubmit={(reason) => withdraw.mutate(reason, { onSuccess: () => setOpen(null) })}
+          onCancel={() => setOpen(null)}
+        />
+      )}
       {open === 'reject' && (
         <ReasonForm
           label="Защо се отхвърля"

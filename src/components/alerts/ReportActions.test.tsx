@@ -10,6 +10,7 @@ const actionMutate = vi.fn()
 const resolveMutate = vi.fn()
 const forwardMutate = vi.fn()
 const rejectMutate = vi.fn()
+const withdrawMutate = vi.fn()
 
 vi.mock('../../hooks/useAlerts', () => ({
   useReportAction: () => ({ mutate: actionMutate, isPending: false, variables: undefined }),
@@ -22,6 +23,7 @@ vi.mock('../../hooks/useForwards', () => ({
 
 vi.mock('../../hooks/useRejections', () => ({
   useRejectReport: () => ({ mutate: rejectMutate, isPending: false }),
+  useWithdrawReport: () => ({ mutate: withdrawMutate, isPending: false }),
 }))
 
 vi.mock('../../hooks/useAuthorities', () => ({
@@ -67,6 +69,7 @@ beforeEach(() => {
   resolveMutate.mockReset()
   forwardMutate.mockReset()
   rejectMutate.mockReset()
+  withdrawMutate.mockReset()
 })
 afterEach(cleanup)
 
@@ -93,7 +96,7 @@ describe('ReportActions', () => {
   it('lets the reporter mark their own report fixed, and nothing more', () => {
     signIn(account('reporter', 'USER'))
     render(<ReportActions alert={report} />)
-    expect(labels()).toEqual(['Маркирай като решен'])
+    expect(labels()).toEqual(['Маркирай като решен', 'Оттегли сигнала'])
   })
 
   it('sends the step that was clicked', async () => {
@@ -139,6 +142,19 @@ describe('ReportActions', () => {
 
     expect(rejectMutate).toHaveBeenCalledWith('Дублира сигнал от вчера', expect.anything())
     expect(actionMutate).not.toHaveBeenCalled()
+  })
+
+  /** The reporter's way out that is not a false "fixed", with a reason. */
+  it('lets the reporter withdraw their report, saying why', async () => {
+    signIn(account('reporter', 'USER'))
+    render(<ReportActions alert={report} />)
+    const user = userEvent.setup()
+    await user.click(screen.getByRole('button', { name: 'Оттегли сигнала' }))
+    await user.type(screen.getByLabelText('Защо го оттегляте'), 'Сгреших мястото')
+    await user.click(screen.getByRole('button', { name: 'Оттегли' }))
+
+    expect(withdrawMutate).toHaveBeenCalledWith('Сгреших мястото', expect.anything())
+    expect(resolveMutate).not.toHaveBeenCalled()
   })
 
   it('shows nothing on a closed report', () => {

@@ -57,6 +57,12 @@ export function useRejectReport(alertId: string) {
     'Сигналът е отхвърлен.', 'Сигналът не можа да бъде отхвърлен. Опитайте отново.')
 }
 
+/** The reporter takes their report back, saying why. */
+export function useWithdrawReport(alertId: string) {
+  return useRejectionStep(alertId, (reason: string) => alertsApi.withdraw(alertId, reason),
+    'Сигналът е оттеглен.', 'Сигналът не можа да бъде оттеглен. Опитайте отново.')
+}
+
 /** The reporter contests the rejection, once. */
 export function useDisputeRejection(alertId: string) {
   return useRejectionStep(alertId, (reason: string) => alertsApi.disputeRejection(alertId, reason),

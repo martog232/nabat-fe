@@ -67,6 +67,14 @@ export function canForward(user: User | null, alert: Alert): boolean {
   return actsForAuthorityOf(user, alert) || canModerateContent(user.role)
 }
 
+/**
+ * Whether this user may take the report back: its reporter, while it is open. Not a moderator
+ * or the authority — they reject, saying why. Mirrors `WithdrawalService`.
+ */
+export function canWithdraw(user: User | null, alert: Alert): boolean {
+  return !!user && isOpen(alert.status) && alert.reportedBy === user.id
+}
+
 /** The forward order of the open states, as `AlertStatus.canMoveTo` compares them. */
 const OPEN_ORDER: AlertStatus[] = ['SUBMITTED', 'SENT', 'ACKNOWLEDGED', 'IN_PROGRESS']
 
