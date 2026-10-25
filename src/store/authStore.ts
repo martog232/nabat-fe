@@ -13,10 +13,10 @@ import { authApi } from '../api/auth'
  * are written for the client.
  */
 const CODE_MESSAGES: Record<string, string> = {
-  BAD_CREDENTIALS: 'Incorrect email or password',
-  EMAIL_ALREADY_REGISTERED: 'An account with that email already exists',
-  SERVICE_UNAVAILABLE: 'The service is temporarily unavailable. Please try again shortly.',
-  INTERNAL_ERROR: 'Something went wrong. Please try again.',
+  BAD_CREDENTIALS: 'Грешен имейл или парола',
+  EMAIL_ALREADY_REGISTERED: 'Вече има профил с този имейл',
+  SERVICE_UNAVAILABLE: 'Услугата временно не е достъпна. Опитайте отново след малко.',
+  INTERNAL_ERROR: 'Нещо се обърка. Опитайте отново.',
 }
 
 function getApiErrorMessage(err: unknown, fallback: string) {
@@ -58,9 +58,20 @@ interface AuthState {
   error: string | null
 
   login: (email: string, password: string) => Promise<void>
+  /** The official's way in from a report mail: the key behind its button, no password. */
+  signInWithLink: (token: string) => Promise<void>
   register: (email: string, password: string, displayName: string) => Promise<void>
   logout: () => void
   clearError: () => void
+
+  /**
+   * Replaces fields on the signed-in user without touching the tokens.
+   *
+   * <p>For settings the server has accepted: the response is the new truth, and the copy the
+   * app renders from — persisted, so a reload does not show the old value back — has to move
+   * with it. Not a login, so nothing here may clear or reissue a token.
+   */
+  applyUserChanges: (changes: Partial<User>) => void
 }
 
 type PersistedAuth = Pick<AuthState, 'user' | 'accessToken' | 'refreshToken'>
@@ -96,8 +107,21 @@ const createAuthState: StateCreator<
       localStorage.setItem('refreshToken', data.refreshToken)
       set({ user: data.user, accessToken: data.accessToken, refreshToken: data.refreshToken, isLoading: false })
     } catch (err: unknown) {
-      const msg = getApiErrorMessage(err, 'Login failed')
+      const msg = getApiErrorMessage(err, 'Входът не успя')
       set({ isLoading: false, error: msg })
+      throw err
+    }
+  },
+
+  signInWithLink: async (token) => {
+    set({ isLoading: true, error: null })
+    try {
+      const data = await authApi.signInWithLink(token)
+      localStorage.setItem('accessToken', data.accessToken)
+      localStorage.setItem('refreshToken', data.refreshToken)
+      set({ user: data.user, accessToken: data.accessToken, refreshToken: data.refreshToken, isLoading: false })
+    } catch (err: unknown) {
+      set({ isLoading: false, error: getApiErrorMessage(err, 'Линкът не е валиден или е изтекъл') })
       throw err
     }
   },
@@ -110,7 +134,7 @@ const createAuthState: StateCreator<
       localStorage.setItem('refreshToken', data.refreshToken)
       set({ user: data.user, accessToken: data.accessToken, refreshToken: data.refreshToken, isLoading: false })
     } catch (err: unknown) {
-      const msg = getApiErrorMessage(err, 'Registration failed')
+      const msg = getApiErrorMessage(err, 'Регистрацията не успя')
       set({ isLoading: false, error: msg })
       throw err
     }
@@ -127,6 +151,11 @@ const createAuthState: StateCreator<
   },
 
   clearError: () => set({ error: null }),
+
+  applyUserChanges: (changes) =>
+    // Guarded: with no signed-in user there is nothing to merge into, and creating one out of
+    // a partial would leave a half-built User behind a route that only checks for its presence.
+    set((s) => (s.user ? { user: { ...s.user, ...changes } } : {})),
 })
 
 export const useAuthStore = create<AuthState>()(persist(createAuthState, persistOptions))

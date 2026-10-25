@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react'
+import { CircleAlert } from 'lucide-react'
 
 interface Props {
   children: ReactNode
@@ -31,16 +32,16 @@ export class ErrorBoundary extends Component<Props, State> {
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm px-4">
           <div className="w-full max-w-md bg-surface-card border border-surface-border rounded-2xl shadow-2xl p-8 text-center space-y-4">
             <div className="w-16 h-16 mx-auto rounded-full bg-red-500/15 flex items-center justify-center">
-              <span className="text-3xl">⚡</span>
+              <CircleAlert className="h-8 w-8 text-red-500" aria-hidden />
             </div>
 
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-              Something went wrong
+            <h2 className="text-lg font-bold text-slate-900">
+              Нещо се обърка
             </h2>
 
-            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-              The application encountered an unexpected error.
-              Please try reloading the page.
+            <p className="text-sm text-slate-600 leading-relaxed">
+              В приложението възникна неочаквана грешка.
+              Моля, опитайте да презаредите страницата.
             </p>
 
             {/*
@@ -58,7 +59,7 @@ export class ErrorBoundary extends Component<Props, State> {
               onClick={() => window.location.reload()}
               className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg font-medium text-sm bg-brand-600 hover:bg-brand-700 text-white shadow-lg shadow-brand-600/20 transition-all"
             >
-              Reload page
+              Презареди страницата
             </button>
           </div>
         </div>

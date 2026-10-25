@@ -1,6 +1,8 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
+  // No dark theme. Stated rather than omitted: Tailwind 3's default is 'media', which
+  // would switch any `dark:` class someone adds back to the operating system's setting.
   darkMode: 'class',
   theme: {
     extend: {
@@ -27,7 +29,7 @@ export default {
           elevated: 'rgb(var(--surface-elevated) / <alpha-value>)',
           border: 'rgb(var(--surface-border) / <alpha-value>)',
           // Five components already used `hover:bg-surface-hover` — the map's zoom and
-          // follow buttons, the radius pills, the theme toggle. It was never defined, so
+          // follow buttons, the radius pills. It was never defined, so
           // Tailwind emitted no rule and none of those controls had a hover state at all.
           hover: 'rgb(var(--surface-hover) / <alpha-value>)',
         },

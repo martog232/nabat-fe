@@ -1,29 +1,30 @@
 import { useEffect, useRef, useState } from 'react'
 import { useToastStore, type Toast } from '../../store/toastStore'
+import { Check, Info, X, type LucideIcon } from 'lucide-react'
 
-const ICONS: Record<string, string> = {
-  error:   '✕',
-  success: '✓',
-  info:    'ℹ',
+const ICONS: Record<string, LucideIcon> = {
+  error:   X,
+  success: Check,
+  info:    Info,
 }
 
 const COLOR: Record<string, { bar: string; bg: string; text: string; icon: string }> = {
   error: {
     bar:  'bg-red-500',
     bg:   'bg-surface-card border-red-500/30',
-    text: 'text-slate-900 dark:text-slate-100',
+    text: 'text-slate-900',
     icon: 'text-red-400 bg-red-500/15',
   },
   success: {
     bar:  'bg-green-500',
     bg:   'bg-surface-card border-green-500/30',
-    text: 'text-slate-900 dark:text-slate-100',
+    text: 'text-slate-900',
     icon: 'text-green-400 bg-green-500/15',
   },
   info: {
     bar:  'bg-brand-500',
     bg:   'bg-surface-card border-brand-500/30',
-    text: 'text-slate-900 dark:text-slate-100',
+    text: 'text-slate-900',
     icon: 'text-brand-400 bg-brand-500/15',
   },
 }
@@ -57,6 +58,7 @@ function ToastItem({ toast }: { toast: Toast }) {
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const c = COLOR[toast.type] ?? COLOR.info
+  const TypeIcon = ICONS[toast.type] ?? Info
 
   return (
     <div
@@ -76,7 +78,7 @@ function ToastItem({ toast }: { toast: Toast }) {
 
       {/* Icon */}
       <span className={`shrink-0 mt-0.5 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${c.icon}`}>
-        {ICONS[toast.type]}
+        <TypeIcon className="h-3.5 w-3.5" aria-hidden />
       </span>
 
       {/* Message */}
@@ -85,9 +87,10 @@ function ToastItem({ toast }: { toast: Toast }) {
       {/* Close */}
       <button
         onClick={(e) => { e.stopPropagation(); dismiss() }}
-        className="absolute top-2 right-2 w-5 h-5 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors text-xs"
+        aria-label="Затвори"
+        className="absolute top-2 right-2 w-5 h-5 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-700 transition-colors text-xs"
       >
-        ✕
+        <X className="h-3 w-3" aria-hidden />
       </button>
 
       {/* Progress bar */}
@@ -115,9 +118,18 @@ export function ToastContainer() {
         }
       `}</style>
 
+      {/*
+        Below the navbar, not on top of it. Toasts sit at z-[9999] and the navbar at z-[1000],
+        so at `top-4` they covered the notification bell and the account avatar — the two
+        controls in the corner they land in, and the bell is where someone goes to read the
+        notification the toast is about.
+
+        The offset clears the navbar's tallest state: 44px controls plus its padding, plus the
+        safe-area inset on a notched phone.
+      */}
       <div
-        aria-label="Notifications"
-        className="fixed top-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none"
+        aria-label="Известия"
+        className="fixed right-4 top-[calc(4.5rem+env(safe-area-inset-top))] z-[9999] flex flex-col gap-2 pointer-events-none"
       >
         {toasts.map((t) => (
           <div key={t.id} className="pointer-events-auto">

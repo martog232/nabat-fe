@@ -10,6 +10,7 @@ import { useAuthStore } from '../store/authStore'
 import { useAlertStore } from '../store/alertStore'
 import { Button } from '../components/common/Button'
 import { useGeolocation } from '../hooks/useGeolocation'
+import { Megaphone } from 'lucide-react'
 
 export function MapPage() {
   const user = useAuthStore((s) => s.user)
@@ -45,12 +46,12 @@ export function MapPage() {
         <div className="absolute z-[1000] left-4 bottom-[calc(var(--sheet-peek)+1rem)] sm:left-auto sm:right-4 sm:bottom-6">
           <Button
             onClick={() => setShowCreateModal(true)}
-            aria-label="Report incident"
+            aria-label="Подай сигнал"
             className="h-14 w-14 sm:h-auto sm:w-auto sm:px-5 sm:py-3 sm:text-sm justify-center shadow-2xl shadow-brand-600/40 rounded-full sm:rounded-2xl"
             size="icon"
           >
-            <span className="text-xl sm:text-lg">🚨</span>
-            <span className="hidden sm:inline">Report Incident</span>
+            <Megaphone className="h-6 w-6 sm:h-5 sm:w-5" aria-hidden />
+            <span className="hidden sm:inline">Подай сигнал</span>
           </Button>
         </div>
       )}
@@ -61,9 +62,9 @@ export function MapPage() {
         else competes for space and it is still in view.
       */}
       <div className="absolute z-[1000] top-14 left-1/2 -translate-x-1/2 sm:top-auto sm:bottom-6">
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-card/80 backdrop-blur border border-surface-border text-xs text-slate-600 dark:text-slate-400">
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-card/80 backdrop-blur border border-surface-border text-xs text-slate-600">
           <span className={`w-2 h-2 rounded-full ${wsConnected ? 'bg-green-500 animate-pulse-fast' : 'bg-amber-500'}`} />
-          {wsConnected ? 'Live updates' : 'Polling fallback'}
+          {wsConnected ? 'На живо' : 'Периодично обновяване'}
         </div>
       </div>
 

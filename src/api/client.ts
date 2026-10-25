@@ -50,17 +50,29 @@ function resolveWebSocketBase(value: string, fallbackHttpBase: string) {
   return toWebSocketBase(fallbackHttpBase)
 }
 
+/**
+ * First value that is actually set. An unset variable and one set to the empty string
+ * have to mean the same thing here, and `??` does not agree: Vite inlines an empty
+ * VITE_WS_BASE as `''`, which is a value, so the fallback never ran and the socket was
+ * aimed at the page's own origin — the nginx that serves the bundle, which speaks no
+ * WebSocket. A Docker build arg declared with no value produces exactly that, and so
+ * does a `.env` line of `VITE_WS_BASE=`.
+ */
+function configured(...values: (string | undefined)[]) {
+  return values.find((value) => typeof value === 'string' && value.trim() !== '')
+}
+
 function toAxiosBase(httpBase: string) {
   if (/\/api\/v\d+$/i.test(httpBase)) return httpBase
   return normalizeBaseUrl(`${httpBase}/api/v1`)
 }
 
 export const API_BASE = normalizeBaseUrl(
-  import.meta.env.VITE_API_BASE_URL ?? import.meta.env.VITE_API_BASE ?? DEFAULT_API_BASE,
+  configured(import.meta.env.VITE_API_BASE_URL, import.meta.env.VITE_API_BASE) ?? DEFAULT_API_BASE,
 )
 const RESOLVED_HTTP_BASE = resolveHttpBase(API_BASE)
 export const WS_BASE = resolveWebSocketBase(
-  import.meta.env.VITE_WS_BASE ?? toWebSocketBase(RESOLVED_HTTP_BASE),
+  configured(import.meta.env.VITE_WS_BASE) ?? toWebSocketBase(RESOLVED_HTTP_BASE),
   RESOLVED_HTTP_BASE,
 )
 

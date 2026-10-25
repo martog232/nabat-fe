@@ -1,20 +1,26 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { render, screen, cleanup } from '@testing-library/react'
+import { render as rtlRender, screen, cleanup } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { QueryClientProvider } from '@tanstack/react-query'
+import type { ReactElement } from 'react'
 import { AlertCard } from './AlertCard'
 import { useAlertStore } from '../../store/alertStore'
 import type { Alert } from '../../types'
+import { UNCHECKED_FIX } from '../../types'
+import { queryClientWithCategories } from '../../test/categories'
+
+const render = (ui: ReactElement) =>
+  rtlRender(<QueryClientProvider client={queryClientWithCategories()}>{ui}</QueryClientProvider>)
 
 const baseAlert: Alert = {
   id: 'alert-1',
   title: 'Fire on Main St',
   description: 'A fire broke out near the intersection',
-  type: 'FIRE',
-  severity: 'HIGH',
+  categoryCode: 1007,
   latitude: 42.7,
   longitude: 23.3,
   createdAt: new Date().toISOString(),
-  status: 'ACTIVE',
+  status: 'SUBMITTED',
   reportedBy: 'user-1',
   upvoteCount: 5,
   downvoteCount: 1,
@@ -23,6 +29,11 @@ const baseAlert: Alert = {
   // than derived client-side.
   credibilityScore: 10,
   resolvedAt: null,
+  districtCode: 'LOZENETS',
+  authorityCode: 'LOZENETS',
+  answerDueAt: null,
+  closedBy: null,
+  fixCheck: UNCHECKED_FIX,
 }
 
 beforeEach(() => {
@@ -42,15 +53,26 @@ beforeEach(() => {
 afterEach(cleanup)
 
 describe('AlertCard', () => {
-  it('renders the alert title and type', () => {
+  it('renders the alert title and its subcategory', () => {
     render(<AlertCard alert={baseAlert} />)
     expect(screen.getByText('Fire on Main St')).toBeInTheDocument()
-    expect(screen.getByText('Fire')).toBeInTheDocument()
+    expect(screen.getByText('Улично платно')).toBeInTheDocument()
   })
 
-  it('renders the severity badge', () => {
-    render(<AlertCard alert={baseAlert} />)
-    expect(screen.getByText('HIGH')).toBeInTheDocument()
+  /** The catalogue is fetched once per session; a card drawn before it arrives must not break. */
+  it('renders without a category name while the catalogue has not loaded', () => {
+    rtlRender(
+      <QueryClientProvider client={queryClientWithCategories()}>
+        <AlertCard alert={{ ...baseAlert, categoryCode: 9999 }} />
+      </QueryClientProvider>,
+    )
+    expect(screen.getByText('Fire on Main St')).toBeInTheDocument()
+    expect(screen.queryByText('Улично платно')).not.toBeInTheDocument()
+  })
+
+  it('says how far the report has got', () => {
+    render(<AlertCard alert={{ ...baseAlert, status: 'SENT' }} />)
+    expect(screen.getByText('Изпратен до отговорните')).toBeInTheDocument()
   })
 
   it('calls selectAlert on click', async () => {

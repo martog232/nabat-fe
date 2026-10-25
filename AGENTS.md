@@ -16,6 +16,8 @@ React 18 + TypeScript + Vite SPA. Real-time safety-alert map client for the Naba
 | HTTP client | Axios (`src/api/client.ts`) |
 | Map | Leaflet (via `react-leaflet`) |
 | Styling | Tailwind CSS |
+| Icons | Lucide — `lucide-react` for components, `lucide` for icon data where React cannot render (map markers) |
+| Charts | ApexCharts (`react-apexcharts`), loaded only by `/districts` |
 
 ---
 
@@ -46,13 +48,14 @@ src/
     useNotifications.ts    # React Query: notifications list, unread count, mark read
     useGeolocation.ts      # GPS watch + store updates + throttled preference sync
   pages/
-    LoginPage.tsx
-    RegisterPage.tsx
-    MapPage.tsx
+    LandingPage.tsx   # `/`     — public; what Nabat is, for someone who has not signed in
+    LoginPage.tsx     # /login
+    RegisterPage.tsx  # /register
+    MapPage.tsx       # /map      (ProtectedRoute)
+    SettingsPage.tsx  # /settings (ProtectedRoute) — account, district, sign out
   store/
     alertStore.ts   # Zustand — UI-only: selectedAlertId, mapCenter, mapZoom, radiusKm, user location, wsConnected
     authStore.ts    # Zustand — current user, tokens, login/logout actions
-    themeStore.ts   # Zustand — dark/light mode
     toastStore.ts   # Zustand — toast notifications queue
   types/
     index.ts        # All shared TypeScript types (mirrors backend DTOs exactly)
@@ -69,8 +72,19 @@ src/
 - **Zustand owns only UI state**: `selectedAlertId`, `mapCenter`, `mapZoom`, `radiusKm`, user GPS location, `followUser`, `wsConnected`.
 - No server data duplication between stores and React Query.
 
+### Landing hero video (`pages/LandingPage.tsx`)
+- The hero plays `public/hero.mp4` behind the header, with `public/hero-poster.jpg` as the still. **Neither file is in the repository** — footage carries a licence, and committing something found online is a problem deferred, not avoided. Drop them in and the hero animates; leave them out and it stays a dark panel.
+- It is decorative: muted, looping, `aria-hidden`, no controls. It is skipped under `prefers-reduced-motion`, skipped below `md` (megabytes of mobile data for something the text sits on top of), and removed on `error`. All four paths land on the same solid background, so none of them can look broken.
+- The `src` is on the `<video>` element rather than a `<source>` child: a failing child does not reliably fire `onError`, and the fallback would never run.
+
+### Routing (`App.tsx`, `components/auth/`)
+- **`/` is the public landing page, not the map.** The map is `/map`. After signing in or registering, navigate to `/map` — sending someone to `/` bounces them through marketing before `PublicOnlyRoute` redirects them back.
+- Two mirrored guards, and they check the same pair of values on purpose: `ProtectedRoute` (user **and** access token, else `/login`) and `PublicOnlyRoute` (user **and** access token, then `/map`). Gating either on `user` alone makes them disagree once the axios interceptor has cleared a token, and the two redirect into each other.
+- The catch-all sends unknown paths to `/`, which resolves to the map for a signed-in visitor and to the landing page for everyone else.
+
 ### Authentication (`store/authStore.ts`, `api/auth.ts`)
 - `authStore` persists `accessToken`, `refreshToken`, and `user` to `localStorage`.
+- `applyUserChanges(partial)` merges server-confirmed fields into the persisted user — used by the settings page after a preferences PATCH. It is not a login: it never touches tokens, and it does nothing when nobody is signed in.
 - Axios request interceptor attaches `Authorization: Bearer <accessToken>` on every API call.
 - Axios response interceptor catches `401`, calls `POST /api/v1/auth/refresh`, retries the original request once, then logs the user out on a second failure.
 
@@ -113,7 +127,7 @@ The hook is the single owner of the WebSocket lifecycle and the sole data source
 - `useUnreadCount()` — polls every 30s for badge count (fallback beyond WS push).
 - `useMarkAsRead()` / `useMarkAllAsRead()` — optimistic updates with rollback.
 - Navbar bell icon displays unread count badge.
-- `NotificationPanel` dropdown shows type icons (👍/👎/✅/🏆/🔒), timestamps, click-to-select-alert.
+- `NotificationPanel` dropdown shows a Lucide icon per type, timestamps, click-to-select-alert.
 
 ### Photo upload (two-step)
 - `CreateAlertModal.tsx` — "Choose photo" button + image preview + size/type validation.
@@ -165,6 +179,7 @@ and this app.
 - **Hooks own side-effects** (WS, timers). Components read from stores and call API functions; they do not manage sockets directly.
 - **Types first.** When the backend contract changes, update `types/index.ts` first, then fix compile errors downstream.
 - **Error handling**: API errors from `GlobalExceptionHandler` arrive as `ErrorResponse` or `ValidationErrorResponse`. Surface them via `toastStore.addToast(...)`, not `console.error` or `alert`.
+- **Icons are Lucide, never emoji.** Emoji are drawn by the operating system — the same screen looked different on Windows, Android and iOS, could not take a colour, and screen readers read them out by their Unicode names. Import from `lucide-react` and size and colour with Tailwind (`h-4 w-4 text-slate-500`). An icon beside text is `aria-hidden`; an icon that is the whole button needs the button's `aria-label`. Category groups have one table, `utils/groupIcons.ts`, kept as `lucide` icon *data* so that `GroupIcon` (via lucide-react's `Icon`) and the map markers — HTML strings built inside a `useMemo`, where no component can be rendered — draw the same thing.
 - `buildWebSocketUrl(path, params)` in `api/client.ts` constructs the full WS URL from `VITE_API_BASE_URL`. Use it everywhere — never hardcode WebSocket URLs.
 
 ### Responsive layout

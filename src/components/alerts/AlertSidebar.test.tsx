@@ -67,8 +67,8 @@ afterEach(() => {
  * and jsdom loads no stylesheet — so queries here go by accessible name, never by role
  * alone. A `getByRole('button', { expanded: false })` matches both and throws.
  */
-const sheetHandle = () => screen.getByRole('button', { name: /alerts? nearby/i })
-const edgeToggle = () => screen.getByRole('button', { name: /(collapse|expand) alert list/i })
+const sheetHandle = () => screen.getByRole('button', { name: /сигнала? наблизо/i })
+const edgeToggle = () => screen.getByRole('button', { name: /(скрий|покажи) списъка със сигнали/i })
 
 describe('AlertSidebar', () => {
   it('starts collapsed on a phone, where the sheet would otherwise cover the map', () => {
@@ -106,7 +106,7 @@ describe('AlertSidebar', () => {
     useAlertStore.setState({ selectedAlertId: 'alert-1' })
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /collapse alert list/i })).toHaveAttribute(
+      expect(screen.getByRole('button', { name: /скрий списъка със сигнали/i })).toHaveAttribute(
         'aria-expanded',
         'true',
       )

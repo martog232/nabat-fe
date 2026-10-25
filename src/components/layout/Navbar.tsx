@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useAuthStore } from '../../store/authStore'
 import { useUnreadCount } from '../../hooks/useNotifications'
 import { NotificationPanel } from '../notifications/NotificationPanel'
+import { canActForAuthority, canModerateContent } from '../../utils/permissions'
 
 export function Navbar() {
   const [showNotifications, setShowNotifications] = useState(false)
@@ -23,7 +24,7 @@ export function Navbar() {
     <nav className="absolute top-0 left-0 right-0 z-[1000] flex items-center justify-between px-3 sm:px-4 py-2 sm:py-3 pt-[calc(0.5rem+env(safe-area-inset-top))] sm:pt-3">
       {/* Logo */}
       <Link
-        to="/"
+        to="/map"
         className="flex items-center gap-2 rounded-full bg-surface-card/80 backdrop-blur border border-surface-border px-2.5 py-1.5 sm:border-transparent sm:bg-transparent sm:backdrop-blur-none sm:px-0 sm:py-0"
       >
         <div className="w-8 h-8 rounded-full bg-brand-600 flex items-center justify-center shadow-lg shadow-brand-600/40">
@@ -31,17 +32,51 @@ export function Navbar() {
             <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
           </svg>
         </div>
-        <span className="font-bold text-slate-900 dark:text-white text-lg tracking-tight">Nabat</span>
+        <span className="font-bold text-slate-900 text-lg tracking-tight">Nabat</span>
       </Link>
 
       {/* Right section */}
       {user && (
         <div className="relative flex items-center gap-2">
+          <Link
+            to="/reports"
+            className="hidden h-9 items-center rounded-full px-3 text-sm font-medium text-slate-700 transition-colors hover:bg-surface-elevated sm:flex"
+          >
+            Всички сигнали
+          </Link>
+          <Link
+            to="/districts"
+            className="hidden h-9 items-center rounded-full px-3 text-sm font-medium text-slate-700 transition-colors hover:bg-surface-elevated sm:flex"
+          >
+            Районите
+          </Link>
+
+          {/* The moderators' queue of disputed rejections: nothing else brings them to it. */}
+          {canModerateContent(user.role) && (
+            <Link
+              to="/disputes"
+              className="flex h-11 items-center rounded-full border border-surface-border bg-surface-card/80 px-4 text-sm font-medium text-slate-700 backdrop-blur transition-colors hover:bg-surface-elevated sm:h-9"
+            >
+              Оспорени
+            </Link>
+          )}
+
+          {/* An official's working list is the thing they open the app for, so it gets a
+              way in from the map rather than only from settings. */}
+          {canActForAuthority(user.role) && (
+            <Link
+              to="/assigned"
+              className="flex h-11 items-center rounded-full border border-surface-border bg-surface-card/80 px-4 text-sm font-medium text-slate-700 backdrop-blur transition-colors hover:bg-surface-elevated sm:h-9"
+            >
+              Моите сигнали
+            </Link>
+          )}
+
           {/* Notification bell */}
           <button
             onClick={toggleNotifications}
-            className="relative flex items-center justify-center w-11 h-11 sm:w-9 sm:h-9 rounded-full bg-surface-card/80 backdrop-blur border border-surface-border sm:border-transparent sm:bg-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-surface-elevated transition-colors"
-            aria-label="Notifications"
+            className="relative flex items-center justify-center w-11 h-11 sm:w-9 sm:h-9 rounded-full bg-surface-card/80 backdrop-blur border border-surface-border sm:border-transparent sm:bg-transparent text-slate-600 hover:text-slate-900 hover:bg-surface-elevated transition-colors"
+            aria-label="Известия"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5">
               <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
@@ -56,8 +91,32 @@ export function Navbar() {
 
           {/* Notification dropdown */}
           {showNotifications && <NotificationPanel onClose={closeNotifications} />}
+
+          {/* The way into everything that is not the map. A link rather than a menu: the
+              settings page already holds the district link and signing out, and a
+              dropdown repeating them would be a second place to keep in step. */}
+          <Link
+            to="/settings"
+            aria-label={`Настройки за ${user.displayName}`}
+            title="Настройки"
+            className="flex h-11 w-11 items-center justify-center rounded-full border border-surface-border bg-brand-600 text-sm font-semibold text-white shadow-lg shadow-brand-600/30 transition-transform hover:scale-105 sm:h-9 sm:w-9"
+          >
+            {initialsOf(user.displayName)}
+          </Link>
         </div>
       )}
     </nav>
   )
+}
+
+/** At most two letters, so the avatar stays a circle rather than a lozenge. */
+function initialsOf(displayName: string): string {
+  const letters = displayName
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((word) => word[0]?.toUpperCase() ?? '')
+    .join('')
+
+  return letters || displayName.slice(0, 1).toUpperCase() || '?'
 }

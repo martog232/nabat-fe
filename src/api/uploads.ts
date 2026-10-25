@@ -20,3 +20,26 @@ export const uploadsApi = {
       .then((r) => r.data)
   },
 }
+
+/**
+ * The stored name in a report's `photoUrl` (`/api/v1/uploads/<uuid>.jpg`), or null for
+ * anything else. Only a name is ever sent back, to nabat's own `/uploads`: the URL is what
+ * a client submitted, and following it as given would hand the bearer token to whatever
+ * host it names.
+ */
+export function storedPhotoName(photoUrl: string | null | undefined): string | null {
+  if (!photoUrl) return null
+  const match = /\/uploads\/([A-Za-z0-9_-]+\.[A-Za-z0-9]+)$/.exec(photoUrl)
+  return match ? match[1] : null
+}
+
+export const photosApi = {
+  /**
+   * The photo's bytes. Fetched rather than put in an `<img src>`, because the endpoint wants
+   * the bearer token and an image request cannot carry one.
+   */
+  load: (name: string) =>
+    apiClient
+      .get<Blob>(`/uploads/${encodeURIComponent(name)}`, { responseType: 'blob' })
+      .then((r) => r.data),
+}

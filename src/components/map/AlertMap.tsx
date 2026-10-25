@@ -3,9 +3,10 @@ import { divIcon } from 'leaflet'
 import { Circle, MapContainer, Marker, TileLayer, useMap, useMapEvents } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import { useAlertStore } from '../../store/alertStore'
-import { useThemeStore } from '../../store/themeStore'
-import { useNearbyAlerts } from '../../hooks/useAlerts'
+import { useAlert, useNearbyAlerts } from '../../hooks/useAlerts'
+import { useSearchParams } from 'react-router-dom'
 import { AlertMarker } from './AlertMarker'
+import { Locate, LocateFixed } from 'lucide-react'
 
 function MapEventHandler() {
   const { setMapCenter, setMapZoom, setFollowUser } = useAlertStore()
@@ -38,6 +39,41 @@ function FollowModeController() {
   return null
 }
 
+/**
+ * Opens the report named in `?alert=`, as the "Отговори" button in a district's mail links to
+ * it: selected, so its detail shows, and the map moved onto it, so the official sees where it
+ * is. Following the user's own position is switched off first, or the next location fix
+ * would drag the map straight back to wherever the official is sitting.
+ *
+ * The parameter is dropped once the report has been shown, so closing the detail and reloading
+ * does not open it again. A report that cannot be fetched leaves the parameter as it is.
+ */
+function LinkedReportFocus() {
+  const map = useMap()
+  const [params, setParams] = useSearchParams()
+  const linkedId = params.get('alert')
+  const selectAlert = useAlertStore((s) => s.selectAlert)
+  const setFollowUser = useAlertStore((s) => s.setFollowUser)
+  const { data: report } = useAlert(linkedId, !!linkedId)
+
+  useEffect(() => {
+    if (!linkedId) return
+    setFollowUser(false)
+    selectAlert(linkedId)
+  }, [linkedId, selectAlert, setFollowUser])
+
+  useEffect(() => {
+    if (!report || report.id !== linkedId) return
+    map.setView([report.latitude, report.longitude], 17)
+    setParams((p) => {
+      p.delete('alert')
+      return p
+    }, { replace: true })
+  }, [report, linkedId, map, setParams])
+
+  return null
+}
+
 function ZoomButtons() {
   const map = useMap()
   return (
@@ -45,18 +81,18 @@ function ZoomButtons() {
       <button
         type="button"
         onClick={() => map.zoomIn()}
-        className="h-11 w-11 sm:h-10 sm:w-10 rounded-full border border-surface-border bg-surface-card/95 backdrop-blur-sm text-xl font-bold text-slate-700 dark:text-slate-100 hover:bg-surface-hover transition-colors shadow-lg leading-none"
-        title="Zoom in"
-        aria-label="Zoom in"
+        className="h-11 w-11 sm:h-10 sm:w-10 rounded-full border border-surface-border bg-surface-card/95 backdrop-blur-sm text-xl font-bold text-slate-700 hover:bg-surface-hover transition-colors shadow-lg leading-none"
+        title="Приближи"
+        aria-label="Приближи"
       >
         +
       </button>
       <button
         type="button"
         onClick={() => map.zoomOut()}
-        className="h-11 w-11 sm:h-10 sm:w-10 rounded-full border border-surface-border bg-surface-card/95 backdrop-blur-sm text-xl font-bold text-slate-700 dark:text-slate-100 hover:bg-surface-hover transition-colors shadow-lg leading-none"
-        title="Zoom out"
-        aria-label="Zoom out"
+        className="h-11 w-11 sm:h-10 sm:w-10 rounded-full border border-surface-border bg-surface-card/95 backdrop-blur-sm text-xl font-bold text-slate-700 hover:bg-surface-hover transition-colors shadow-lg leading-none"
+        title="Отдалечи"
+        aria-label="Отдалечи"
       >
         −
       </button>
@@ -67,10 +103,6 @@ function ZoomButtons() {
 export function AlertMap() {
   const { data: alerts = [] } = useNearbyAlerts()
   const { mapCenter, mapZoom, userLat, userLng, radiusKm, followUser, setFollowUser } = useAlertStore()
-  const theme = useThemeStore((s) => s.theme)
-  const tileUrl = theme === 'dark'
-    ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
-    : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
   const userIcon = useMemo(
     () =>
       divIcon({
@@ -102,11 +134,12 @@ export function AlertMap() {
         zoomControl={false}
       >
         <TileLayer
-          url={tileUrl}
-          attribution="© OpenStreetMap contributors © CARTO"
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution="© OpenStreetMap contributors"
         />
         <MapEventHandler />
         <FollowModeController />
+        <LinkedReportFocus />
         <ZoomButtons />
         {userLat !== null && userLng !== null && (
           <>
@@ -131,11 +164,11 @@ export function AlertMap() {
       <button
         type="button"
         onClick={() => setFollowUser(!followUser)}
-        className="absolute z-[1000] right-3 sm:right-4 bottom-[calc(var(--sheet-peek)+1rem)] sm:bottom-4 h-11 w-11 sm:h-10 sm:w-10 rounded-full border border-surface-border bg-surface-card/95 backdrop-blur-sm text-lg text-slate-700 dark:text-slate-100 hover:bg-surface-hover transition-colors shadow-lg"
-        title={followUser ? 'Disable follow mode' : 'Enable follow mode'}
-        aria-label={followUser ? 'Disable follow mode' : 'Enable follow mode'}
+        className="absolute z-[1000] right-3 sm:right-4 bottom-[calc(var(--sheet-peek)+1rem)] sm:bottom-4 h-11 w-11 sm:h-10 sm:w-10 rounded-full border border-surface-border bg-surface-card/95 backdrop-blur-sm text-lg text-slate-700 hover:bg-surface-hover transition-colors shadow-lg"
+        title={followUser ? 'Спри следването на местоположението' : 'Следвай местоположението ми'}
+        aria-label={followUser ? 'Спри следването на местоположението' : 'Следвай местоположението ми'}
       >
-        {followUser ? '🎯' : '🗺️'}
+        {followUser ? <LocateFixed className="mx-auto h-5 w-5 text-brand-600" aria-hidden /> : <Locate className="mx-auto h-5 w-5" aria-hidden />}
       </button>
     </div>
   )

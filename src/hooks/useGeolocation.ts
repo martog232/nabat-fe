@@ -1,14 +1,13 @@
-import { useEffect, useRef } from 'react'
-import { userApi } from '../api/user'
+import { useEffect } from 'react'
 import { useAlertStore } from '../store/alertStore'
-import { haversineDistanceM } from '../utils/geo'
 
-const LOCATION_UPDATE_DISTANCE_THRESHOLD_M = 200
-const LOCATION_UPDATE_TIME_THRESHOLD_MS = 5 * 60 * 1000
-
+/**
+ * Where the user is, for the map to follow — and only for that. The position used to be
+ * sent to the account every 200 m or 5 minutes, so the backend could push reports to people
+ * near them. That push is gone, and a location history of every user with it: nothing here
+ * leaves the browser any more.
+ */
 export function useGeolocation() {
-  const lastSyncedRef = useRef<{ lat: number; lng: number; at: number } | null>(null)
-
   useEffect(() => {
     if (!navigator.geolocation) return
 
@@ -17,7 +16,6 @@ export function useGeolocation() {
         const lat = position.coords.latitude
         const lng = position.coords.longitude
         const accuracy = position.coords.accuracy
-        const now = Date.now()
 
         const state = useAlertStore.getState()
         state.setUserLocation(lat, lng, accuracy)
@@ -25,23 +23,6 @@ export function useGeolocation() {
         if (state.followUser) {
           state.setMapCenter([lat, lng])
         }
-
-        const lastSync = lastSyncedRef.current
-        const movedEnough = !lastSync
-          || haversineDistanceM(lastSync.lat, lastSync.lng, lat, lng) > LOCATION_UPDATE_DISTANCE_THRESHOLD_M
-        const staleEnough = !lastSync || now - lastSync.at > LOCATION_UPDATE_TIME_THRESHOLD_MS
-
-        if (!movedEnough && !staleEnough) return
-
-        lastSyncedRef.current = { lat, lng, at: now }
-
-        void userApi.updatePreferences({
-          notificationRadiusKm: state.radiusKm,
-          lastKnownLat: lat,
-          lastKnownLng: lng,
-        }).catch(() => {
-          // Intentionally silent for geolocation preference sync failures.
-        })
       },
       () => {
         // Intentionally silent for geolocation permission/availability failures.

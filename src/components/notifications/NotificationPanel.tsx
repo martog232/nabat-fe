@@ -1,33 +1,41 @@
 import { useEffect, useRef } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useAlertStore } from '../../store/alertStore'
 import { useNotifications, useMarkAsRead, useMarkAllAsRead } from '../../hooks/useNotifications'
 import type { Notification, NotificationType } from '../../types'
+import { BadgeCheck, Bell, Forward, Lock, MessageCircle, ThumbsDown, ThumbsUp, Trophy, Wrench, type LucideIcon } from 'lucide-react'
 
 interface NotificationPanelProps {
   onClose: () => void
 }
 
-const NOTIFICATION_ICONS: Record<NotificationType, string> = {
-  ALERT_UPVOTED: '👍',
-  ALERT_DOWNVOTED: '👎',
-  ALERT_CONFIRMED: '✅',
-  ALERT_MILESTONE: '🏆',
-  ALERT_RESOLVED: '🔒',
+const NOTIFICATION_ICONS: Record<NotificationType, LucideIcon> = {
+  ALERT_UPVOTED: ThumbsUp,
+  ALERT_DOWNVOTED: ThumbsDown,
+  ALERT_CONFIRMED: BadgeCheck,
+  ALERT_MILESTONE: Trophy,
+  ALERT_RESOLVED: Lock,
+  COMMENT_ADDED: MessageCircle,
+  REPORT_FORWARDED: Forward,
+  REPORT_PROGRESSED: Wrench,
 }
 
 function timeAgo(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime()
   const mins = Math.floor(diff / 60000)
-  if (mins < 1) return 'Just now'
-  if (mins < 60) return `${mins}m ago`
+  if (mins < 1) return 'Току-що'
+  if (mins < 60) return `преди ${mins} мин`
   const hrs = Math.floor(mins / 60)
-  if (hrs < 24) return `${hrs}h ago`
-  return `${Math.floor(hrs / 24)}d ago`
+  if (hrs < 24) return `преди ${hrs} ч`
+  const days = Math.floor(hrs / 24)
+  return `преди ${days} ${days === 1 ? 'ден' : 'дни'}`
 }
 
 function NotificationItem({ notification }: { notification: Notification }) {
   const selectAlert = useAlertStore((s) => s.selectAlert)
   const markAsRead = useMarkAsRead()
+  const navigate = useNavigate()
+  const { pathname } = useLocation()
 
   const handleClick = () => {
     if (!notification.read) {
@@ -35,8 +43,15 @@ function NotificationItem({ notification }: { notification: Notification }) {
     }
     if (notification.relatedAlertId) {
       selectAlert(notification.relatedAlertId)
+      // The report's detail is mounted on the map page only. From anywhere else, selecting
+      // it changed nothing visible — and "is it really fixed?" is asked from this click.
+      if (pathname !== '/map') {
+        navigate('/map')
+      }
     }
   }
+
+  const TypeIcon = NOTIFICATION_ICONS[notification.type] ?? Bell
 
   return (
     <button
@@ -47,16 +62,16 @@ function NotificationItem({ notification }: { notification: Notification }) {
         hover:bg-surface-elevated/50
       `}
     >
-      <div className="text-lg flex-shrink-0 mt-0.5">
-        {NOTIFICATION_ICONS[notification.type]}
+      <div className="flex-shrink-0 mt-0.5 text-slate-500">
+        <TypeIcon className="h-5 w-5" aria-hidden />
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between gap-2">
           <span
             className={`text-sm font-medium truncate ${
               notification.read
-                ? 'text-slate-600 dark:text-slate-400'
-                : 'text-slate-900 dark:text-slate-100'
+                ? 'text-slate-600'
+                : 'text-slate-900'
             }`}
           >
             {notification.title}
@@ -66,7 +81,7 @@ function NotificationItem({ notification }: { notification: Notification }) {
           </span>
         </div>
         {notification.message && (
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2">
+          <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">
             {notification.message}
           </p>
         )}
@@ -100,11 +115,11 @@ export function NotificationPanel({ onClose }: NotificationPanelProps) {
     >
       {/* Header */}
       <div className="flex flex-shrink-0 items-center justify-between px-4 py-3 border-b border-surface-border">
-        <h3 className="font-semibold text-sm text-slate-900 dark:text-slate-100">
-          Notifications
+        <h3 className="font-semibold text-sm text-slate-900">
+          Известия
           {unreadCount > 0 && (
             <span className="ml-2 text-xs text-brand-400 font-normal">
-              ({unreadCount} unread)
+              ({unreadCount} непрочетени)
             </span>
           )}
         </h3>
@@ -113,7 +128,7 @@ export function NotificationPanel({ onClose }: NotificationPanelProps) {
             onClick={() => markAllAsRead.mutate()}
             className="text-xs text-brand-400 hover:text-brand-300 transition-colors font-medium"
           >
-            Mark all as read
+            Маркирай всички като прочетени
           </button>
         )}
       </div>
@@ -126,12 +141,12 @@ export function NotificationPanel({ onClose }: NotificationPanelProps) {
           </div>
         ) : !notifications || notifications.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-10 px-4 text-center">
-            <span className="text-3xl mb-2">🔔</span>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              No notifications yet
+            <Bell className="mb-2 h-8 w-8 text-slate-400" aria-hidden />
+            <p className="text-sm text-slate-500">
+              Все още нямате известия
             </p>
-            <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
-              Vote on alerts to receive updates.
+            <p className="text-xs text-slate-400 mt-1">
+              Гласувайте за сигнали, за да получавате новини за тях.
             </p>
           </div>
         ) : (

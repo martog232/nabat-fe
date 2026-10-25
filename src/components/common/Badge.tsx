@@ -1,17 +1,18 @@
-import type { AlertSeverity } from '../../types'
-import { SEVERITY_COLORS } from '../../types'
+import type { AlertStatus } from '../../types'
+import { STATUS_COLORS, STATUS_LABELS } from '../../types'
 
-interface BadgeProps {
-  severity: AlertSeverity
+interface StatusBadgeProps {
+  status: AlertStatus
   label?: string
 }
 
-export function SeverityBadge({ severity, label }: BadgeProps) {
+/** Where a report is on its way to a fix. Replaced the severity badge when severity went. */
+export function StatusBadge({ status, label }: StatusBadgeProps) {
   return (
     <span
-      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border ${SEVERITY_COLORS[severity]}`}
+      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border ${STATUS_COLORS[status]}`}
     >
-      {label ?? severity}
+      {label ?? STATUS_LABELS[status]}
     </span>
   )
 }

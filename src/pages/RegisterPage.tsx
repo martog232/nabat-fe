@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../store/authStore'
 import { Button } from '../components/common/Button'
 import { Input } from '../components/common/Input'
-import { ThemeToggle } from '../components/common/ThemeToggle'
 
 export function RegisterPage() {
   const { register, isLoading, error, clearError } = useAuthStore()
@@ -16,7 +15,7 @@ export function RegisterPage() {
     e.preventDefault()
     try {
       await register(email, password, displayName)
-      navigate('/')
+      navigate('/map')
     } catch {
       // error is in store
     }
@@ -24,9 +23,6 @@ export function RegisterPage() {
 
   return (
     <div className="h-full overflow-y-auto bg-surface-DEFAULT flex justify-center px-4 py-8 pt-[calc(2rem+env(safe-area-inset-top))] pb-[calc(2rem+env(safe-area-inset-bottom))]">
-      <div className="fixed top-[calc(1rem+env(safe-area-inset-top))] right-4 z-20">
-        <ThemeToggle className="text-slate-500 dark:text-slate-300" />
-      </div>
       {/* my-auto, not items-center on the parent: a form taller than a landscape phone
           would be centred by items-center and then clipped at the top with no way to scroll
           up to it. Auto margins centre when there is room and collapse when there is not. */}
@@ -38,17 +34,17 @@ export function RegisterPage() {
               <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
             </svg>
           </div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Create account</h1>
-          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Join the Nabat safety community</p>
+          <h1 className="text-2xl font-bold text-slate-900">Регистрация</h1>
+          <p className="text-sm text-slate-600 mt-1">Подавайте сигнали за проблеми в София</p>
         </div>
 
         {/* Card */}
         <div className="bg-surface-card border border-surface-border rounded-2xl p-6 shadow-2xl">
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input
-              label="Display name"
+              label="Име"
               type="text"
-              placeholder="Jane Doe"
+              placeholder="Иван Иванов"
               value={displayName}
               onChange={(e) => { setDisplayName(e.target.value); clearError() }}
               required
@@ -56,7 +52,7 @@ export function RegisterPage() {
               maxLength={50}
             />
             <Input
-              label="Email"
+              label="Имейл"
               type="email"
               placeholder="you@example.com"
               value={email}
@@ -64,7 +60,7 @@ export function RegisterPage() {
               required
             />
             <Input
-              label="Password"
+              label="Парола"
               type="password"
               placeholder="••••••••"
               value={password}
@@ -80,14 +76,14 @@ export function RegisterPage() {
             )}
 
             <Button type="submit" className="w-full" isLoading={isLoading} size="lg">
-              Create account
+              Създайте профил
             </Button>
           </form>
 
-          <p className="text-center text-sm text-slate-600 dark:text-slate-500 mt-4">
-            Already have an account?{' '}
+          <p className="text-center text-sm text-slate-600 mt-4">
+            Вече имате профил?{' '}
             <Link to="/login" className="text-brand-400 hover:underline font-medium">
-              Sign in
+              Вход
             </Link>
           </p>
         </div>

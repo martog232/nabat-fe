@@ -1,14 +1,28 @@
 import { useAlertStore } from '../../store/alertStore'
 import { useVoteData, useVote, useRemoveVote } from '../../hooks/useVotes'
-import { useResolveAlert, useNearbyAlerts } from '../../hooks/useAlerts'
+import { useAlert, useNearbyAlerts } from '../../hooks/useAlerts'
 import { useAuthStore } from '../../store/authStore'
-import { ALERT_TYPE_ICONS, ALERT_TYPE_LABELS } from '../../types'
-import { SeverityBadge } from '../common/Badge'
-import type { VoteType } from '../../types'
-import { canResolveAlert } from '../../utils/permissions'
+import { CLOSED_BY_LABELS } from '../../types'
+import { GroupIcon } from '../common/GroupIcon'
+import { StatusBadge } from '../common/Badge'
+import { useDistrictNames } from '../../hooks/useDistricts'
+import { useAuthorityNames } from '../../hooks/useAuthorities'
+import { useCategoryIndex } from '../../hooks/useCategories'
+import { resolveCategory } from '../../utils/categories'
+
+import { ReportActions } from './ReportActions'
+import { FixCheckPanel } from './FixCheckPanel'
+import { CommentThread } from './CommentThread'
+import { ReportPhoto } from './ReportPhoto'
+import { ForwardHistory } from './ForwardHistory'
+import { ReportTimeline } from './ReportTimeline'
+import { RejectionPanel } from './RejectionPanel'
+import { OverdueBadge } from './OverdueBadge'
+import { overdueDays } from '../../utils/deadline'
+import { Building2, CalendarDays, Eye, Landmark, X } from 'lucide-react'
 
 function formatDate(iso: string) {
-  return new Date(iso).toLocaleString('en-US', {
+  return new Date(iso).toLocaleString('bg-BG', {
     month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
   })
 }
@@ -17,46 +31,42 @@ export function AlertDetail() {
   const selectedAlertId = useAlertStore((s) => s.selectedAlertId)
   const selectAlert = useAlertStore((s) => s.selectAlert)
   const { data: alerts = [] } = useNearbyAlerts()
-  const selectedAlert = alerts.find((a) => a.id === selectedAlertId) ?? null
+  const inList = alerts.find((a) => a.id === selectedAlertId) ?? null
+  // The map's list holds open reports only. A resolved one — opened from the notification
+  // asking whether it is really fixed — is fetched on its own.
+  const { data: fetched } = useAlert(selectedAlertId, !!selectedAlertId && !inList)
+  const selectedAlert = inList ?? (fetched?.id === selectedAlertId ? fetched : null)
   const user = useAuthStore((s) => s.user)
+  const districtNames = useDistrictNames()
+  const authorityNames = useAuthorityNames()
+  const categoryIndex = useCategoryIndex()
 
   const { data: voteData } = useVoteData(selectedAlert?.id ?? '')
   const stats = voteData?.stats
   const myVote = voteData?.myVote
   const vote = useVote(selectedAlert?.id ?? '')
   const removeVote = useRemoveVote(selectedAlert?.id ?? '')
-  const resolveAlert = useResolveAlert(selectedAlert?.id ?? '')
 
   if (!selectedAlert) return null
 
   const a = selectedAlert
+  const category = resolveCategory(categoryIndex, a.categoryCode)
 
-  // The vote type currently being submitted — used to show a per-button spinner
-  const pendingVoteType = vote.isPending ? vote.variables : undefined
   const isMutating = vote.isPending || removeVote.isPending
-  // Mirrors the server rule: your own alert, or anyone's if you moderate. A moderator was
-  // previously shown no resolve button at all, since the check named the ADMIN role directly.
-  const canResolve = canResolveAlert(user, a)
+  // People who say they see it: confirmations, and the upvotes from before there was only one
+  // way to say so. The same number the public list ranks by.
+  const seenBy = stats ? stats.confirmations + stats.upvotes : 0
+  // An old upvote was the same statement, so it shows as having confirmed.
+  const iSeeIt = myVote?.voteType === 'CONFIRM' || myVote?.voteType === 'UPVOTE'
 
-  const credibilityScore = stats
-    ? stats.credibilityScore
-    : 0
-
-  const handleVote = (voteType: VoteType) => {
+  const toggleSeen = () => {
     if (!user || isMutating) return
-    if (myVote?.voteType === voteType) {
-      // Clicking the vote you already hold toggles it off.
-      removeVote.mutate()
-    } else {
-      // New vote, or a switch to a different type — the backend upserts either way.
-      vote.mutate(voteType)
-    }
+    // Pressing it again takes it back; otherwise confirm — over an old downvote too, which
+    // the backend replaces.
+    if (iSeeIt) removeVote.mutate()
+    else vote.mutate('CONFIRM')
   }
 
-  const handleResolve = () => {
-    if (!canResolve || resolveAlert.isPending) return
-    resolveAlert.mutate()
-  }
 
   return (
     /*
@@ -71,18 +81,24 @@ export function AlertDetail() {
         <div className="relative flex-shrink-0 p-4 border-b border-surface-border">
           <button
             onClick={() => selectAlert(null)}
-            className="absolute top-2 right-2 w-11 h-11 sm:top-3 sm:right-3 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-surface-elevated transition"
+            aria-label="Затвори"
+            className="absolute top-2 right-2 w-11 h-11 sm:top-3 sm:right-3 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-surface-elevated transition"
           >
-            ✕
+            <X className="h-4 w-4" aria-hidden />
           </button>
 
           <div className="flex items-start gap-3 pr-12 sm:pr-8">
-            <div className="text-3xl">{ALERT_TYPE_ICONS[a.type]}</div>
+            <GroupIcon code={category?.group.code} className="h-8 w-8 flex-shrink-0 text-slate-600" />
             <div>
-              <h3 className="font-bold text-slate-900 dark:text-slate-200 text-base leading-tight mb-1">{a.title}</h3>
+              <h3 className="font-bold text-slate-900 text-base leading-tight mb-1">{a.title}</h3>
               <div className="flex items-center gap-2">
-                <SeverityBadge severity={a.severity} />
-                <span className="text-xs text-slate-500">{ALERT_TYPE_LABELS[a.type]}</span>
+                <StatusBadge status={a.status} />
+                <OverdueBadge alert={a} />
+                {category && (
+                  <span className="text-xs text-slate-500">
+                    {category.group.name} · {category.category.name}
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -90,97 +106,100 @@ export function AlertDetail() {
 
         {/* Body — the only scrolling region; overscroll-contain stops a flick here from dragging the map underneath. */}
         <div className="flex-1 overflow-y-auto overscroll-contain p-4 space-y-3">
-          <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">{a.description}</p>
+          <p className="text-sm text-slate-700 leading-relaxed">{a.description}</p>
 
-          <div className="flex items-center gap-4 text-xs text-slate-500">
-            <span>📅 {formatDate(a.createdAt)}</span>
-            <span
-              className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                a.status === 'ACTIVE' ? 'bg-green-500/10 text-green-400' : 'bg-slate-500/10 text-slate-400'
-              }`}
-            >
-              {a.status}
-            </span>
+          <ReportPhoto photoUrl={a.photoUrl} title={a.title} />
+
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
+            <span className="inline-flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5" aria-hidden /> {formatDate(a.createdAt)}</span>
+            {a.districtCode && (
+              <span className="inline-flex items-center gap-1"><Landmark className="h-3.5 w-3.5" aria-hidden /> {districtNames.get(a.districtCode) ?? a.districtCode}</span>
+            )}
+            {/* Said only when it is not the district: a bus stop goes to the Centre for Urban
+                Mobility wherever it is, and the reader should know who was asked. */}
+            {a.authorityCode && a.authorityCode !== a.districtCode && (
+              <span className="inline-flex items-center gap-1"><Building2 className="h-3.5 w-3.5" aria-hidden /> Отговаря: {authorityNames.get(a.authorityCode) ?? a.authorityCode}</span>
+            )}
           </div>
 
+          {/* The clock the authority is on, while it is on one and not yet past it. */}
+          {a.answerDueAt && overdueDays(a) === null && (
+            <div className="text-xs text-slate-500">Срок за отговор: {formatDate(a.answerDueAt)}</div>
+          )}
+
+          {/* Who closed it matters as much as that it closed: the authority saying "fixed"
+              and the reporter saying so are not the same claim. */}
           {a.status === 'RESOLVED' && a.resolvedAt && (
-            <div className="text-xs text-slate-500">Resolved {formatDate(a.resolvedAt)}</div>
+            <div className="text-xs text-slate-500">
+              Решен {a.closedBy ? CLOSED_BY_LABELS[a.closedBy] + ' ' : ''}на {formatDate(a.resolvedAt)}
+            </div>
+          )}
+          {a.status === 'WITHDRAWN' && (
+            <div className="text-xs text-slate-500">Оттеглен от подателя. Защо — в дискусията.</div>
+          )}
+          {a.status === 'REJECTED' && (
+            <div className="text-xs text-slate-500">
+              Отхвърлен{a.closedBy ? ' ' + CLOSED_BY_LABELS[a.closedBy] : ''}
+            </div>
           )}
 
-          {/* Resolve button */}
-          {canResolve && (
+          {/* Why, and the reporter's way to contest it. */}
+          <RejectionPanel alert={a} />
+
+          {/* "Is it really fixed?" — only on a resolved report. */}
+          <FixCheckPanel alert={a} />
+
+          {/* What this user may do to move the report along — the district's steps, and
+              "fixed" for whoever may say so. Renders nothing for everyone else. */}
+          <ReportActions alert={a} />
+
+          {/* Where it has been, when it has moved: the chain is part of the record. */}
+          <ForwardHistory alert={a} />
+
+          {/* Who did what, by name: folded away until asked for. */}
+          <ReportTimeline alert={a} />
+
+          {/*
+            "I see it too" — the one thing a passer-by can add to a report. Up/down votes and a
+            credibility score were the safety feed's question, "is this real?"; for a pothole,
+            supporting and confirming are the same statement, and a report that is not real is
+            for its authority or a moderator to reject, saying why.
+
+            The count renders straight from the cache, which `useVote.onMutate` has already
+            moved, so it changes on the click; nothing may hide it while the request is in
+            flight. The pressed state is the only in-flight cue, and a failed vote rolls the
+            cache back and raises a toast.
+          */}
+          {stats && (
             <button
-              onClick={handleResolve}
-              disabled={resolveAlert.isPending}
-              className="w-full rounded-xl border border-brand-500/40 bg-brand-500/10 text-brand-400 py-3 sm:py-2 text-sm font-semibold hover:border-brand-500/70 hover:bg-brand-500/15 transition disabled:opacity-60 disabled:cursor-not-allowed"
+              type="button"
+              aria-pressed={iSeeIt}
+              disabled={!user || isMutating}
+              onClick={toggleSeen}
+              className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 sm:py-2 text-sm transition
+                ${iSeeIt
+                  ? 'border-brand-500/50 bg-brand-500/10 text-brand-600'
+                  : 'border-surface-border bg-surface-elevated text-slate-700 hover:border-brand-500/30'}
+                ${isMutating ? 'scale-[0.98]' : ''}
+                disabled:opacity-60 disabled:cursor-not-allowed`}
             >
-              {resolveAlert.isPending ? 'Resolving…' : 'Resolve alert'}
-            </button>
-          )}
-
-          {/* Vote buttons */}
-          {stats && (
-            <div className="grid grid-cols-3 gap-2">
-              {(
-                [
-                  { label: 'Up',      emoji: '👍', val: stats.upvotes,       type: 'UPVOTE'   },
-                  { label: 'Down',    emoji: '👎', val: stats.downvotes,     type: 'DOWNVOTE' },
-                  { label: 'Confirm', emoji: '✅', val: stats.confirmations, type: 'CONFIRM'  },
-                ] as { label: string; emoji: string; val: number; type: VoteType }[]
-              ).map(({ label, emoji, val, type }) => {
-                const isThisPending = pendingVoteType === type
-                const isRemoving    = removeVote.isPending && myVote?.voteType === type
-                const isActive      = myVote?.voteType === type && !isMutating
-                const isAnyPending  = isMutating && !isThisPending && !isRemoving
-
-                return (
-                  <button
-                    key={type}
-                    disabled={!user || isAnyPending || isThisPending || isRemoving}
-                    onClick={() => handleVote(type)}
-                    className={`
-                      relative flex flex-col items-center py-3 sm:py-2 rounded-xl border
-                      transition-all duration-150 cursor-pointer overflow-hidden
-                      ${isThisPending || isRemoving
-                        ? 'border-brand-500/60 bg-brand-500/15 scale-95'
-                        : isActive
-                          ? 'border-brand-500/50 bg-brand-500/10'
-                          : 'border-surface-border bg-surface-elevated hover:border-brand-500/30 hover:scale-[1.03]'}
-                      disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100
-                    `}
-                  >
-                    {/* Spinner overlay when this button is pending */}
-                    {(isThisPending || isRemoving) && (
-                      <span className="absolute inset-0 flex items-center justify-center bg-brand-500/10 rounded-xl">
-                        <span className="w-4 h-4 border-2 border-brand-400 border-t-transparent rounded-full animate-spin" />
-                      </span>
-                    )}
-                    <span className={`text-xs font-bold text-slate-900 dark:text-white transition-opacity ${isThisPending || isRemoving ? 'opacity-0' : 'opacity-100'}`}>
-                      {val}
-                    </span>
-                    <span className={`text-xs text-slate-600 dark:text-slate-400 transition-opacity ${isThisPending || isRemoving ? 'opacity-0' : 'opacity-100'}`}>
-                      {emoji} {label}
-                    </span>
-                  </button>
-                )
-              })}
-            </div>
-          )}
-
-          {stats && (
-            <div className="flex items-center justify-between text-xs text-slate-500 pt-1 border-t border-surface-border">
-              <span>Credibility score</span>
-              <span className={`font-bold ${credibilityScore > 0 ? 'text-green-400' : credibilityScore < 0 ? 'text-red-400' : 'text-slate-400'}`}>
-                {credibilityScore > 0 ? '+' : ''}{credibilityScore}
+              <span className="inline-flex items-center gap-2 font-semibold">
+                <Eye className="h-4 w-4" aria-hidden /> {iSeeIt ? 'Виждате го' : 'И аз го виждам'}
               </span>
-            </div>
+              <span className="text-xs text-slate-600">
+                {seenBy === 1 ? '1 човек го вижда' : `${seenBy} души го виждат`}
+              </span>
+            </button>
           )}
 
           {!user && (
             <p className="text-xs text-slate-500 text-center">
-              <a href="/login" className="text-brand-400 hover:underline">Sign in</a> to vote
+              <a href="/login" className="text-brand-400 hover:underline">Влезте</a>, за да потвърдите, че го виждате
             </p>
           )}
+
+          {/* Last, under everything that changes the report: talking about it does not. */}
+          <CommentThread alert={a} />
         </div>
       </div>
     </div>

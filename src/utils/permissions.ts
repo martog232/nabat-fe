@@ -1,4 +1,5 @@
-import type { Alert, Role, User } from '../types'
+import type { Alert, AlertStatus, Role, User } from '../types'
+import { isOpen } from '../types'
 
 /**
  * The client-side mirror of the backend's `Role` capabilities.
@@ -21,21 +22,74 @@ export function canAdministerUsers(role: Role | undefined): boolean {
   return role === 'ADMIN'
 }
 
+export function canActForAuthority(role: Role | undefined): boolean {
+  return role === 'OFFICIAL'
+}
+
 /**
- * Whether this user may close this alert: their own, or anyone's if they moderate.
- *
- * Mirrors `AlertLifecycleService.resolve`. An already-resolved alert is excluded here too —
- * `Alert.resolve()` is deliberately not idempotent server-side, so offering the button again
- * would produce a 409.
+ * Whether this user speaks for the authority that answers for this report — its district, or
+ * the institution its category belongs to. Both halves, like `User.actsFor` on the server: the
+ * role says nothing about *which* reports. The authority, never the district: a bus stop in
+ * Lozenets is the Centre for Urban Mobility's, not Lozenets'.
+ */
+export function actsForAuthorityOf(user: User | null, alert: Alert): boolean {
+  return !!user
+    && canActForAuthority(user.role)
+    && alert.authorityCode !== null
+    && user.authorityCode === alert.authorityCode
+}
+
+/**
+ * Whether this user may mark this report fixed: its authority, its reporter, or a moderator.
+ * Mirrors `AlertLifecycleService.resolve`. A closed report is excluded — the transition is
+ * deliberately not idempotent server-side, so offering it again would produce a 409.
  */
 export function canResolveAlert(user: User | null, alert: Alert): boolean {
-  if (!user) return false
-  if (alert.status !== 'ACTIVE') return false
-  return alert.reportedBy === user.id || canModerateContent(user.role)
+  if (!user || !isOpen(alert.status)) return false
+  return actsForAuthorityOf(user, alert)
+    || alert.reportedBy === user.id
+    || canModerateContent(user.role)
+}
+
+/** Closing without a fix is the authority's or a moderator's call — never the reporter's. */
+export function canRejectAlert(user: User | null, alert: Alert): boolean {
+  if (!user || !isOpen(alert.status)) return false
+  return actsForAuthorityOf(user, alert) || canModerateContent(user.role)
+}
+
+/**
+ * Whether this user may hand the report to another authority: its own authority, or a
+ * moderator correcting the routing — never the reporter. Mirrors `ForwardReportService`, all
+ * but its limit: after three forwards the server refuses the authority and says so.
+ */
+export function canForward(user: User | null, alert: Alert): boolean {
+  if (!user || !isOpen(alert.status)) return false
+  return actsForAuthorityOf(user, alert) || canModerateContent(user.role)
+}
+
+/**
+ * Whether this user may take the report back: its reporter, while it is open. Not a moderator
+ * or the authority — they reject, saying why. Mirrors `WithdrawalService`.
+ */
+export function canWithdraw(user: User | null, alert: Alert): boolean {
+  return !!user && isOpen(alert.status) && alert.reportedBy === user.id
+}
+
+/** The forward order of the open states, as `AlertStatus.canMoveTo` compares them. */
+const OPEN_ORDER: AlertStatus[] = ['SUBMITTED', 'SENT', 'ACKNOWLEDGED', 'IN_PROGRESS']
+
+/**
+ * Whether the authority may move this report on to `target` — forward only, skipping allowed,
+ * which is the server's rule. Acknowledging and starting work are the authority's alone.
+ */
+export function canAdvanceTo(user: User | null, alert: Alert, target: 'ACKNOWLEDGED' | 'IN_PROGRESS'): boolean {
+  if (!actsForAuthorityOf(user, alert) || !isOpen(alert.status)) return false
+  return OPEN_ORDER.indexOf(target) > OPEN_ORDER.indexOf(alert.status)
 }
 
 /** Human-readable label for the roles worth surfacing. USER is the default and needs none. */
 export const ROLE_LABELS: Partial<Record<Role, string>> = {
-  MODERATOR: 'Moderator',
-  ADMIN: 'Admin',
+  MODERATOR: 'Модератор',
+  ADMIN: 'Администратор',
+  OFFICIAL: 'Служител на институция',
 }

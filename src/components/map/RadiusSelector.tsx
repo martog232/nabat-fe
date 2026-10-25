@@ -1,57 +1,23 @@
-import { useEffect, useRef } from 'react'
-import { userApi } from '../../api/user'
 import { useAlertStore } from '../../store/alertStore'
-import { useToastStore } from '../../store/toastStore'
 
 const RADIUS_OPTIONS = [1, 5, 10, 25, 50] as const
-const SAVE_DEBOUNCE_MS = 800
 
+/**
+ * How far around the map centre to load reports. A view setting and nothing more: it used
+ * to be saved to the account as a notification radius, and the backend stopped pushing
+ * reports by proximity, so there is nothing left to save it for.
+ */
 export function RadiusSelector() {
   const radiusKm = useAlertStore((s) => s.radiusKm)
-  const userLat = useAlertStore((s) => s.userLat)
-  const userLng = useAlertStore((s) => s.userLng)
   const setRadiusKm = useAlertStore((s) => s.setRadiusKm)
-  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const requestSeqRef = useRef(0)
-
-  useEffect(() => () => {
-    if (saveTimerRef.current) {
-      clearTimeout(saveTimerRef.current)
-    }
-  }, [])
 
   const handleSelect = (value: number) => {
-    if (value === radiusKm) return
-
-    const previousRadius = radiusKm
-    setRadiusKm(value)
-    requestSeqRef.current += 1
-    const currentRequest = requestSeqRef.current
-
-    if (saveTimerRef.current) {
-      clearTimeout(saveTimerRef.current)
-    }
-
-    saveTimerRef.current = setTimeout(() => {
-      void userApi.updatePreferences({
-        notificationRadiusKm: value,
-        lastKnownLat: userLat,
-        lastKnownLng: userLng,
-      }).catch(() => {
-        if (requestSeqRef.current !== currentRequest) return
-
-        setRadiusKm(previousRadius)
-        useToastStore.getState().addToast({
-          type: 'error',
-          message: 'Could not save alert radius. Reverted to the previous value.',
-        })
-      })
-    }, SAVE_DEBOUNCE_MS)
+    if (value !== radiusKm) setRadiusKm(value)
   }
 
   return (
     <div className="rounded-xl border border-surface-border bg-surface-elevated p-2">
-      <p className="text-xs font-medium text-slate-500 dark:text-slate-300 mb-2 px-1">Alert radius</p>
+      <p className="text-xs font-medium text-slate-500 mb-2 px-1">Покажи в радиус</p>
       {/* Five options across 320px leaves ~55px each including gaps — enough as an
           equal-width grid, not enough with intrinsic widths, where "50 km" pushed the row
           into an overflow that had nowhere to go. */}
@@ -66,10 +32,10 @@ export function RadiusSelector() {
               className={`min-h-[2.25rem] sm:min-h-[1.875rem] px-1 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${
                 isActive
                   ? 'bg-brand-500 text-white'
-                  : 'bg-surface-DEFAULT text-slate-600 dark:text-slate-300 hover:bg-surface-hover'
+                  : 'bg-surface-DEFAULT text-slate-600 hover:bg-surface-hover'
               }`}
             >
-              {value} km
+              {value} км
             </button>
           )
         })}
