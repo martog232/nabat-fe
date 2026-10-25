@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { LoginPage } from './pages/LoginPage'
 import { RegisterPage } from './pages/RegisterPage'
 import { LinkPage } from './pages/LinkPage'
+import { SetPasswordPage } from './pages/SetPasswordPage'
 import { MapPage } from './pages/MapPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { LandingPage } from './pages/LandingPage'
@@ -35,6 +36,8 @@ export default function App() {
           <Route path="/register" element={<RegisterPage />} />
           {/* Public: it is how an official without a password gets in, from a report mail. */}
           <Route path="/link" element={<LinkPage />} />
+          {/* Public: where an invitation, or a password reset, lands. */}
+          <Route path="/set-password" element={<SetPasswordPage />} />
           <Route
             path="/"
             element={

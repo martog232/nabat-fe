@@ -8,6 +8,7 @@ import { ReportActions } from '../components/alerts/ReportActions'
 import { StatusBadge } from '../components/common/Badge'
 import { FixOutcomeBadge } from '../components/alerts/FixOutcomeBadge'
 import { OverdueBadge } from '../components/alerts/OverdueBadge'
+import { AuthorityMembers } from '../components/officials/AuthorityMembers'
 import type { AlertStatus } from '../types'
 import { OPEN_STATUSES } from '../types'
 import { GroupIcon } from '../components/common/GroupIcon'
@@ -63,6 +64,9 @@ export function AssignedReportsPage() {
             <p className="text-sm text-slate-600">Сигнали, изпратени до вас</p>
           </div>
         </header>
+
+        {/* The authority's own account manages its staff; for anyone else this is nothing. */}
+        <AuthorityMembers />
 
         <div className="mb-5 flex gap-2" role="tablist">
           {TABS.map((t, i) => (
