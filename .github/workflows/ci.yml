@@ -1,8 +1,8 @@
 name: CI
 
 # Mirrors nabat-app's trigger deliberately: pull requests to any branch, not only those
-# aimed at main. This repository has been developed directly on a long-lived branch, so a
-# workflow that only ran against main would have verified nothing for weeks at a time.
+# aimed at master. This repository has been developed directly on a long-lived branch, so a
+# workflow that only ran against master would have verified nothing for weeks at a time.
 #
 # Until now there was no workflow at all. The consequence was concrete rather than
 # theoretical: the client kept reading `GET /alerts/nearby` as a bare array for days after
@@ -11,7 +11,7 @@ name: CI
 # (they mock the API module). A contract test with somewhere to run is what closes that gap.
 on:
   push:
-    branches: [main]
+    branches: [master]
   pull_request:
 
 concurrency:
