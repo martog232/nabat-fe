@@ -13,6 +13,7 @@ import { resolveCategory } from '../../utils/categories'
 import { ReportActions } from './ReportActions'
 import { FixCheckPanel } from './FixCheckPanel'
 import { CommentThread } from './CommentThread'
+import { ReportPhoto } from './ReportPhoto'
 import { ForwardHistory } from './ForwardHistory'
 import { ReportTimeline } from './ReportTimeline'
 import { RejectionPanel } from './RejectionPanel'
@@ -106,6 +107,8 @@ export function AlertDetail() {
         {/* Body — the only scrolling region; overscroll-contain stops a flick here from dragging the map underneath. */}
         <div className="flex-1 overflow-y-auto overscroll-contain p-4 space-y-3">
           <p className="text-sm text-slate-700 leading-relaxed">{a.description}</p>
+
+          <ReportPhoto photoUrl={a.photoUrl} title={a.title} />
 
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
             <span className="inline-flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5" aria-hidden /> {formatDate(a.createdAt)}</span>
