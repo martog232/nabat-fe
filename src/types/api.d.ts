@@ -87,6 +87,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/authority/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Everyone acting for the caller's authority */
+        get: operations["list"];
+        put?: never;
+        /** Invite a colleague: an official account of their own, and a mail to set its password */
+        post: operations["invite"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/verify": {
         parameters: {
             query?: never;
@@ -439,7 +457,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list"];
+        get: operations["list_1"];
         put?: never;
         post?: never;
         delete?: never;
@@ -488,7 +506,7 @@ export interface paths {
             cookie?: never;
         };
         /** The districts of Sofia that reports are routed to */
-        get: operations["list_1"];
+        get: operations["list_2"];
         put?: never;
         post?: never;
         delete?: never;
@@ -505,7 +523,7 @@ export interface paths {
             cookie?: never;
         };
         /** Report categories — Call Sofia's groups and subcategories, with its codes */
-        get: operations["list_2"];
+        get: operations["list_3"];
         put?: never;
         post?: never;
         delete?: never;
@@ -539,7 +557,7 @@ export interface paths {
             cookie?: never;
         };
         /** The districts and city-wide institutions that reports go to */
-        get: operations["list_3"];
+        get: operations["list_4"];
         put?: never;
         post?: never;
         delete?: never;
@@ -764,6 +782,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/authority/members/{userId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Take the official role from a colleague who has left */
+        delete: operations["remove"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/alerts/{id}/comments/{commentId}": {
         parameters: {
             query?: never;
@@ -775,7 +810,7 @@ export interface paths {
         put?: never;
         post?: never;
         /** Take a comment down */
-        delete: operations["remove"];
+        delete: operations["remove_1"];
         options?: never;
         head?: never;
         patch?: never;
@@ -881,6 +916,49 @@ export interface components {
              */
             createdAt?: string;
         };
+        /** @description A colleague to invite */
+        InviteRequest: {
+            /**
+             * Format: email
+             * @example ivan.petrov@lozenets.example
+             */
+            email: string;
+            /** @example Иван Петров */
+            displayName: string;
+        };
+        /** @description Public profile of a user */
+        UserResponse: {
+            /**
+             * Format: uuid
+             * @description Stable user identifier
+             */
+            id?: string;
+            /**
+             * @description E-mail address
+             * @example alice@example.com
+             */
+            email?: string;
+            /**
+             * @description Display name shown to other users
+             * @example Alice
+             */
+            displayName?: string;
+            /**
+             * @description Assigned role
+             * @example USER
+             * @enum {string}
+             */
+            role?: "USER" | "MODERATOR" | "ADMIN" | "OFFICIAL";
+            /** @description Whether the email address has been verified */
+            emailVerified?: boolean;
+            /** @description Whether the account may sign in — an admin can switch this off */
+            enabled?: boolean;
+            /**
+             * @description For an official, the authority they act for: a district or an institution; null for every other role
+             * @example LOZENETS
+             */
+            authorityCode?: string;
+        };
         MessageResponse: {
             message?: string;
         };
@@ -921,39 +999,6 @@ export interface components {
             expiresIn?: number;
             /** @description Basic profile of the authenticated user */
             user?: components["schemas"]["UserResponse"];
-        };
-        /** @description Public profile of a user */
-        UserResponse: {
-            /**
-             * Format: uuid
-             * @description Stable user identifier
-             */
-            id?: string;
-            /**
-             * @description E-mail address
-             * @example alice@example.com
-             */
-            email?: string;
-            /**
-             * @description Display name shown to other users
-             * @example Alice
-             */
-            displayName?: string;
-            /**
-             * @description Assigned role
-             * @example USER
-             * @enum {string}
-             */
-            role?: "USER" | "MODERATOR" | "ADMIN" | "OFFICIAL";
-            /** @description Whether the email address has been verified */
-            emailVerified?: boolean;
-            /** @description Whether the account may sign in — an admin can switch this off */
-            enabled?: boolean;
-            /**
-             * @description For an official, the authority they act for: a district or an institution; null for every other role
-             * @example LOZENETS
-             */
-            authorityCode?: string;
         };
         RefreshTokenRequest: {
             refreshToken: string;
@@ -1790,6 +1835,50 @@ export interface operations {
             };
         };
     };
+    list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["UserResponse"][];
+                };
+            };
+        };
+    };
+    invite: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InviteRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["UserResponse"];
+                };
+            };
+        };
+    };
     verifyEmail: {
         parameters: {
             query: {
@@ -2368,7 +2457,7 @@ export interface operations {
             };
         };
     };
-    list: {
+    list_1: {
         parameters: {
             query?: never;
             header?: never;
@@ -2430,7 +2519,7 @@ export interface operations {
             };
         };
     };
-    list_1: {
+    list_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -2450,7 +2539,7 @@ export interface operations {
             };
         };
     };
-    list_2: {
+    list_3: {
         parameters: {
             query?: never;
             header?: never;
@@ -2493,7 +2582,7 @@ export interface operations {
             };
         };
     };
-    list_3: {
+    list_4: {
         parameters: {
             query?: never;
             header?: never;
@@ -2814,6 +2903,28 @@ export interface operations {
         };
     };
     remove: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["UserResponse"];
+                };
+            };
+        };
+    };
+    remove_1: {
         parameters: {
             query?: never;
             header?: never;
