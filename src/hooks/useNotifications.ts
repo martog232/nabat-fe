@@ -12,11 +12,13 @@ export function useNotifications() {
   })
 }
 
-export function useUnreadCount() {
+export function useUnreadCount(signedIn: boolean) {
   return useQuery({
     queryKey: UNREAD_COUNT_KEY,
     queryFn: notificationsApi.getUnreadCount,
     refetchInterval: 30_000,
+    // Someone reading the public map has no notifications, and asking would 401.
+    enabled: signedIn,
   })
 }
 

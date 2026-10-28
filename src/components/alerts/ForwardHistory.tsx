@@ -1,5 +1,4 @@
 import type { Alert } from '../../types'
-import { useAuthStore } from '../../store/authStore'
 import { useAuthorityNames } from '../../hooks/useAuthorities'
 import { useForwards } from '../../hooks/useForwards'
 
@@ -13,9 +12,8 @@ function formatDate(iso: string) {
  * by competence" hides elsewhere. Nothing at all for a report that never moved.
  */
 export function ForwardHistory({ alert }: { alert: Alert }) {
-  const user = useAuthStore((s) => s.user)
   const names = useAuthorityNames()
-  const { data: forwards = [] } = useForwards(alert.id, !!user)
+  const { data: forwards = [] } = useForwards(alert.id, true)
   if (forwards.length === 0) return null
 
   const name = (code: string) => names.get(code) ?? code

@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { AxiosError } from 'axios'
 import { votesApi } from '../api/votes'
 import { useToastStore } from '../store/toastStore'
-import type { Alert, ErrorResponse, VoteDetails, VoteStats, VoteType } from '../types'
+import type { Alert, ErrorResponse, MyVoteResponse, VoteDetails, VoteStats, VoteType } from '../types'
 
 const voteDataKey = (alertId: string) => ['votes', alertId] as const
 
@@ -75,13 +75,16 @@ function errorCode(err: unknown): string | undefined {
  * `credibilityScore` and the three counts, so components that only render totals
  * should read them off the `Alert` rather than calling this at all.
  */
-export function useVoteData(alertId: string) {
+const NOT_VOTED: MyVoteResponse = { hasVoted: false, voteType: null }
+
+/** The tallies for anyone; the caller's own vote only when there is a caller (`signedIn`). */
+export function useVoteData(alertId: string, signedIn: boolean) {
   return useQuery({
     queryKey: voteDataKey(alertId),
     queryFn: async () => {
       const [stats, myVote] = await Promise.all([
         votesApi.getStats(alertId),
-        votesApi.getMyVote(alertId),
+        signedIn ? votesApi.getMyVote(alertId) : Promise.resolve(NOT_VOTED),
       ])
       return { stats, myVote } satisfies VoteDetails
     },

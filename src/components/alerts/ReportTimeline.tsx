@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import type { Alert, ReportStep } from '../../types'
 import { alertsApi } from '../../api/alerts'
-import { useAuthStore } from '../../store/authStore'
 import { useAuthorityNames } from '../../hooks/useAuthorities'
 
 const STEP_LABELS: Record<ReportStep['step'], string> = {
@@ -27,16 +26,14 @@ function formatDate(iso: string) {
  * Reports older than the history have none, and show nothing.
  */
 export function ReportTimeline({ alert }: { alert: Alert }) {
-  const user = useAuthStore((s) => s.user)
   const names = useAuthorityNames()
   const [open, setOpen] = useState(false)
   const { data: steps = [] } = useQuery({
     queryKey: ['history', alert.id, alert.status],
     queryFn: () => alertsApi.history(alert.id),
-    enabled: open && !!user,
+    enabled: open,
   })
 
-  if (!user) return null
   const authority = (code: string | null) => (code ? names.get(code) ?? code : '')
 
   return (

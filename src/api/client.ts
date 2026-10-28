@@ -107,12 +107,15 @@ apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
 type RetriableConfig = InternalAxiosRequestConfig & { _retry?: boolean }
 
 function clearSessionAndRedirect() {
+  // Only a session that died is sent to sign in. Someone reading the public map never had
+  // one, and a 401 there is a single refused request, not a reason to take them off the page.
+  const hadSession = !!localStorage.getItem('accessToken') || !!localStorage.getItem('refreshToken')
   localStorage.removeItem('accessToken')
   localStorage.removeItem('refreshToken')
   // Also drop the persisted zustand auth state, otherwise a full reload would
   // rehydrate a "logged in" user holding dead tokens.
   localStorage.removeItem('nabat-auth')
-  if (window.location.pathname !== '/login') {
+  if (hadSession && window.location.pathname !== '/login') {
     window.location.href = '/login'
   }
 }

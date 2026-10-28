@@ -18,7 +18,7 @@ export function RejectionPanel({ alert }: { alert: Alert }) {
   const user = useAuthStore((s) => s.user)
   const names = useAuthorityNames()
   const rejected = alert.status === 'REJECTED'
-  const { data: rejections = [] } = useRejections(alert.id, rejected && !!user)
+  const { data: rejections = [] } = useRejections(alert.id, rejected)
   const dispute = useDisputeRejection(alert.id)
   const decide = useDecideDispute(alert.id)
   const [disputing, setDisputing] = useState(false)

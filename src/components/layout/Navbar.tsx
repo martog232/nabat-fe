@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { useAuthStore } from '../../store/authStore'
 import { useUnreadCount } from '../../hooks/useNotifications'
 import { NotificationPanel } from '../notifications/NotificationPanel'
@@ -7,8 +7,9 @@ import { canActForAuthority, canModerateContent } from '../../utils/permissions'
 
 export function Navbar() {
   const [showNotifications, setShowNotifications] = useState(false)
-  const { data: unreadCount } = useUnreadCount()
   const user = useAuthStore((s) => s.user)
+  const { data: unreadCount } = useUnreadCount(!!user)
+  const location = useLocation()
 
   const count = unreadCount?.count ?? 0
 
@@ -102,6 +103,32 @@ export function Navbar() {
             className="flex h-11 w-11 items-center justify-center rounded-full border border-surface-border bg-brand-600 text-sm font-semibold text-white shadow-lg shadow-brand-600/30 transition-transform hover:scale-105 sm:h-9 sm:w-9"
           >
             {initialsOf(user.displayName)}
+          </Link>
+        </div>
+      )}
+
+      {/* Reading the map needs no account; this is the way in for doing something on it,
+          back to the same page afterwards. */}
+      {!user && (
+        <div className="flex items-center gap-2">
+          <Link
+            to="/reports"
+            className="hidden h-9 items-center rounded-full px-3 text-sm font-medium text-slate-700 transition-colors hover:bg-surface-elevated sm:flex"
+          >
+            Всички сигнали
+          </Link>
+          <Link
+            to="/districts"
+            className="hidden h-9 items-center rounded-full px-3 text-sm font-medium text-slate-700 transition-colors hover:bg-surface-elevated sm:flex"
+          >
+            Районите
+          </Link>
+          <Link
+            to="/login"
+            state={{ from: location }}
+            className="flex h-11 items-center rounded-full bg-brand-600 px-4 text-sm font-semibold text-white shadow-lg shadow-brand-600/30 transition-colors hover:bg-brand-700 sm:h-9"
+          >
+            Вход
           </Link>
         </div>
       )}

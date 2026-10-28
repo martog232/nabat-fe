@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { Layout } from '../components/layout/Layout'
 import { AlertMap } from '../components/map/AlertMap'
 import { AlertSidebar } from '../components/alerts/AlertSidebar'
@@ -16,6 +17,8 @@ export function MapPage() {
   const user = useAuthStore((s) => s.user)
   const wsConnected = useAlertStore((s) => s.wsConnected)
   const [showCreateModal, setShowCreateModal] = useState(false)
+  const navigate = useNavigate()
+  const location = useLocation()
 
   // Live alerts
   useNearbyAlerts()
@@ -42,19 +45,18 @@ export function MapPage() {
         controls, and drops the label — three words of text next to two round buttons in a
         44px strip is how a corner becomes unhittable. From sm: the label returns.
       */}
-      {user && (
-        <div className="absolute z-[1000] left-4 bottom-[calc(var(--sheet-peek)+1rem)] sm:left-auto sm:right-4 sm:bottom-6">
-          <Button
-            onClick={() => setShowCreateModal(true)}
-            aria-label="Подай сигнал"
-            className="h-14 w-14 sm:h-auto sm:w-auto sm:px-5 sm:py-3 sm:text-sm justify-center shadow-2xl shadow-brand-600/40 rounded-full sm:rounded-2xl"
-            size="icon"
-          >
-            <Megaphone className="h-6 w-6 sm:h-5 sm:w-5" aria-hidden />
-            <span className="hidden sm:inline">Подай сигнал</span>
-          </Button>
-        </div>
-      )}
+      {/* Signed out, the same button leads to signing in and back here. */}
+      <div className="absolute z-[1000] left-4 bottom-[calc(var(--sheet-peek)+1rem)] sm:left-auto sm:right-4 sm:bottom-6">
+        <Button
+          onClick={() => (user ? setShowCreateModal(true) : navigate('/login', { state: { from: location } }))}
+          aria-label="Подай сигнал"
+          className="h-14 w-14 sm:h-auto sm:w-auto sm:px-5 sm:py-3 sm:text-sm justify-center shadow-2xl shadow-brand-600/40 rounded-full sm:rounded-2xl"
+          size="icon"
+        >
+          <Megaphone className="h-6 w-6 sm:h-5 sm:w-5" aria-hidden />
+          <span className="hidden sm:inline">Подай сигнал</span>
+        </Button>
+      </div>
 
       {/*
         Connection state. Bottom-centre is the busiest strip on a phone — sheet handle, report

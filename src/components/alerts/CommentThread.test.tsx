@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { render, screen, cleanup } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { MemoryRouter } from 'react-router-dom'
 import { CommentThread } from './CommentThread'
 import { useAuthStore } from '../../store/authStore'
 import type { Alert, Comment, User } from '../../types'
@@ -138,12 +139,13 @@ describe('CommentThread', () => {
     expect(screen.getByText('Коментарът е премахнат от модератор.')).toBeInTheDocument()
   })
 
-  it('offers a way in to someone signed out, without asking for the thread', () => {
+  it('shows the thread to someone signed out, and offers a way in to write', () => {
     signIn(null)
     thread = [comment({})]
-    render(<CommentThread alert={report} />)
+    render(<MemoryRouter><CommentThread alert={report} /></MemoryRouter>)
 
-    expect(screen.getByText(/за да четете и пишете коментари/)).toBeInTheDocument()
-    expect(screen.queryByText('Още е там.')).not.toBeInTheDocument()
+    expect(screen.getByText('Още е там.')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Влезте' })).toHaveAttribute('href', '/login')
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
   })
 })

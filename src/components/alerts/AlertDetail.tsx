@@ -14,6 +14,7 @@ import { ReportActions } from './ReportActions'
 import { FixCheckPanel } from './FixCheckPanel'
 import { CommentThread } from './CommentThread'
 import { ReportPhoto } from './ReportPhoto'
+import { SignInLink } from '../auth/SignInLink'
 import { ForwardHistory } from './ForwardHistory'
 import { ReportTimeline } from './ReportTimeline'
 import { RejectionPanel } from './RejectionPanel'
@@ -41,7 +42,7 @@ export function AlertDetail() {
   const authorityNames = useAuthorityNames()
   const categoryIndex = useCategoryIndex()
 
-  const { data: voteData } = useVoteData(selectedAlert?.id ?? '')
+  const { data: voteData } = useVoteData(selectedAlert?.id ?? '', !!user)
   const stats = voteData?.stats
   const myVote = voteData?.myVote
   const vote = useVote(selectedAlert?.id ?? '')
@@ -194,7 +195,7 @@ export function AlertDetail() {
 
           {!user && (
             <p className="text-xs text-slate-500 text-center">
-              <a href="/login" className="text-brand-400 hover:underline">Влезте</a>, за да потвърдите, че го виждате
+              <SignInLink />, за да потвърдите, че го виждате
             </p>
           )}
 

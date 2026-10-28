@@ -83,10 +83,10 @@ export function LandingPage() {
               Вече имам профил
             </Link>
             <Link
-              to="/reports"
+              to="/map"
               className="inline-flex items-center justify-center rounded-xl px-7 py-3.5 text-base font-semibold text-white/90 underline-offset-4 transition-colors hover:underline"
             >
-              Вижте подадените сигнали
+              Вижте картата със сигналите
             </Link>
             <Link
               to="/districts"

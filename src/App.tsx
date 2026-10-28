@@ -46,14 +46,9 @@ export default function App() {
               </PublicOnlyRoute>
             }
           />
-          <Route
-            path="/map"
-            element={
-              <ProtectedRoute>
-                <MapPage />
-              </ProtectedRoute>
-            }
-          />
+          {/* Public, read-only for anyone signed out: the reports, their photos and threads.
+              Doing anything on it — reporting, confirming, commenting — asks for a session. */}
+          <Route path="/map" element={<MapPage />} />
           <Route
             path="/settings"
             element={

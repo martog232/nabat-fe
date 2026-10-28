@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useAuthStore } from '../../store/authStore'
+import { SignInLink } from '../auth/SignInLink'
 import { useAddComment, useComments, useRemoveComment } from '../../hooks/useComments'
 import { useAuthorityNames } from '../../hooks/useAuthorities'
 import { canModerateContent } from '../../utils/permissions'
@@ -19,8 +20,7 @@ const REMOVED_BY: Record<NonNullable<Comment['removedBy']>, string> = {
  *
  * Open while the report is. Once it is resolved or rejected the box goes and says why, and
  * the thread stays as it was — what is left to say about a resolved report belongs in "is it
- * really fixed?" above. Signed-out readers are offered a way in; the thread itself needs a
- * session, like the rest of a report.
+ * really fixed?" above. Anyone may read it; signed-out readers are offered a way in to write.
  */
 export function CommentThread({ alert }: { alert: Alert }) {
   const user = useAuthStore((s) => s.user)
@@ -28,7 +28,7 @@ export function CommentThread({ alert }: { alert: Alert }) {
   const authorityNames = useAuthorityNames()
   const authorityName = (alert.authorityCode && authorityNames.get(alert.authorityCode)) || 'Отговорната институция'
   const open = isOpen(alert.status)
-  const { data: comments = [], isLoading, isError } = useComments(alert.id, !!user)
+  const { data: comments = [], isLoading, isError } = useComments(alert.id, true)
   const add = useAddComment(alert.id)
   const remove = useRemoveComment(alert.id)
   const [draft, setDraft] = useState('')
@@ -51,13 +51,13 @@ export function CommentThread({ alert }: { alert: Alert }) {
 
       {!user && (
         <p className="text-xs text-slate-500">
-          <a href="/login" className="text-brand-400 hover:underline">Влезте</a>, за да четете и пишете коментари.
+          <SignInLink />, за да пишете коментари.
         </p>
       )}
 
-      {user && isLoading && <p className="text-xs text-slate-500">Зареждане…</p>}
-      {user && isError && <p className="text-xs text-red-600">Коментарите не можаха да се заредят.</p>}
-      {user && !isLoading && !isError && comments.length === 0 && open && (
+      {isLoading && <p className="text-xs text-slate-500">Зареждане…</p>}
+      {isError && <p className="text-xs text-red-600">Коментарите не можаха да се заредят.</p>}
+      {!isLoading && !isError && comments.length === 0 && open && (
         <p className="text-xs text-slate-500">Още няма коментари. Знаете ли нещо за този сигнал?</p>
       )}
 
